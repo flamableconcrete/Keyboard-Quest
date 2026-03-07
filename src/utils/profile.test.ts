@@ -3,7 +3,7 @@ import { createProfile, saveProfile, loadProfile, deleteProfile, exportProfile, 
 
 // Mock localStorage
 const store: Record<string, string> = {}
-global.localStorage = {
+globalThis.localStorage = {
   getItem: (k: string) => store[k] ?? null,
   setItem: (k: string, v: string) => { store[k] = v },
   removeItem: (k: string) => { delete store[k] },
