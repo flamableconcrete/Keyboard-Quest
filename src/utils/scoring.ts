@@ -38,3 +38,11 @@ export function calcCharacterLevel(xp: number): number {
 export function xpForLevel(level: number): number {
   return (level - 1) ** 2 * 50
 }
+
+export function calcCompanionLevel(xp: number): number {
+  return Math.min(3, Math.floor(xp / 200) + 1)
+}
+
+export function companionAutoStrikes(level: number): number {
+  return level  // level 1=1, level 2=2, level 3=3
+}
