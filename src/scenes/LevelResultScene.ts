@@ -26,7 +26,7 @@ export class LevelResultScene extends Phaser.Scene {
   }
 
   create() {
-    const { width } = this.scale
+    const { width, height } = this.scale
     const { level, accuracyStars, speedStars, passed } = this.resultData
 
     if (!passed) {
@@ -71,9 +71,20 @@ export class LevelResultScene extends Phaser.Scene {
 
     saveProfile(this.resultData.profileSlot, this.profile)
 
+    // Victory detection — route to VictoryScene if Typemancer defeated
+    if (this.resultData.level.bossId === 'typemancer' && passed) {
+      this.add.text(width / 2, height / 2, 'THE TYPEMANCER IS DEFEATED!', {
+        fontSize: '36px', color: '#ffd700', fontStyle: 'bold', wordWrap: { width: 900 }
+      }).setOrigin(0.5)
+      this.time.delayedCall(2000, () => {
+        this.scene.start('VictoryScene', { profileSlot: this.resultData.profileSlot })
+      })
+      return
+    }
+
     // Render result
-    this.add.text(width / 2, 80, passed ? 'VICTORY!' : 'DEFEATED', {
-      fontSize: '56px', color: passed ? '#ffd700' : '#ff4444', fontStyle: 'bold'
+    this.add.text(width / 2, 80, 'VICTORY!', {
+      fontSize: '56px', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(0.5)
 
     this.add.text(width / 2, 170, level.name, {
@@ -81,11 +92,11 @@ export class LevelResultScene extends Phaser.Scene {
     }).setOrigin(0.5)
 
     // Stars
-    this.add.text(width / 2, 260, `⚡ Speed: ${'★'.repeat(speedStars)}${'☆'.repeat(5 - speedStars)}`, {
+    this.add.text(width / 2, 260, `Speed: ${'★'.repeat(speedStars)}${'☆'.repeat(5 - speedStars)}`, {
       fontSize: '32px', color: '#ffdd44'
     }).setOrigin(0.5)
 
-    this.add.text(width / 2, 310, `🎯 Accuracy: ${'★'.repeat(accuracyStars)}${'☆'.repeat(5 - accuracyStars)}`, {
+    this.add.text(width / 2, 310, `Accuracy: ${'★'.repeat(accuracyStars)}${'☆'.repeat(5 - accuracyStars)}`, {
       fontSize: '32px', color: '#44ffdd'
     }).setOrigin(0.5)
 
@@ -101,7 +112,7 @@ export class LevelResultScene extends Phaser.Scene {
 
     // Letter unlock banner
     if (level.miniBossUnlocksLetter) {
-      this.add.text(width / 2, 470, `✨ The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
+      this.add.text(width / 2, 470, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
         fontSize: '26px', color: '#aaaaff'
       }).setOrigin(0.5)
     }
@@ -110,8 +121,8 @@ export class LevelResultScene extends Phaser.Scene {
     if (this.resultData.captureAttempt) {
       const success = Math.random() < 0.2
       const msg = success
-        ? `🐾 You captured a ${this.resultData.captureAttempt.monsterName}!`
-        : `🐾 The ${this.resultData.captureAttempt.monsterName} escaped...`
+        ? `You captured a ${this.resultData.captureAttempt.monsterName}!`
+        : `The ${this.resultData.captureAttempt.monsterName} escaped...`
       this.add.text(width / 2, 520, msg, {
         fontSize: '22px', color: success ? '#aaffaa' : '#ff8888'
       }).setOrigin(0.5)
@@ -122,7 +133,16 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '32px', color: '#ffffff'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     cont.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
+      if (this.resultData.level.miniBossUnlocksLetter && passed) {
+        this.scene.start('Cutscene', {
+          letter: this.resultData.level.miniBossUnlocksLetter,
+          title: this.resultData.level.rewards.title ?? 'A new letter awakens!',
+          nextScene: 'OverlandMap',
+          nextSceneData: { profileSlot: this.resultData.profileSlot },
+        })
+      } else {
+        this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
+      }
     })
   }
 
