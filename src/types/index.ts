@@ -1,0 +1,108 @@
+export type StarRating = 1 | 2 | 3 | 4 | 5
+
+export interface LevelResult {
+  accuracyStars: StarRating
+  speedStars: StarRating
+  completedAt: number
+}
+
+export interface CompanionData {
+  id: string
+  name: string
+  backstory: string
+  type: 'companion' | 'pet'
+  level: number
+  xp: number
+  autoStrikeCount: number // 1-3
+}
+
+export interface EquipmentData {
+  weapon: string | null
+  armor: string | null
+  accessory: string | null
+}
+
+export interface ProfileData {
+  playerName: string
+  avatarChoice: string
+  characterLevel: number
+  xp: number
+  statPoints: number
+  hpPoints: number
+  powerPoints: number
+  focusPoints: number
+  currentWorld: number
+  currentLevelId: string
+  unlockedLetters: string[]
+  unlockedLevelIds: string[]
+  levelResults: Record<string, LevelResult>
+  equipment: EquipmentData
+  spells: string[]
+  companions: CompanionData[]
+  pets: CompanionData[]
+  activeCompanionId: string | null
+  activePetId: string | null
+  titles: string[]
+}
+
+export type LevelType =
+  | 'GoblinWhacker'
+  | 'SkeletonSwarm'
+  | 'MonsterArena'
+  | 'UndeadSiege'
+  | 'SlimeSplitting'
+  | 'DungeonTrapDisarm'
+  | 'DungeonEscape'
+  | 'PotionBrewingLab'
+  | 'MagicRuneTyping'
+  | 'MonsterManual'
+  | 'GuildRecruitment'
+  | 'CharacterCreator'
+  | 'WoodlandFestival'
+  | 'SillyChallenge'
+  | 'BossBattle'
+
+export interface LevelConfig {
+  id: string
+  name: string
+  type: LevelType
+  world: number
+  unlockedLetters: string[]
+  wordCount: number
+  timeLimit: number | null  // null = no time limit
+  storyBeat: string
+  rewards: {
+    xp: number
+    item?: string
+    spell?: string
+    companionId?: string
+    title?: string
+  }
+  captureEligible: boolean
+  bossGate: { minCombinedStars: number; levelIds: string[] } | null
+  miniBossUnlocksLetter?: string  // if this is a mini-boss level
+  isBoss?: boolean
+  isMiniBoss?: boolean
+  bossId?: string
+  phases?: number
+}
+
+export interface ItemData {
+  id: string
+  name: string
+  slot: 'weapon' | 'armor' | 'accessory'
+  description: string
+  effect: {
+    hp?: number
+    power?: number
+    focusBonus?: number
+    captureChanceBonus?: number
+  }
+}
+
+export interface SpellData {
+  id: string
+  name: string
+  description: string
+  effect: 'time_freeze' | 'word_blast' | 'second_chance' | 'letter_shield'
+}
