@@ -41,6 +41,11 @@ export class TypingEngine {
     this.renderWord()
   }
 
+  setDisplayWord(displayWord: string) {
+    this.displayWord = displayWord
+    this.renderWord()
+  }
+
   clearWord() {
     this.charTexts.forEach(t => t.destroy())
     this.charTexts = []
