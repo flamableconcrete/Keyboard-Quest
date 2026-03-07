@@ -26,6 +26,7 @@ import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
 import { HydraBoss } from './scenes/boss-types/HydraBoss'
 import { SlimeKingBoss } from './scenes/boss-types/SlimeKingBoss'
+import { ClockworkDragonBoss } from './scenes/boss-types/ClockworkDragonBoss'
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -37,6 +38,6 @@ new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss
+    BossBattleScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss
   ],
 })
