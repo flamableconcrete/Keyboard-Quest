@@ -13,6 +13,7 @@ export interface TypingEngineConfig {
 export class TypingEngine {
   private scene: Phaser.Scene
   private currentWord = ''
+  private displayWord = ''
   private typedSoFar = ''
   private config: TypingEngineConfig
   private charTexts: Phaser.GameObjects.Text[] = []
@@ -31,8 +32,9 @@ export class TypingEngine {
     this.scene.input.keyboard?.on('keydown', this.handleKey, this)
   }
 
-  setWord(word: string) {
+  setWord(word: string, displayWord?: string) {
     this.currentWord = word
+    this.displayWord = displayWord || word
     this.typedSoFar = ''
     this.wordStartTime = Date.now()
     this.renderWord()
@@ -80,10 +82,12 @@ export class TypingEngine {
     this.charTexts = []
     const { x, y, fontSize = 36 } = this.config
     const charW = fontSize * 0.62
-    const totalW = this.currentWord.length * charW
+    // Use displayWord for layout if provided, else currentWord
+    const layoutWord = this.displayWord || this.currentWord
+    const totalW = layoutWord.length * charW
     const startX = x - totalW / 2
 
-    this.currentWord.split('').forEach((ch, i) => {
+    layoutWord.split('').forEach((ch, i) => {
       const color = i < this.typedSoFar.length ? '#44ff44'
         : i === this.typedSoFar.length ? '#ffffff'
         : '#888888'
