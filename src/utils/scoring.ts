@@ -1,4 +1,5 @@
-import { StarRating } from '../types'
+import { ProfileData, StarRating } from '../types'
+import { getLevelsForWorld } from '../data/levels'
 
 // Accuracy: 95-100%=5, 85-94%=4, 75-84%=3, 60-74%=2, <60%=1
 export function calcAccuracyStars(correct: number, total: number): StarRating {
@@ -45,4 +46,18 @@ export function calcCompanionLevel(xp: number): number {
 
 export function companionAutoStrikes(level: number): number {
   return level  // level 1=1, level 2=2, level 3=3
+}
+
+/**
+ * Mastery = All levels in that world have 5 accuracy AND 5 speed stars.
+ */
+export function checkWorldMastery(profile: ProfileData, world: number): boolean {
+  const worldLevels = getLevelsForWorld(world)
+  if (worldLevels.length === 0) return false
+
+  return worldLevels.every(level => {
+    const result = profile.levelResults[level.id]
+    if (!result) return false
+    return result.accuracyStars === 5 && result.speedStars === 5
+  })
 }

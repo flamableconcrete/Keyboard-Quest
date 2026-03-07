@@ -4,6 +4,7 @@ export interface LevelResult {
   accuracyStars: StarRating
   speedStars: StarRating
   completedAt: number
+  companionUsed: boolean
 }
 
 export interface CompanionData {
@@ -44,6 +45,8 @@ export interface ProfileData {
   activePetId: string | null
   titles: string[]
   ownedItemIds: string[]
+  worldMasteryRewards: string[]
+  bossWeaknessKnown: string | null
 }
 
 export type LevelType =
