@@ -1,0 +1,101 @@
+// src/components/TypingEngine.ts
+import Phaser from 'phaser'
+
+export interface TypingEngineConfig {
+  scene: Phaser.Scene
+  x: number
+  y: number
+  fontSize?: number
+  onWordComplete: (word: string, elapsedMs: number) => void
+  onWrongKey: () => void
+}
+
+export class TypingEngine {
+  private scene: Phaser.Scene
+  private currentWord = ''
+  private typedSoFar = ''
+  private config: TypingEngineConfig
+  private charTexts: Phaser.GameObjects.Text[] = []
+  private wordStartTime = 0
+
+  // Tracking stats
+  correctKeystrokes = 0
+  totalKeystrokes = 0
+  completedWords = 0
+  sessionStartTime = 0
+
+  constructor(config: TypingEngineConfig) {
+    this.config = config
+    this.scene = config.scene
+    this.sessionStartTime = Date.now()
+    this.scene.input.keyboard?.on('keydown', this.handleKey, this)
+  }
+
+  setWord(word: string) {
+    this.currentWord = word
+    this.typedSoFar = ''
+    this.wordStartTime = Date.now()
+    this.renderWord()
+  }
+
+  clearWord() {
+    this.charTexts.forEach(t => t.destroy())
+    this.charTexts = []
+    this.currentWord = ''
+    this.typedSoFar = ''
+  }
+
+  private handleKey(event: KeyboardEvent) {
+    if (!this.currentWord) return
+    const key = event.key.toLowerCase()
+    if (key.length !== 1) return
+
+    this.totalKeystrokes++
+
+    const expected = this.currentWord[this.typedSoFar.length]
+    if (key === expected) {
+      this.correctKeystrokes++
+      this.typedSoFar += key
+      this.renderWord()
+      if (this.typedSoFar === this.currentWord) {
+        this.completedWords++
+        const elapsed = Date.now() - this.wordStartTime
+        this.config.onWordComplete(this.currentWord, elapsed)
+        this.clearWord()
+      }
+    } else {
+      this.config.onWrongKey()
+      // Flash current char red
+      const idx = this.typedSoFar.length
+      if (this.charTexts[idx]) {
+        const t = this.charTexts[idx]
+        t.setColor('#ff4444')
+        this.scene.time.delayedCall(100, () => t.setColor('#888888'))
+      }
+    }
+  }
+
+  private renderWord() {
+    this.charTexts.forEach(t => t.destroy())
+    this.charTexts = []
+    const { x, y, fontSize = 36 } = this.config
+    const charW = fontSize * 0.62
+    const totalW = this.currentWord.length * charW
+    const startX = x - totalW / 2
+
+    this.currentWord.split('').forEach((ch, i) => {
+      const color = i < this.typedSoFar.length ? '#44ff44'
+        : i === this.typedSoFar.length ? '#ffffff'
+        : '#888888'
+      const t = this.scene.add.text(startX + i * charW, y, ch, {
+        fontSize: `${fontSize}px`, color
+      })
+      this.charTexts.push(t)
+    })
+  }
+
+  destroy() {
+    this.scene.input.keyboard?.off('keydown', this.handleKey, this)
+    this.clearWord()
+  }
+}
