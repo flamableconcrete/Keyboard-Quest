@@ -28,7 +28,7 @@ export class LevelResultScene extends Phaser.Scene {
   }
 
   create() {
-    const { width } = this.scale
+    const { width, height } = this.scale
     const { level, accuracyStars, speedStars, passed } = this.resultData
 
     if (!passed) {
@@ -100,6 +100,17 @@ export class LevelResultScene extends Phaser.Scene {
       saveProfile(this.resultData.profileSlot, this.profile)
     }
 
+    // Victory detection — route to VictoryScene if Typemancer defeated
+    if (this.resultData.level.bossId === 'typemancer' && passed) {
+      this.add.text(width / 2, height / 2, 'THE TYPEMANCER IS DEFEATED!', {
+        fontSize: '36px', color: '#ffd700', fontStyle: 'bold', wordWrap: { width: 900 }
+      }).setOrigin(0.5)
+      this.time.delayedCall(2000, () => {
+        this.scene.start('VictoryScene', { profileSlot: this.resultData.profileSlot })
+      })
+      return
+    }
+
     // Render result
     this.add.text(width / 2, 80, 'VICTORY!', {
       fontSize: '56px', color: '#ffd700', fontStyle: 'bold'
@@ -140,7 +151,16 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '32px', color: '#ffffff'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     cont.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
+      if (this.resultData.level.miniBossUnlocksLetter && passed) {
+        this.scene.start('Cutscene', {
+          letter: this.resultData.level.miniBossUnlocksLetter,
+          title: this.resultData.level.rewards.title ?? 'A new letter awakens!',
+          nextScene: 'OverlandMap',
+          nextSceneData: { profileSlot: this.resultData.profileSlot },
+        })
+      } else {
+        this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
+      }
     })
   }
 
