@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 
 interface SillyEntity {
@@ -176,6 +177,9 @@ export class SillyChallengeLevel extends Phaser.Scene {
     this.spawnTimer?.remove()
     this.engine.destroy()
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     // SillyChallenge always gives max stars for base XP
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
@@ -184,6 +188,7 @@ export class SillyChallengeLevel extends Phaser.Scene {
         accuracyStars: 5,
         speedStars: 5,
         passed,
+        companionUsed,
       })
     })
   }

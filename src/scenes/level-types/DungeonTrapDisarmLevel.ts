@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 
@@ -208,6 +209,9 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -215,6 +219,7 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
       })
     })
   }

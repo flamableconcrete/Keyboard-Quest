@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 
@@ -151,10 +152,14 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
     const captureAttempt = this.level.captureEligible ? { monsterId: 'slime', monsterName: 'Slime' } : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
         level: this.level, profileSlot: this.profileSlot,
-        accuracyStars: acc, speedStars: spd, passed, captureAttempt
+        accuracyStars: acc, speedStars: spd, passed, 
+        companionUsed, captureAttempt
       })
     })
   }

@@ -1,6 +1,7 @@
 // src/scenes/boss-types/GrizzlefangBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -215,6 +216,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
       ? { monsterId: 'grizzlefang', monsterName: 'Grizzlefang' }
       : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(1500, () => { // Longer delay for big boss
       this.scene.start('LevelResult', {
         level: this.level,
@@ -222,6 +226,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

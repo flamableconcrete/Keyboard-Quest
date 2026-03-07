@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { calcXpReward, calcCharacterLevel } from '../utils/scoring'
-import { getLevelsForWorld } from '../data/levels'
+import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
 import { ITEMS } from '../data/items'
 import { createCompanion } from '../data/companions'
 
@@ -13,6 +13,7 @@ interface ResultData {
   accuracyStars: number
   speedStars: number
   passed: boolean
+  companionUsed: boolean
   captureAttempt?: { monsterId: string; monsterName: string }
 }
 
@@ -43,25 +44,37 @@ export class LevelResultScene extends Phaser.Scene {
     this.profile.xp += xpGained
     this.profile.characterLevel = calcCharacterLevel(this.profile.xp)
 
-    // Save level result (only improve, never overwrite with worse)
+    // Save level result (only improve, never overwrite with worse total score)
     const prev = this.profile.levelResults[level.id]
-    if (!prev || accuracyStars + speedStars > prev.accuracyStars + prev.speedStars) {
+    const currentStars = accuracyStars + speedStars
+    const prevStars = prev ? prev.accuracyStars + prev.speedStars : -1
+
+    if (!prev || currentStars > prevStars) {
       this.profile.levelResults[level.id] = {
         accuracyStars: accuracyStars as any,
         speedStars: speedStars as any,
         completedAt: Date.now(),
+        companionUsed: this.resultData.companionUsed,
+      }
+    } else if (currentStars === prevStars) {
+      // If same score, but this run was solo and previous wasn't, prioritize the solo run
+      if (this.resultData.companionUsed === false && prev.companionUsed === true) {
+        this.profile.levelResults[level.id].companionUsed = false
       }
     }
 
     // Award items/spells/titles
-    if (level.rewards.item && !this.profile.equipment.weapon) {
-      // Simplified: give item to first empty slot
+    if (level.rewards.item && !this.profile.ownedItemIds.includes(level.rewards.item)) {
+      this.profile.ownedItemIds.push(level.rewards.item)
     }
     if (level.rewards.title) {
       if (!this.profile.titles.includes(level.rewards.title)) {
         this.profile.titles.push(level.rewards.title)
       }
     }
+
+    // Solo Scribe title check
+    this.checkSoloScribe()
 
     // Unlock next level(s)
     this.unlockNextLevels(level)
@@ -146,6 +159,13 @@ export class LevelResultScene extends Phaser.Scene {
       }).setOrigin(0.5)
     }
 
+    if (level.isBoss) {
+      const soloStatus = this.resultData.companionUsed ? '❌ Companion Used' : '✅ Solo'
+      this.add.text(width / 2, 420, `Solo Scribe Status: ${soloStatus}`, {
+        fontSize: '24px', color: this.resultData.companionUsed ? '#ff8888' : '#88ff88'
+      }).setOrigin(0.5)
+    }
+
     // Continue button
     const cont = this.add.text(width / 2, 640, '[ Continue ]', {
       fontSize: '32px', color: '#ffffff'
@@ -162,6 +182,21 @@ export class LevelResultScene extends Phaser.Scene {
         this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
       }
     })
+  }
+
+  private checkSoloScribe() {
+    const bossLevelConfigs = ALL_LEVELS.filter(l => l.isBoss)
+    let allSolo = true
+    for (const config of bossLevelConfigs) {
+      const result = this.profile.levelResults[config.id]
+      if (!result || result.companionUsed !== false) {
+        allSolo = false
+        break
+      }
+    }
+    if (allSolo && !this.profile.titles.includes('Solo Scribe')) {
+      this.profile.titles.push('Solo Scribe')
+    }
   }
 
   private showFailScreen() {
