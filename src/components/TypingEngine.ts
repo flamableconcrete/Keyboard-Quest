@@ -53,6 +53,14 @@ export class TypingEngine {
     this.typedSoFar = ''
   }
 
+  getTypedSoFar() {
+    return this.typedSoFar
+  }
+
+  getCurrentWord() {
+    return this.currentWord
+  }
+
   private handleKey(event: KeyboardEvent) {
     if (!this.currentWord) return
     const key = event.key.toLowerCase()
