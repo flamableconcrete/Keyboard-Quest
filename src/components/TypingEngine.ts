@@ -68,10 +68,10 @@ export class TypingEngine {
 
     this.totalKeystrokes++
 
-    const expected = this.currentWord[this.typedSoFar.length]
+    const expected = this.currentWord[this.typedSoFar.length].toLowerCase()
     if (key === expected) {
       this.correctKeystrokes++
-      this.typedSoFar += key
+      this.typedSoFar += this.currentWord[this.typedSoFar.length]
       this.renderWord()
       if (this.typedSoFar === this.currentWord) {
         this.completedWords++
@@ -104,10 +104,14 @@ export class TypingEngine {
     const startX = x - totalW / 2
 
     layoutWord.split('').forEach((ch, i) => {
+      let displayChar = ch
+      if (ch === ' ' && i >= this.typedSoFar.length) {
+        displayChar = '·'
+      }
       const color = i < this.typedSoFar.length ? '#44ff44'
         : i === this.typedSoFar.length ? '#ffffff'
         : '#888888'
-      const t = this.scene.add.text(startX + i * charW, y, ch, {
+      const t = this.scene.add.text(startX + i * charW, y, displayChar, {
         fontSize: `${fontSize}px`, color
       })
       this.charTexts.push(t)
