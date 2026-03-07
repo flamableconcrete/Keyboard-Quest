@@ -2,6 +2,9 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { GhostKeyboard } from '../../components/GhostKeyboard'
+import { SpellCaster } from '../../components/SpellCaster'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 
@@ -31,6 +34,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private spawnTimer?: Phaser.Time.TimerEvent
   private goblinsDefeated = 0
   private finished = false
+  private spellCaster?: SpellCaster
+  private letterShieldCount = 0
+  private ghostKeyboard?: GhostKeyboard
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -71,6 +77,37 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
     })
+
+    // Spell system
+    const spellProfile = loadProfile(this.profileSlot)
+    if (spellProfile && spellProfile.spells.length > 0) {
+      this.spellCaster = new SpellCaster(this, this.profileSlot, this.engine)
+      this.spellCaster.setEffectCallback((effect) => {
+        if (effect === 'time_freeze') {
+          this.goblins.forEach(g => { g.speed = 0 })
+          this.time.delayedCall(5000, () => {
+            this.goblins.forEach(g => { g.speed = 60 + this.level.world * 10 })
+          })
+        } else if (effect === 'word_blast') {
+          const nearest = this.goblins.reduce<Goblin | null>((min, g) =>
+            !min || g.x < min.x ? g : min, null)
+          if (nearest) { this.removeGoblin(nearest); this.goblinsDefeated++ }
+        } else if (effect === 'second_chance') {
+          this.playerHp = Math.min(this.playerHp + 2, 5)
+          this.hpText.setText(`HP: ${'❤️'.repeat(this.playerHp)}`)
+        } else if (effect === 'letter_shield') {
+          this.letterShieldCount = 3
+        }
+      })
+    }
+
+    // Ghost keyboard for World 1 tutorial
+    if (this.level.world === 1 && ['w1_l1', 'w1_l2'].includes(this.level.id)) {
+      this.ghostKeyboard = new GhostKeyboard(this, height - 200)
+      if (this.activeGoblin) {
+        this.ghostKeyboard.highlight(this.activeGoblin.word[0])
+      }
+    }
 
     // Word pool
     const difficulty = Math.ceil(this.level.world / 2)
@@ -118,6 +155,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.activeGoblin = goblin
     if (goblin) {
       this.engine.setWord(goblin.word)
+      if (this.ghostKeyboard) {
+        this.ghostKeyboard.highlight(goblin.word[0])
+      }
     } else {
       this.engine.clearWord()
     }
@@ -137,9 +177,6 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private goblinReachedPlayer(goblin: Goblin) {
-    // Check companion/pet auto-strike first
-    // (simplified — full companion logic in Task 20)
-    // Removed unused loadProfile to fix lint error
     this.removeGoblin(goblin)
     this.playerHp--
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
@@ -163,6 +200,10 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private onWrongKey() {
+    if (this.letterShieldCount > 0) {
+      this.letterShieldCount--
+      return
+    }
     this.cameras.main.flash(80, 120, 0, 0)
   }
 
@@ -177,6 +218,8 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.finished = true
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
+    this.spellCaster?.destroy()
+    this.ghostKeyboard?.fadeOut()
     this.engine.destroy()
 
     const elapsed = Date.now() - this.engine.sessionStartTime
