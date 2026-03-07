@@ -1,6 +1,7 @@
 // src/scenes/boss-types/HydraBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -311,6 +312,9 @@ export class HydraBoss extends Phaser.Scene {
 
     const captureAttempt = this.level.captureEligible ? { monsterId: 'hydra', monsterName: 'Hydra' } : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(1500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -318,6 +322,7 @@ export class HydraBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

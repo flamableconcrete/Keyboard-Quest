@@ -1,6 +1,7 @@
 // src/scenes/boss-types/AncientDragonBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -220,6 +221,9 @@ export class AncientDragonBoss extends Phaser.Scene {
       ? { monsterId: 'ancient_dragon', monsterName: 'Ancient Dragon' }
       : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(2000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -227,6 +231,7 @@ export class AncientDragonBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

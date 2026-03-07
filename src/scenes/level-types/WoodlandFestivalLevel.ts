@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 
 export class WoodlandFestivalLevel extends Phaser.Scene {
@@ -99,6 +100,9 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     this.engine.destroy()
     this.aiTimer?.remove()
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     // WoodlandFestival has no fail state, max stars for base XP
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
@@ -107,6 +111,7 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
         accuracyStars: 5,
         speedStars: 5,
         passed,
+        companionUsed,
       })
     })
   }

@@ -1,6 +1,7 @@
 // src/scenes/boss-types/BoneKnightBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -275,6 +276,9 @@ export class BoneKnightBoss extends Phaser.Scene {
             ? { monsterId: 'bone_knight', monsterName: 'Bone Knight' }
             : undefined
 
+        const profile = loadProfile(this.profileSlot)
+        const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
         this.time.delayedCall(2000, () => {
             this.scene.start('LevelResult', {
                 level: this.level,
@@ -282,6 +286,7 @@ export class BoneKnightBoss extends Phaser.Scene {
                 accuracyStars: acc,
                 speedStars: spd,
                 passed,
+                companionUsed,
                 captureAttempt,
             })
         })

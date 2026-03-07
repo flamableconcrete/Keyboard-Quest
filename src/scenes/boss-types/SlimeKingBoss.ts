@@ -1,6 +1,7 @@
 // src/scenes/boss-types/SlimeKingBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -198,6 +199,9 @@ export class SlimeKingBoss extends Phaser.Scene {
       ? { monsterId: 'slime_king', monsterName: 'Slime King' }
       : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(1500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -205,6 +209,7 @@ export class SlimeKingBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

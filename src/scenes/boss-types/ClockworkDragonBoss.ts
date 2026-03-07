@@ -1,6 +1,7 @@
 // src/scenes/boss-types/ClockworkDragonBoss.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -348,6 +349,9 @@ export class ClockworkDragonBoss extends Phaser.Scene {
 
     const captureAttempt = this.level.captureEligible ? { monsterId: 'clockwork_dragon', monsterName: 'Clockwork Dragon' } : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(1500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -355,6 +359,7 @@ export class ClockworkDragonBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

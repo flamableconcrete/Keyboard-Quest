@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
+import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 
 export class MonsterManualLevel extends Phaser.Scene {
@@ -76,6 +77,9 @@ export class MonsterManualLevel extends Phaser.Scene {
     this.finished = true
     this.engine.destroy()
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     // No star pressure for MonsterManual
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
@@ -84,6 +88,7 @@ export class MonsterManualLevel extends Phaser.Scene {
         accuracyStars: 5,
         speedStars: 5,
         passed,
+        companionUsed,
       })
     })
   }

@@ -1,6 +1,7 @@
 // src/scenes/boss-types/MiniBossTypical.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
+import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
@@ -175,6 +176,9 @@ export class MiniBossTypical extends Phaser.Scene {
       ? { monsterId: this.level.bossId || 'miniboss', monsterName: 'Mini-Boss' }
       : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -182,6 +186,7 @@ export class MiniBossTypical extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })

@@ -230,6 +230,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       ? { monsterId: 'goblin', monsterName: 'Goblin' }
       : undefined
 
+    const profile = loadProfile(this.profileSlot)
+    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
@@ -237,6 +240,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
+        companionUsed,
         captureAttempt,
       })
     })
