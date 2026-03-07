@@ -8,6 +8,7 @@ export interface TypingEngineConfig {
   fontSize?: number
   onWordComplete: (word: string, elapsedMs: number) => void
   onWrongKey: () => void
+  silent?: boolean
 }
 
 export class TypingEngine {
@@ -80,6 +81,8 @@ export class TypingEngine {
   private renderWord() {
     this.charTexts.forEach(t => t.destroy())
     this.charTexts = []
+    if (this.config.silent) return
+    
     const { x, y, fontSize = 36 } = this.config
     const charW = fontSize * 0.62
     // Use displayWord for layout if provided, else currentWord
