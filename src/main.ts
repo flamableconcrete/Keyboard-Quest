@@ -12,11 +12,19 @@ import { SkeletonSwarmLevel } from './scenes/level-types/SkeletonSwarmLevel'
 import { MonsterArenaLevel } from './scenes/level-types/MonsterArenaLevel'
 import { UndeadSiegeLevel } from './scenes/level-types/UndeadSiegeLevel'
 import { SlimeSplittingLevel } from './scenes/level-types/SlimeSplittingLevel'
+import { DungeonTrapDisarmLevel } from './scenes/level-types/DungeonTrapDisarmLevel'
+import { DungeonEscapeLevel } from './scenes/level-types/DungeonEscapeLevel'
+import { PotionBrewingLabLevel } from './scenes/level-types/PotionBrewingLabLevel'
+import { MagicRuneTypingLevel } from './scenes/level-types/MagicRuneTypingLevel'
 
 new Phaser.Game({
   type: Phaser.AUTO,
   width: 1280,
   height: 720,
   backgroundColor: '#1a1a2e',
-  scene: [BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel],
+  scene: [
+    BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, 
+    GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
+    DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel
+  ],
 })
