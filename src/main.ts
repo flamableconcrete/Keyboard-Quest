@@ -21,6 +21,9 @@ import { CharacterCreatorLevel } from './scenes/level-types/CharacterCreatorLeve
 import { WoodlandFestivalLevel } from './scenes/level-types/WoodlandFestivalLevel'
 import { SillyChallengeLevel } from './scenes/level-types/SillyChallengeLevel'
 import { GuildRecruitmentLevel } from './scenes/level-types/GuildRecruitmentLevel'
+import { BossBattleScene } from './scenes/BossBattleScene'
+import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
+import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -31,6 +34,7 @@ new Phaser.Game({
     BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, 
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
-    MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel
+    MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
+    BossBattleScene, MiniBossTypical, GrizzlefangBoss
   ],
 })
