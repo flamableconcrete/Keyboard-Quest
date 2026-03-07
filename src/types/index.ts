@@ -43,6 +43,7 @@ export interface ProfileData {
   activeCompanionId: string | null
   activePetId: string | null
   titles: string[]
+  ownedItemIds: string[]
 }
 
 export type LevelType =

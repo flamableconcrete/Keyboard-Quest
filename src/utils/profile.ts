@@ -25,6 +25,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight'): Prof
     activeCompanionId: null,
     activePetId: null,
     titles: [],
+    ownedItemIds: [],
   }
 }
 
