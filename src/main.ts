@@ -4,11 +4,13 @@ import { PreloadScene } from './scenes/PreloadScene'
 import { MainMenuScene } from './scenes/MainMenuScene'
 import { ProfileSelectScene } from './scenes/ProfileSelectScene'
 import { OverlandMapScene } from './scenes/OverlandMapScene'
+import { LevelIntroScene } from './scenes/LevelIntroScene'
+import { LevelResultScene } from './scenes/LevelResultScene'
 
 new Phaser.Game({
   type: Phaser.AUTO,
   width: 1280,
   height: 720,
   backgroundColor: '#1a1a2e',
-  scene: [BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene],
+  scene: [BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene],
 })
