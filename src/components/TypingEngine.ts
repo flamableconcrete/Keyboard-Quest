@@ -25,6 +25,7 @@ export class TypingEngine {
   totalKeystrokes = 0
   completedWords = 0
   sessionStartTime = 0
+  private _onCompleteOverride?: (word: string, elapsed: number) => void
 
   constructor(config: TypingEngineConfig) {
     this.config = config
@@ -61,6 +62,10 @@ export class TypingEngine {
     return this.currentWord
   }
 
+  setOnCompleteOverride(cb: (word: string, elapsed: number) => void) {
+    this._onCompleteOverride = cb
+  }
+
   private handleKey(event: KeyboardEvent) {
     if (!this.currentWord) return
     const key = event.key.toLowerCase()
@@ -76,7 +81,11 @@ export class TypingEngine {
       if (this.typedSoFar === this.currentWord) {
         this.completedWords++
         const elapsed = Date.now() - this.wordStartTime
-        this.config.onWordComplete(this.currentWord, elapsed)
+        const word = this.currentWord
+        const override = this._onCompleteOverride
+        this._onCompleteOverride = undefined
+        this.config.onWordComplete(word, elapsed)
+        if (override) override(word, elapsed)
         this.clearWord()
       }
     } else {
