@@ -23,6 +23,10 @@ import { SillyChallengeLevel } from './scenes/level-types/SillyChallengeLevel'
 import { GuildRecruitmentLevel } from './scenes/level-types/GuildRecruitmentLevel'
 import { BossBattleScene } from './scenes/BossBattleScene'
 import { InventoryScene } from './scenes/InventoryScene'
+import { TavernScene } from './scenes/TavernScene'
+import { StableScene } from './scenes/StableScene'
+import { CutsceneScene } from './scenes/CutsceneScene'
+import { VictoryScene } from './scenes/VictoryScene'
 import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
 import { HydraBoss } from './scenes/boss-types/HydraBoss'
@@ -46,6 +50,6 @@ new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, InventoryScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
+    BossBattleScene, InventoryScene, TavernScene, StableScene, CutsceneScene, VictoryScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
   ],
 })

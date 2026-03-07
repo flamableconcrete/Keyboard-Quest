@@ -1,49 +1,71 @@
 // src/scenes/OverlandMapScene.ts
 import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
-import { loadProfile } from '../utils/profile'
+import { loadProfile, saveProfile } from '../utils/profile'
 import { getLevelsForWorld } from '../data/levels'
 
 interface NodePosition { x: number; y: number }
 
-// Node positions for World 1 — hand-placed on a 1280x720 canvas
-const WORLD1_NODE_POSITIONS: Record<string, NodePosition> = {
-  w1_l1:   { x: 150, y: 600 },
-  w1_l2:   { x: 280, y: 550 },
-  w1_l3:   { x: 400, y: 520 },
-  w1_mb1:  { x: 520, y: 480 },
-  w1_l4:   { x: 640, y: 450 },
-  w1_l5:   { x: 750, y: 400 },
-  w1_mb2:  { x: 850, y: 360 },
-  w1_l6:   { x: 700, y: 300 },
-  w1_l7:   { x: 820, y: 260 },
-  w1_mb3:  { x: 950, y: 300 },
-  w1_l8:   { x: 1050, y: 260 },
-  w1_boss: { x: 1150, y: 200 },
-  tavern:  { x: 600, y: 600 },
-  stable:  { x: 700, y: 600 },
-  inventory: { x: 500, y: 600 },
+const WORLD_NAMES: Record<number, string> = {
+  1: 'World 1 — The Heartland',
+  2: 'World 2 — The Shadowed Fen',
+  3: 'World 3 — The Ember Peaks',
+  4: 'World 4 — The Shrouded Wilds',
+  5: "World 5 — The Typemancer's Tower",
+}
+
+const WORLD_BG_COLORS: Record<number, number> = {
+  1: 0x2d4a1e,
+  2: 0x1a2a3a,
+  3: 0x3a2a1a,
+  4: 0x1a3a1a,
+  5: 0x2a1a3a,
+}
+
+// Node positions — hand-placed on a 1280x720 canvas
+// Reused across worlds (world prefix differs, layout is the same)
+const NODE_LAYOUT: NodePosition[] = [
+  { x: 150, y: 600 }, // l1
+  { x: 280, y: 550 }, // l2
+  { x: 400, y: 520 }, // l3
+  { x: 520, y: 480 }, // mb1
+  { x: 640, y: 450 }, // l4
+  { x: 750, y: 400 }, // l5
+  { x: 850, y: 360 }, // mb2
+  { x: 700, y: 300 }, // l6
+  { x: 820, y: 260 }, // l7
+  { x: 950, y: 300 }, // mb3
+  { x: 1050, y: 260 }, // l8/l9
+  { x: 1150, y: 200 }, // boss
+]
+
+const SPECIAL_NODE_POSITIONS: Record<string, NodePosition> = {
+  tavern:    { x: 600, y: 640 },
+  stable:    { x: 720, y: 640 },
+  inventory: { x: 480, y: 640 },
 }
 
 export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
+  private currentWorld!: number
 
   constructor() { super('OverlandMap') }
 
-  init(data: { profileSlot: number }) {
+  init(data: { profileSlot: number; world?: number }) {
     this.profileSlot = data.profileSlot
     this.profile = loadProfile(this.profileSlot)!
+    this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 
   create() {
     const { width, height } = this.scale
 
     // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x2d4a1e)
+    this.add.rectangle(width / 2, height / 2, width, height, WORLD_BG_COLORS[this.currentWorld] ?? 0x2d4a1e)
 
     // World title
-    this.add.text(width / 2, 40, 'World 1 — The Heartland', {
+    this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
       fontSize: '28px', color: '#ffd700'
     }).setOrigin(0.5)
 
@@ -52,10 +74,56 @@ export class OverlandMapScene extends Phaser.Scene {
       fontSize: '20px', color: '#ffffff'
     })
 
-    const levels = getLevelsForWorld(1)
+    // World navigation arrows
+    this.drawWorldArrows()
+
+    const levels = getLevelsForWorld(this.currentWorld)
     this.drawPaths(levels)
     this.drawNodes(levels)
     this.drawSpecialNodes()
+  }
+
+  private drawWorldArrows() {
+    const { height } = this.scale
+    const maxWorld = 5
+
+    // Previous world arrow
+    if (this.currentWorld > 1) {
+      const prev = this.add.text(30, height / 2, '◀', {
+        fontSize: '36px', color: '#aaaaff'
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+      prev.on('pointerdown', () => {
+        this.profile.currentWorld = this.currentWorld - 1
+        saveProfile(this.profileSlot, this.profile)
+        this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld - 1 })
+      })
+      this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
+        fontSize: '14px', color: '#aaaaff'
+      }).setOrigin(0, 0.5)
+    }
+
+    // Next world arrow — only if world boss beaten
+    if (this.currentWorld < maxWorld) {
+      const bossLevel = getLevelsForWorld(this.currentWorld).find(l => l.isBoss)
+      const worldCleared = bossLevel ? !!this.profile.levelResults[bossLevel.id] : false
+      const { width, height: h } = this.scale
+      if (worldCleared) {
+        const next = this.add.text(width - 30, h / 2, '▶', {
+          fontSize: '36px', color: '#aaffaa'
+        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true })
+        next.on('pointerdown', () => {
+          this.profile.currentWorld = this.currentWorld + 1
+          saveProfile(this.profileSlot, this.profile)
+          this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld + 1 })
+        })
+        this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
+          fontSize: '14px', color: '#aaffaa'
+        }).setOrigin(1, 0.5)
+      } else {
+        const { width: w } = this.scale
+        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5)
+      }
+    }
   }
 
   private isUnlocked(levelId: string): boolean {
@@ -76,10 +144,10 @@ export class OverlandMapScene extends Phaser.Scene {
   private drawPaths(levels: LevelConfig[]) {
     const gfx = this.add.graphics()
     gfx.lineStyle(4, 0x888844)
-    levels.forEach((level, i) => {
+    levels.forEach((_level, i) => {
       if (i === 0) return
-      const from = WORLD1_NODE_POSITIONS[levels[i - 1].id]
-      const to = WORLD1_NODE_POSITIONS[level.id]
+      const from = NODE_LAYOUT[i - 1]
+      const to = NODE_LAYOUT[i]
       if (from && to) {
         gfx.beginPath()
         gfx.moveTo(from.x, from.y)
@@ -90,8 +158,8 @@ export class OverlandMapScene extends Phaser.Scene {
   }
 
   private drawNodes(levels: LevelConfig[]) {
-    levels.forEach(level => {
-      const pos = WORLD1_NODE_POSITIONS[level.id]
+    levels.forEach((level, idx) => {
+      const pos = NODE_LAYOUT[idx]
       if (!pos) return
 
       const unlocked = this.isUnlocked(level.id)
@@ -134,7 +202,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
   private drawSpecialNodes() {
     // Tavern
-    const tp = WORLD1_NODE_POSITIONS['tavern']
+    const tp = SPECIAL_NODE_POSITIONS['tavern']
     const tavernNode = this.add.rectangle(tp.x, tp.y, 80, 40, 0x6a3a1a)
       .setInteractive({ useHandCursor: true })
     this.add.text(tp.x, tp.y, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5)
@@ -143,7 +211,7 @@ export class OverlandMapScene extends Phaser.Scene {
     })
 
     // Stable
-    const sp = WORLD1_NODE_POSITIONS['stable']
+    const sp = SPECIAL_NODE_POSITIONS['stable']
     const stableNode = this.add.rectangle(sp.x, sp.y, 80, 40, 0x2a5a1a)
       .setInteractive({ useHandCursor: true })
     this.add.text(sp.x, sp.y, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5)
@@ -152,7 +220,7 @@ export class OverlandMapScene extends Phaser.Scene {
     })
 
     // Inventory
-    const ip = WORLD1_NODE_POSITIONS['inventory']
+    const ip = SPECIAL_NODE_POSITIONS['inventory']
     const inventoryNode = this.add.rectangle(ip.x, ip.y, 80, 40, 0x4e4e6a)
       .setInteractive({ useHandCursor: true })
     this.add.text(ip.x, ip.y, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5)
