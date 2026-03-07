@@ -24,6 +24,7 @@ import { GuildRecruitmentLevel } from './scenes/level-types/GuildRecruitmentLeve
 import { BossBattleScene } from './scenes/BossBattleScene'
 import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
+import { HydraBoss } from './scenes/boss-types/HydraBoss'
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -35,6 +36,6 @@ new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, MiniBossTypical, GrizzlefangBoss
+    BossBattleScene, MiniBossTypical, GrizzlefangBoss, HydraBoss
   ],
 })
