@@ -22,6 +22,7 @@ import { WoodlandFestivalLevel } from './scenes/level-types/WoodlandFestivalLeve
 import { SillyChallengeLevel } from './scenes/level-types/SillyChallengeLevel'
 import { GuildRecruitmentLevel } from './scenes/level-types/GuildRecruitmentLevel'
 import { BossBattleScene } from './scenes/BossBattleScene'
+import { InventoryScene } from './scenes/InventoryScene'
 import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
 import { HydraBoss } from './scenes/boss-types/HydraBoss'
@@ -45,6 +46,6 @@ new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
+    BossBattleScene, InventoryScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
   ],
 })

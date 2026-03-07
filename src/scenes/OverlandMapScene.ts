@@ -22,6 +22,7 @@ const WORLD1_NODE_POSITIONS: Record<string, NodePosition> = {
   w1_boss: { x: 1150, y: 200 },
   tavern:  { x: 600, y: 600 },
   stable:  { x: 700, y: 600 },
+  inventory: { x: 500, y: 600 },
 }
 
 export class OverlandMapScene extends Phaser.Scene {
@@ -148,6 +149,15 @@ export class OverlandMapScene extends Phaser.Scene {
     this.add.text(sp.x, sp.y, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5)
     stableNode.on('pointerdown', () => {
       this.scene.start('Stable', { profileSlot: this.profileSlot })
+    })
+
+    // Inventory
+    const ip = WORLD1_NODE_POSITIONS['inventory']
+    const inventoryNode = this.add.rectangle(ip.x, ip.y, 80, 40, 0x4e4e6a)
+      .setInteractive({ useHandCursor: true })
+    this.add.text(ip.x, ip.y, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5)
+    inventoryNode.on('pointerdown', () => {
+      this.scene.start('Inventory', { profileSlot: this.profileSlot })
     })
   }
 
