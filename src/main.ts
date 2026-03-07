@@ -8,11 +8,15 @@ import { LevelIntroScene } from './scenes/LevelIntroScene'
 import { LevelResultScene } from './scenes/LevelResultScene'
 import { LevelScene } from './scenes/LevelScene'
 import { GoblinWhackerLevel } from './scenes/level-types/GoblinWhackerLevel'
+import { SkeletonSwarmLevel } from './scenes/level-types/SkeletonSwarmLevel'
+import { MonsterArenaLevel } from './scenes/level-types/MonsterArenaLevel'
+import { UndeadSiegeLevel } from './scenes/level-types/UndeadSiegeLevel'
+import { SlimeSplittingLevel } from './scenes/level-types/SlimeSplittingLevel'
 
 new Phaser.Game({
   type: Phaser.AUTO,
   width: 1280,
   height: 720,
   backgroundColor: '#1a1a2e',
-  scene: [BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, GoblinWhackerLevel],
+  scene: [BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel],
 })
