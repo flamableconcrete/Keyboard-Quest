@@ -20,6 +20,8 @@ describe('profile system', () => {
     expect(p.playerName).toBe('Hero')
     expect(p.characterLevel).toBe(1)
     expect(p.unlockedLetters).toContain('a')
+    expect(p.worldMasteryRewards).toEqual([])
+    expect(p.bossWeaknessKnown).toBeNull()
   })
 
   it('saves and loads a profile', () => {
