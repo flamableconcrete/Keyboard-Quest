@@ -4,7 +4,7 @@ export interface LevelResult {
   accuracyStars: StarRating
   speedStars: StarRating
   completedAt: number
-  companionUsed: boolean
+  companionUsed?: boolean
 }
 
 export interface CompanionData {

@@ -26,6 +26,8 @@ export function createProfile(playerName: string, avatarChoice = 'knight'): Prof
     activePetId: null,
     titles: [],
     ownedItemIds: [],
+    worldMasteryRewards: [],
+    bossWeaknessKnown: null,
   }
 }
 
