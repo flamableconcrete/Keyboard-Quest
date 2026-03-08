@@ -48,6 +48,7 @@ export interface ProfileData {
   worldMasteryRewards: string[]
   bossWeaknessKnown: string | null
   gameMode: 'regular' | 'advanced'
+  gold: number
 }
 
 export type LevelType =

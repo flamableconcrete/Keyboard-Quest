@@ -44,6 +44,10 @@ export class LevelResultScene extends Phaser.Scene {
     this.profile.xp += xpGained
     this.profile.characterLevel = calcCharacterLevel(this.profile.xp)
 
+    // Award gold — 2 gold per enemy (word) defeated
+    const goldEarned = level.wordCount * 2
+    this.profile.gold = (this.profile.gold ?? 0) + goldEarned
+
     // Save level result (only improve, never overwrite with worse total score)
     const prev = this.profile.levelResults[level.id]
     const currentStars = accuracyStars + speedStars
@@ -146,22 +150,26 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '28px', color: '#aaffaa'
     }).setOrigin(0.5)
 
+    this.add.text(width / 2, 415, `+${goldEarned} Gold`, {
+      fontSize: '24px', color: '#ffd700'
+    }).setOrigin(0.5)
+
     if (this.profile.characterLevel > prevLevel) {
-      this.add.text(width / 2, 420, `Level Up! Now Level ${this.profile.characterLevel}`, {
+      this.add.text(width / 2, 455, `Level Up! Now Level ${this.profile.characterLevel}`, {
         fontSize: '24px', color: '#ffd700'
       }).setOrigin(0.5)
     }
 
     // Letter unlock banner
     if (level.miniBossUnlocksLetter) {
-      this.add.text(width / 2, 470, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
+      this.add.text(width / 2, 500, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
         fontSize: '26px', color: '#aaaaff'
       }).setOrigin(0.5)
     }
 
     if (level.isBoss) {
       const soloStatus = this.resultData.companionUsed ? '❌ Companion Used' : '✅ Solo'
-      this.add.text(width / 2, 420, `Solo Scribe Status: ${soloStatus}`, {
+      this.add.text(width / 2, 455, `Solo Scribe Status: ${soloStatus}`, {
         fontSize: '24px', color: this.resultData.companionUsed ? '#ff8888' : '#88ff88'
       }).setOrigin(0.5)
     }
