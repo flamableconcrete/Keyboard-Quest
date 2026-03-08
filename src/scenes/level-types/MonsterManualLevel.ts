@@ -2,7 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
-import { loadProfile } from '../../utils/profile'
+import { loadProfile, saveProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 
 export class MonsterManualLevel extends Phaser.Scene {
@@ -79,6 +79,19 @@ export class MonsterManualLevel extends Phaser.Scene {
 
     const profile = loadProfile(this.profileSlot)
     const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
+
+    // Record that the player has learned the boss weakness for this world
+    if (profile && passed) {
+      const worldBossMap: Record<number, string> = {
+        1: 'grizzlefang',
+        2: 'hydra',
+        3: 'clockwork_dragon',
+        4: 'badrang',
+        5: 'typemancer',
+      }
+      profile.bossWeaknessKnown = worldBossMap[this.level.world] ?? null
+      saveProfile(this.profileSlot, profile)
+    }
 
     // No star pressure for MonsterManual
     this.time.delayedCall(500, () => {

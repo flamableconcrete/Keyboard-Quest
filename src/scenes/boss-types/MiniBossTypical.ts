@@ -25,6 +25,7 @@ export class MiniBossTypical extends Phaser.Scene {
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private finished = false
+  private weaknessActive = false
 
   constructor() { super('MiniBossTypical') }
 
@@ -33,6 +34,8 @@ export class MiniBossTypical extends Phaser.Scene {
     this.profileSlot = data.profileSlot
     this.finished = false
     this.playerHp = 3
+    const profile = loadProfile(data.profileSlot)
+    this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
   }
 
   create() {
@@ -58,11 +61,21 @@ export class MiniBossTypical extends Phaser.Scene {
     const difficulty = Math.ceil(this.level.world / 2)
     this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty)
     this.wordQueue = [...this.words]
-    this.bossMaxHp = this.wordQueue.length
+    const rawHp = this.wordQueue.length
+    this.bossMaxHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
     this.bossHp = this.bossMaxHp
+    // Trim word queue to match reduced HP
+    if (this.weaknessActive) {
+      this.wordQueue = this.wordQueue.slice(0, this.bossMaxHp)
+    }
 
     // Boss Sprite
     this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 200, 0xaa4444)
+    if (this.weaknessActive) {
+      this.add.text(width / 2, 55, '⚡ Weakness Known! Boss HP -20%', {
+        fontSize: '16px', color: '#aaffaa'
+      }).setOrigin(0.5)
+    }
     this.bossHpText = this.add.text(width / 2, height / 2 - 180, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
