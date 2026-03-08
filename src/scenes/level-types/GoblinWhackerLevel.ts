@@ -2,8 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
-import { GhostKeyboard } from '../../components/GhostKeyboard'
-import { TutorialHands } from '../../components/TutorialHands'
+import { TypingHands } from '../../components/TypingHands'
 import { SpellCaster } from '../../components/SpellCaster'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
@@ -37,8 +36,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private finished = false
   private spellCaster?: SpellCaster
   private letterShieldCount = 0
-  private ghostKeyboard?: GhostKeyboard
-  private tutorialHands?: TutorialHands
+  private typingHands?: TypingHands
   private gameMode: 'regular' | 'advanced' = 'regular'
   private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
@@ -87,6 +85,14 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       onWrongKey: this.onWrongKey.bind(this),
     })
 
+    this.input.keyboard?.on('keydown', () => {
+      if (this.activeGoblin && this.typingHands) {
+        const nextIdx = this.engine.getTypedSoFar().length
+        const nextCh = this.activeGoblin.word[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
+    })
+
     // Spell system
     const spellProfile = loadProfile(this.profileSlot)
     if (spellProfile && spellProfile.spells.length > 0) {
@@ -110,17 +116,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       })
     }
 
-    // Ghost keyboard for World 1 tutorial
+    // Typing hands overlay for World 1 tutorial levels
     if (this.level.world === 1 && ['w1_l1', 'w1_l2'].includes(this.level.id)) {
-      this.ghostKeyboard = new GhostKeyboard(this, height - 200)
-      if (this.activeGoblin) {
-        this.ghostKeyboard.highlight(this.activeGoblin.word[0])
-      }
-    }
-
-    // Tutorial hands only for very first level
-    if (this.level.world === 1 && this.level.id === 'w1_l1') {
-      this.tutorialHands = new TutorialHands(this, width / 2, height - 130)
+      this.typingHands = new TypingHands(this, width / 2, height - 100)
     }
 
     // Word pool
@@ -175,10 +173,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     if (goblin) {
       goblin.sprite.setFillStyle(0xffff44)  // bright yellow = active
       this.engine.setWord(goblin.word)
-      if (this.ghostKeyboard) {
-        this.ghostKeyboard.highlight(goblin.word[0])
+      if (this.typingHands) {
+        this.typingHands.highlightFinger(goblin.word[0])
       }
-      this.tutorialHands?.highlightFinger(goblin.word[0])
     } else {
       this.engine.clearWord()
     }
@@ -259,8 +256,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
     this.spellCaster?.destroy()
-    this.ghostKeyboard?.fadeOut()
-    this.tutorialHands?.destroy()
+    this.typingHands?.fadeOut()
     this.engine.destroy()
 
     const elapsed = Date.now() - this.engine.sessionStartTime
