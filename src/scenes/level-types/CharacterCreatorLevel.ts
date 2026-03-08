@@ -5,6 +5,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 
 export class CharacterCreatorLevel extends Phaser.Scene {
   private profileSlot!: number
+  private level!: LevelConfig
   private engine!: TypingEngine
   private finished = false
 
@@ -12,6 +13,7 @@ export class CharacterCreatorLevel extends Phaser.Scene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     this.profileSlot = data.profileSlot
+    this.level = data.level
     this.finished = false
   }
 
@@ -47,9 +49,15 @@ export class CharacterCreatorLevel extends Phaser.Scene {
     this.finished = true
     this.engine.destroy()
 
-    // Transitions directly to overland map
     this.time.delayedCall(500, () => {
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+      this.scene.start('LevelResult', {
+        level: this.level,
+        profileSlot: this.profileSlot,
+        accuracyStars: 5,
+        speedStars: 5,
+        passed: true,
+        companionUsed: false,
+      })
     })
   }
 }
