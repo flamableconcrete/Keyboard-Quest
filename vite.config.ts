@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/Keyboard-Quest/',
+  base: '/',
   test: {
     environment: 'node',
   },
