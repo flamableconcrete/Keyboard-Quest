@@ -17,7 +17,6 @@ import { DungeonEscapeLevel } from './scenes/level-types/DungeonEscapeLevel'
 import { PotionBrewingLabLevel } from './scenes/level-types/PotionBrewingLabLevel'
 import { MagicRuneTypingLevel } from './scenes/level-types/MagicRuneTypingLevel'
 import { MonsterManualLevel } from './scenes/level-types/MonsterManualLevel'
-import { CharacterCreatorLevel } from './scenes/level-types/CharacterCreatorLevel'
 import { WoodlandFestivalLevel } from './scenes/level-types/WoodlandFestivalLevel'
 import { SillyChallengeLevel } from './scenes/level-types/SillyChallengeLevel'
 import { GuildRecruitmentLevel } from './scenes/level-types/GuildRecruitmentLevel'
@@ -49,7 +48,7 @@ new Phaser.Game({
     BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, 
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
-    MonsterManualLevel, CharacterCreatorLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
+    MonsterManualLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
     BossBattleScene, InventoryScene, TavernScene, StableScene, CutsceneScene, VictoryScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
   ],
 })

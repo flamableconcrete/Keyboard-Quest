@@ -18,7 +18,6 @@ export class LevelScene extends Phaser.Scene {
       MagicRuneTyping: 'MagicRuneTypingLevel',
       MonsterManual: 'MonsterManualLevel',
       GuildRecruitment: 'GuildRecruitmentLevel',
-      CharacterCreator: 'CharacterCreatorLevel',
       WoodlandFestival: 'WoodlandFestivalLevel',
       SillyChallenge: 'SillyChallengeLevel',
       BossBattle: 'BossBattleScene',
