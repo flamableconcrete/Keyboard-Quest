@@ -27,5 +27,11 @@ export class MainMenuScene extends Phaser.Scene {
     playBtn.on('pointerover', () => playBtn.setColor('#ffd700'))
     playBtn.on('pointerout', () => playBtn.setColor('#ffffff'))
     playBtn.on('pointerdown', () => this.scene.start('ProfileSelect'))
+
+    // Keyboard-required notice at the bottom
+    this.add.text(width / 2, height * 0.9, '⌨  A physical keyboard is required to play', {
+      fontSize: '16px',
+      color: '#666688',
+    }).setOrigin(0.5)
   }
 }

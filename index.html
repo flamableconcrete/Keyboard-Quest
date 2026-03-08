@@ -5,8 +5,168 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Keyboard Quest</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: #1a1a2e;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        color: #ffffff;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ── Desktop: show game, hide overlay ── */
+      #mobile-overlay { display: none; }
+      #app canvas     { display: block; }
+
+      /* ── Mobile / touch-primary device: hide game, show overlay ── */
+      @media (hover: none) and (pointer: coarse) {
+        #app            { display: none; }
+        #mobile-overlay { display: flex; }
+      }
+
+      /* ── Mobile overlay layout ── */
+      #mobile-overlay {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        min-height: 100dvh;
+        width: 100%;
+        background: radial-gradient(ellipse at 50% 30%, #16213e 0%, #1a1a2e 60%, #0f0f1a 100%);
+      }
+
+      /* Decorative rune ring */
+      .rune-ring {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 24px #ffd70066, inset 0 0 24px #ffd70022;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse-ring 3s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes pulse-ring {
+        0%, 100% { box-shadow: 0 0 24px #ffd70066, inset 0 0 24px #ffd70022; }
+        50%       { box-shadow: 0 0 40px #ffd700aa, inset 0 0 36px #ffd70044; }
+      }
+
+      .keyboard-icon {
+        font-size: 3.5rem;
+        line-height: 1;
+        filter: drop-shadow(0 0 8px #ffd70088);
+      }
+
+      /* Title */
+      .game-title {
+        font-size: clamp(2rem, 8vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        color: #ffd700;
+        text-shadow: 0 0 20px #ffd70066;
+        line-height: 1.1;
+      }
+
+      .game-subtitle {
+        font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+        color: #aaaaff;
+        margin-top: 0.4rem;
+        font-style: italic;
+      }
+
+      /* Notice card */
+      .notice-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 16px;
+        padding: 1.75rem 1.5rem;
+        max-width: 420px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        backdrop-filter: blur(8px);
+      }
+
+      .notice-icon {
+        font-size: 2.25rem;
+      }
+
+      .notice-heading {
+        font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+        font-weight: 700;
+        color: #ffd700;
+      }
+
+      .notice-body {
+        font-size: clamp(0.85rem, 3.2vw, 1rem);
+        color: #ccccdd;
+        line-height: 1.6;
+      }
+
+      /* Divider */
+      .divider {
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #ffd700, transparent);
+      }
+
+      /* Tip */
+      .tip {
+        font-size: clamp(0.75rem, 2.8vw, 0.875rem);
+        color: #888899;
+        max-width: 340px;
+        line-height: 1.5;
+      }
+
+      .tip strong {
+        color: #aaaaff;
+      }
+    </style>
   </head>
   <body>
+    <!-- Mobile / touch-device landing screen -->
+    <div id="mobile-overlay" role="main" aria-label="Keyboard Quest – mobile notice">
+      <div class="rune-ring">
+        <span class="keyboard-icon" aria-hidden="true">⌨️</span>
+      </div>
+
+      <div>
+        <div class="game-title">KEYBOARD QUEST</div>
+        <div class="game-subtitle">The Curse of the Typemancer</div>
+      </div>
+
+      <div class="notice-card">
+        <div class="notice-icon" aria-hidden="true">🖥️</div>
+        <div class="notice-heading">Desktop &amp; Keyboard Required</div>
+        <div class="divider"></div>
+        <p class="notice-body">
+          Keyboard Quest is a typing RPG — every spell, attack, and adventure
+          is powered by your physical keyboard. It can't be played on a
+          touchscreen device.
+        </p>
+        <p class="notice-body">
+          Head over to a computer, open this page, and start your quest!
+        </p>
+      </div>
+
+      <p class="tip">
+        <strong>Pro tip:</strong> bookmark this page so you can jump right in
+        next time you're at your keyboard.
+      </p>
+    </div>
+
+    <!-- Phaser game (shown on desktop only) -->
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
