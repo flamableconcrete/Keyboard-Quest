@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:e2e": "python tests/e2e/walkthrough.py"
   },
   "devDependencies": {
     "@vitest/ui": "^4.0.18",
