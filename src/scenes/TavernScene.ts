@@ -43,22 +43,33 @@ export class TavernScene extends Phaser.Scene {
       })
     }
 
-    this.add.text(width / 2, height - 200, 'Available to Recruit:', {
+    this.add.text(width / 2, height - 220, 'Available to Recruit:', {
       fontSize: '20px', color: '#aaaaff'
     }).setOrigin(0.5)
+
+    this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
+      fontSize: '20px', color: '#ffd700'
+    }).setOrigin(1, 0)
 
     const available = COMPANION_TEMPLATES.filter(
       t => !this.profile.companions.find(c => c.id === t.id)
     )
     available.slice(0, 3).forEach((t, i) => {
       const cx = 200 + i * 300
-      const cy = height - 130
-      const card = this.add.rectangle(cx, cy, 260, 80, 0x333366)
+      const cy = height - 140
+      const canAfford = (this.profile.gold ?? 0) >= t.goldCost
+      const card = this.add.rectangle(cx, cy, 260, 90, canAfford ? 0x333366 : 0x2a2a2a)
         .setInteractive({ useHandCursor: true })
-      this.add.text(cx, cy - 15, t.name, { fontSize: '14px', color: '#ffffff' }).setOrigin(0.5)
-      this.add.text(cx, cy + 10, '[ Recruit ]', { fontSize: '14px', color: '#aaaaff' }).setOrigin(0.5)
+      this.add.text(cx, cy - 25, t.name, { fontSize: '14px', color: '#ffffff' }).setOrigin(0.5)
+      this.add.text(cx, cy, `Cost: ${t.goldCost} Gold`, {
+        fontSize: '13px', color: canAfford ? '#ffd700' : '#886600'
+      }).setOrigin(0.5)
+      this.add.text(cx, cy + 22, canAfford ? '[ Recruit ]' : '[ Not enough gold ]', {
+        fontSize: '13px', color: canAfford ? '#aaaaff' : '#666666'
+      }).setOrigin(0.5)
       card.on('pointerdown', () => {
-        if (!this.profile.companions.find(c => c.id === t.id)) {
+        if (!this.profile.companions.find(c => c.id === t.id) && (this.profile.gold ?? 0) >= t.goldCost) {
+          this.profile.gold -= t.goldCost
           this.profile.companions.push(createCompanion(t.id))
           saveProfile(this.profileSlot, this.profile)
           this.scene.restart({ profileSlot: this.profileSlot })
