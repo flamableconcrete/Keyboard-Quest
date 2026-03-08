@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { GhostKeyboard } from '../../components/GhostKeyboard'
+import { TutorialHands } from '../../components/TutorialHands'
 import { SpellCaster } from '../../components/SpellCaster'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
@@ -37,6 +38,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private spellCaster?: SpellCaster
   private letterShieldCount = 0
   private ghostKeyboard?: GhostKeyboard
+  private tutorialHands?: TutorialHands
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -109,6 +111,11 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       }
     }
 
+    // Tutorial hands only for very first level
+    if (this.level.world === 1 && this.level.id === 'w1_l1') {
+      this.tutorialHands = new TutorialHands(this, width / 2, height - 130)
+    }
+
     // Word pool
     const difficulty = Math.ceil(this.level.world / 2)
     this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty)
@@ -158,6 +165,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       if (this.ghostKeyboard) {
         this.ghostKeyboard.highlight(goblin.word[0])
       }
+      this.tutorialHands?.highlightFinger(goblin.word[0])
     } else {
       this.engine.clearWord()
     }
@@ -220,6 +228,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.spawnTimer?.remove()
     this.spellCaster?.destroy()
     this.ghostKeyboard?.fadeOut()
+    this.tutorialHands?.destroy()
     this.engine.destroy()
 
     const elapsed = Date.now() - this.engine.sessionStartTime
