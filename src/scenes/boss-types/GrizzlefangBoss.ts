@@ -31,6 +31,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private finished = false
+  private weaknessActive = false
 
   constructor() { super('GrizzlefangBoss') }
 
@@ -42,6 +43,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
     this.phase = 1
     // Number of words is dictated by config, let's distribute evenly across 3 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
+    // Check if player has studied the Monster Manual for this boss
+    const profile = loadProfile(data.profileSlot)
+    this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
   }
 
   create() {
@@ -70,8 +74,15 @@ export class GrizzlefangBoss extends Phaser.Scene {
     // Boss Sprite (Grizzlefang is big and orange/brown)
     this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 300, 300, 0x8b4513)
     
-    this.bossMaxHp = this.level.wordCount
+    this.bossMaxHp = this.weaknessActive
+      ? Math.max(1, Math.floor(this.level.wordCount * 0.8))
+      : this.level.wordCount
     this.bossHp = this.bossMaxHp
+    if (this.weaknessActive) {
+      this.add.text(width / 2, 90, '⚡ Weakness Known! Boss HP -20%', {
+        fontSize: '18px', color: '#aaffaa'
+      }).setOrigin(0.5)
+    }
     this.bossHpText = this.add.text(width / 2, height / 2 - 220, `Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ff8800'
     }).setOrigin(0.5)
