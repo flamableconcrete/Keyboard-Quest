@@ -2,18 +2,18 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
-import { GhostKeyboard } from '../../components/GhostKeyboard'
-import { TutorialHands } from '../../components/TutorialHands'
+import { TypingHands } from '../../components/TypingHands'
 import { SpellCaster } from '../../components/SpellCaster'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 
 interface Goblin {
   word: string
   x: number
   speed: number
-  sprite: Phaser.GameObjects.Rectangle  // placeholder until art assets exist
+  sprite: Phaser.GameObjects.Image
   label: Phaser.GameObjects.Text
   hp: number
 }
@@ -28,7 +28,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private wordQueue: string[] = []
   private playerHp = 3
   private maxGoblinReach = 0  // x position where goblin damages player
-  private hpText!: Phaser.GameObjects.Text
+  private hpHearts: Phaser.GameObjects.Image[] = []
   private timerText!: Phaser.GameObjects.Text
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
@@ -37,8 +37,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private finished = false
   private spellCaster?: SpellCaster
   private letterShieldCount = 0
-  private ghostKeyboard?: GhostKeyboard
-  private tutorialHands?: TutorialHands
+  private typingHands?: TypingHands
   private gameMode: 'regular' | 'advanced' = 'regular'
   private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
@@ -60,17 +59,26 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     const { width, height } = this.scale
     this.maxGoblinReach = 80
 
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x2a4a1e)
+    // Generate pixel art textures
+    generateGoblinWhackerTextures(this)
 
-    // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
-      fontSize: '22px', color: '#ff4444'
-    })
+    // Background
+    this.add.image(width / 2, height / 2, 'forest_bg')
+
+    // Hero sprite
+    this.add.image(80, height * 0.62, 'hero').setScale(1.5)
+
+    // HUD - HP hearts
+    this.hpHearts = []
+    for (let i = 0; i < this.playerHp; i++) {
+      const heart = this.add.image(30 + i * 24, 28, 'heart').setScale(1.5)
+      this.hpHearts.push(heart)
+    }
+    if (this.gameMode === 'regular') this.hpHearts.forEach(h => h.setVisible(false))
+
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
     }).setOrigin(1, 0)
-    if (this.gameMode === 'regular') this.hpText.setVisible(false)
 
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
@@ -85,6 +93,14 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       fontSize: 40,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
+    })
+
+    this.input.keyboard?.on('keydown', () => {
+      if (this.activeGoblin && this.typingHands) {
+        const nextIdx = this.engine.getTypedSoFar().length
+        const nextCh = this.activeGoblin.word[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
     })
 
     // Spell system
@@ -103,24 +119,17 @@ export class GoblinWhackerLevel extends Phaser.Scene {
           if (nearest) { this.removeGoblin(nearest); this.goblinsDefeated++ }
         } else if (effect === 'second_chance') {
           this.playerHp = Math.min(this.playerHp + 2, 5)
-          this.hpText.setText(`HP: ${'❤️'.repeat(this.playerHp)}`)
+          // Show hearts up to new HP
+          this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
         } else if (effect === 'letter_shield') {
           this.letterShieldCount = 3
         }
       })
     }
 
-    // Ghost keyboard for World 1 tutorial
+    // Typing hands overlay for World 1 tutorial levels
     if (this.level.world === 1 && ['w1_l1', 'w1_l2'].includes(this.level.id)) {
-      this.ghostKeyboard = new GhostKeyboard(this, height - 200)
-      if (this.activeGoblin) {
-        this.ghostKeyboard.highlight(this.activeGoblin.word[0])
-      }
-    }
-
-    // Tutorial hands only for very first level
-    if (this.level.world === 1 && this.level.id === 'w1_l1') {
-      this.tutorialHands = new TutorialHands(this, width / 2, height - 130)
+      this.typingHands = new TypingHands(this, width / 2, height - 100)
     }
 
     // Word pool
@@ -154,7 +163,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     const word = this.wordQueue.shift()!
     const { width, height } = this.scale
     const y = Phaser.Math.Between(120, height - 140)
-    const sprite = this.add.rectangle(width + 30, y, 40, 40, 0x44aa44)
+    const sprite = this.add.image(width + 30, y, 'goblin')
     const label = this.add.text(width + 30, y - 30, word, {
       fontSize: '20px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 4, y: 2 }
@@ -167,18 +176,16 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private setActiveGoblin(goblin: Goblin | null) {
-    // Reset previous active goblin color
     if (this.activeGoblin) {
-      this.activeGoblin.sprite.setFillStyle(0x44aa44)
+      this.activeGoblin.sprite.clearTint()
     }
     this.activeGoblin = goblin
     if (goblin) {
-      goblin.sprite.setFillStyle(0xffff44)  // bright yellow = active
+      goblin.sprite.setTint(0xffff44)
       this.engine.setWord(goblin.word)
-      if (this.ghostKeyboard) {
-        this.ghostKeyboard.highlight(goblin.word[0])
+      if (this.typingHands) {
+        this.typingHands.highlightFinger(goblin.word[0])
       }
-      this.tutorialHands?.highlightFinger(goblin.word[0])
     } else {
       this.engine.clearWord()
     }
@@ -213,7 +220,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private goblinReachedPlayer(goblin: Goblin) {
     this.removeGoblin(goblin)
     this.playerHp--
-    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+    if (this.hpHearts[this.playerHp]) {
+      this.hpHearts[this.playerHp].setVisible(false)
+    }
     this.cameras.main.shake(200, 0.01)
     if (this.activeGoblin === goblin) {
       this.setActiveGoblin(this.goblins[0] ?? null)
@@ -248,6 +257,15 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private removeGoblin(goblin: Goblin) {
+    const poof = this.add.image(goblin.x, goblin.sprite.y, 'goblin_death')
+    this.tweens.add({
+      targets: poof,
+      alpha: 0,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      duration: 400,
+      onComplete: () => poof.destroy()
+    })
     goblin.sprite.destroy()
     goblin.label.destroy()
     this.goblins = this.goblins.filter(g => g !== goblin)
@@ -259,8 +277,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
     this.spellCaster?.destroy()
-    this.ghostKeyboard?.fadeOut()
-    this.tutorialHands?.destroy()
+    this.typingHands?.fadeOut()
     this.engine.destroy()
 
     const elapsed = Date.now() - this.engine.sessionStartTime
