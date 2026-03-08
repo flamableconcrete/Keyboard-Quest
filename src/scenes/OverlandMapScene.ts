@@ -83,6 +83,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawNodes(levels)
     this.drawSpecialNodes()
     this.drawMasteryChest()
+    this.drawSettingsButton()
   }
 
   private drawWorldArrows() {
@@ -307,6 +308,18 @@ export class OverlandMapScene extends Phaser.Scene {
   private hideTooltip() {
     this.tooltipText?.destroy()
     this.tooltipText = undefined
+  }
+
+  private drawSettingsButton() {
+    const { width } = this.scale
+    const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
+      fontSize: '18px', color: '#aaaaaa'
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    btn.on('pointerover', () => btn.setColor('#ffffff'))
+    btn.on('pointerout', () => btn.setColor('#aaaaaa'))
+    btn.on('pointerdown', () => {
+      this.scene.start('Settings', { profileSlot: this.profileSlot })
+    })
   }
 
   private enterLevel(level: LevelConfig) {

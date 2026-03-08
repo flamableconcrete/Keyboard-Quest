@@ -39,6 +39,10 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private letterShieldCount = 0
   private ghostKeyboard?: GhostKeyboard
   private tutorialHands?: TutorialHands
+  private gameMode: 'regular' | 'advanced' = 'regular'
+  private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
+  private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
+  private readonly MAX_VISIBLE_QUEUE = 4 // max goblins on screen at once in regular mode
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -48,6 +52,8 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.finished = false
     this.goblinsDefeated = 0
     this.playerHp = 3
+    const profile = loadProfile(data.profileSlot)
+    this.gameMode = profile?.gameMode ?? 'regular'
   }
 
   create() {
@@ -64,6 +70,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
     }).setOrigin(1, 0)
+    if (this.gameMode === 'regular') this.hpText.setVisible(false)
 
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
@@ -143,6 +150,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
   private spawnGoblin() {
     if (this.finished || this.wordQueue.length === 0) return
+    if (this.gameMode === 'regular' && this.goblins.length >= this.MAX_VISIBLE_QUEUE) return
     const word = this.wordQueue.shift()!
     const { width, height } = this.scale
     const y = Phaser.Math.Between(120, height - 140)
@@ -159,8 +167,13 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private setActiveGoblin(goblin: Goblin | null) {
+    // Reset previous active goblin color
+    if (this.activeGoblin) {
+      this.activeGoblin.sprite.setFillStyle(0x44aa44)
+    }
     this.activeGoblin = goblin
     if (goblin) {
+      goblin.sprite.setFillStyle(0xffff44)  // bright yellow = active
       this.engine.setWord(goblin.word)
       if (this.ghostKeyboard) {
         this.ghostKeyboard.highlight(goblin.word[0])
@@ -174,14 +187,27 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   update(_time: number, delta: number) {
     if (this.finished) return
 
-    this.goblins.forEach(g => {
-      g.x -= g.speed * (delta / 1000)
-      g.sprite.setX(g.x)
-      g.label.setX(g.x)
-      if (g.x <= this.maxGoblinReach) {
-        this.goblinReachedPlayer(g)
-      }
-    })
+    if (this.gameMode === 'advanced') {
+      this.goblins.forEach(g => {
+        g.x -= g.speed * (delta / 1000)
+        g.sprite.setX(g.x)
+        g.label.setX(g.x)
+        if (g.x <= this.maxGoblinReach) {
+          this.goblinReachedPlayer(g)
+        }
+      })
+    } else {
+      // Regular mode: lead stops at BATTLE_X, others queue behind with spacing
+      this.goblins.forEach((g, i) => {
+        const targetX = this.BATTLE_X + i * this.GOBLIN_SPACING
+        if (g.x > targetX) {
+          g.x -= g.speed * (delta / 1000)
+          if (g.x < targetX) g.x = targetX
+        }
+        g.sprite.setX(g.x)
+        g.label.setX(g.x)
+      })
+    }
   }
 
   private goblinReachedPlayer(goblin: Goblin) {
@@ -189,6 +215,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.playerHp--
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(200, 0.01)
+    if (this.activeGoblin === goblin) {
+      this.setActiveGoblin(this.goblins[0] ?? null)
+    }
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
@@ -201,6 +230,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     // Focus next goblin
     const next = this.goblins[0] ?? null
     this.setActiveGoblin(next)
+    if (this.gameMode === 'regular') {
+      this.spawnGoblin()
+    }
 
     if (this.wordQueue.length === 0 && this.goblins.length === 0) {
       this.endLevel(true)

@@ -47,6 +47,7 @@ export interface ProfileData {
   ownedItemIds: string[]
   worldMasteryRewards: string[]
   bossWeaknessKnown: string | null
+  gameMode: 'regular' | 'advanced'
 }
 
 export type LevelType =
