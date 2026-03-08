@@ -189,6 +189,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.playerHp--
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(200, 0.01)
+    if (this.activeGoblin === goblin) {
+      this.setActiveGoblin(this.goblins[0] ?? null)
+    }
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
