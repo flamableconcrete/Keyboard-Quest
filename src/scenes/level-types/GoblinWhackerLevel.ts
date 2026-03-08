@@ -42,6 +42,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
   private readonly MAX_VISIBLE_QUEUE = 4 // max goblins on screen at once in regular mode
+  private pathY = 0                      // fixed Y for all goblins (set in create)
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -65,8 +66,11 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     // Background
     this.add.image(width / 2, height / 2, 'forest_bg')
 
+    // Ground path Y — matches hero position, stays above finger hints area
+    this.pathY = height * 0.62
+
     // Hero sprite
-    this.add.image(80, height * 0.62, 'hero').setScale(1.5)
+    this.add.image(80, this.pathY, 'hero').setScale(1.5)
 
     // HUD - HP hearts
     this.hpHearts = []
@@ -127,8 +131,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       })
     }
 
-    // Typing hands overlay for World 1 tutorial levels
-    if (this.level.world === 1 && ['w1_l1', 'w1_l2'].includes(this.level.id)) {
+    // Typing hands overlay (player setting)
+    const hintsProfile = loadProfile(this.profileSlot)
+    if (hintsProfile?.showFingerHints) {
       this.typingHands = new TypingHands(this, width / 2, height - 100)
     }
 
@@ -160,9 +165,12 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private spawnGoblin() {
     if (this.finished || this.wordQueue.length === 0) return
     if (this.gameMode === 'regular' && this.goblins.length >= this.MAX_VISIBLE_QUEUE) return
+    // Don't spawn if the last goblin is still near the right edge (prevents overlap)
+    const lastGoblin = this.goblins[this.goblins.length - 1]
+    if (lastGoblin && lastGoblin.x > this.scale.width - this.GOBLIN_SPACING) return
     const word = this.wordQueue.shift()!
-    const { width, height } = this.scale
-    const y = Phaser.Math.Between(120, height - 140)
+    const { width } = this.scale
+    const y = this.pathY
     const sprite = this.add.image(width + 30, y, 'goblin')
     const label = this.add.text(width + 30, y - 30, word, {
       fontSize: '20px', color: '#ffffff',
