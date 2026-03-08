@@ -75,6 +75,10 @@ export class OverlandMapScene extends Phaser.Scene {
       fontSize: '20px', color: '#ffffff'
     })
 
+    this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
+      fontSize: '20px', color: '#ffd700'
+    }).setOrigin(1, 0)
+
     // World navigation arrows
     this.drawWorldArrows()
 

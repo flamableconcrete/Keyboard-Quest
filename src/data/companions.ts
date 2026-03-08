@@ -1,10 +1,14 @@
 import { CompanionData } from '../types'
 
-export const COMPANION_TEMPLATES: Omit<CompanionData, 'level' | 'xp' | 'autoStrikeCount'>[] = [
-  { id: 'mouse_guard_scout', name: 'Pip the Mouse Guard Scout', backstory: 'A brave mouse who patrols the forest paths.', type: 'companion' },
-  { id: 'badger_warrior', name: 'Brom the Badger Warrior', backstory: 'Fierce protector of the woodland creatures.', type: 'companion' },
-  { id: 'wizard_apprentice', name: 'Elara the Apprentice', backstory: 'Studying magic at the Wizard Peaks.', type: 'companion' },
-  { id: 'archer', name: 'Swift the Forest Archer', backstory: 'Never misses a shot.', type: 'companion' },
+export interface CompanionTemplate extends Omit<CompanionData, 'level' | 'xp' | 'autoStrikeCount'> {
+  goldCost: number
+}
+
+export const COMPANION_TEMPLATES: CompanionTemplate[] = [
+  { id: 'mouse_guard_scout', name: 'Pip the Mouse Guard Scout', backstory: 'A brave mouse who patrols the forest paths.', type: 'companion', goldCost: 50 },
+  { id: 'badger_warrior', name: 'Brom the Badger Warrior', backstory: 'Fierce protector of the woodland creatures.', type: 'companion', goldCost: 100 },
+  { id: 'wizard_apprentice', name: 'Elara the Apprentice', backstory: 'Studying magic at the Wizard Peaks.', type: 'companion', goldCost: 150 },
+  { id: 'archer', name: 'Swift the Forest Archer', backstory: 'Never misses a shot.', type: 'companion', goldCost: 200 },
 ]
 
 export const PET_TEMPLATES: Omit<CompanionData, 'level' | 'xp' | 'autoStrikeCount'>[] = [
