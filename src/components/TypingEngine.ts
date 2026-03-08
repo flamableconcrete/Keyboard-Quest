@@ -84,9 +84,9 @@ export class TypingEngine {
         const word = this.currentWord
         const override = this._onCompleteOverride
         this._onCompleteOverride = undefined
+        this.clearWord()
         this.config.onWordComplete(word, elapsed)
         if (override) override(word, elapsed)
-        this.clearWord()
       }
     } else {
       this.config.onWrongKey()
