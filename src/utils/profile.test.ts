@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createProfile, saveProfile, loadProfile, deleteProfile, exportProfile, importProfile } from './profile'
+import type { ProfileData } from '../types'
 
 // Mock localStorage
 const store: Record<string, string> = {}
@@ -50,5 +51,19 @@ describe('profile system', () => {
 
   it('importProfile returns null for invalid JSON', () => {
     expect(importProfile('not-json')).toBeNull()
+  })
+
+  it('creates profile with gameMode regular by default', () => {
+    const p = createProfile('Hero')
+    expect(p.gameMode).toBe('regular')
+  })
+
+  it('loadProfile returns regular gameMode for legacy profiles missing the field', () => {
+    // Simulate a legacy profile saved without gameMode
+    const legacy = createProfile('OldHero')
+    const { gameMode: _drop, ...withoutMode } = legacy as ProfileData & { gameMode?: string }
+    localStorage.setItem('kq_profile_0', JSON.stringify(withoutMode))
+    const loaded = loadProfile(0)
+    expect(loaded?.gameMode).toBe('regular')
   })
 })

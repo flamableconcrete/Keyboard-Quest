@@ -28,6 +28,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight'): Prof
     ownedItemIds: [],
     worldMasteryRewards: [],
     bossWeaknessKnown: null,
+    gameMode: 'regular' as const,
   }
 }
 
@@ -39,7 +40,9 @@ export function loadProfile(slot: number): ProfileData | null {
   const raw = localStorage.getItem(KEY(slot))
   if (!raw) return null
   try {
-    return JSON.parse(raw) as ProfileData
+    const data = JSON.parse(raw) as ProfileData
+    if (!data.gameMode) data.gameMode = 'regular'
+    return data
   } catch {
     return null
   }
