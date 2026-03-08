@@ -49,6 +49,7 @@ export interface ProfileData {
   bossWeaknessKnown: string | null
   gameMode: 'regular' | 'advanced'
   gold: number
+  showFingerHints: boolean
 }
 
 export type LevelType =

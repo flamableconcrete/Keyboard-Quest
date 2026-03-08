@@ -183,6 +183,7 @@ export class LevelResultScene extends Phaser.Scene {
         this.scene.start('Cutscene', {
           letter: this.resultData.level.miniBossUnlocksLetter,
           title: this.resultData.level.rewards.title ?? 'A new letter awakens!',
+          profileSlot: this.resultData.profileSlot,
           nextScene: 'OverlandMap',
           nextSceneData: { profileSlot: this.resultData.profileSlot },
         })

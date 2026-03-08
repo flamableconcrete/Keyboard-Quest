@@ -95,7 +95,9 @@ export class TypingEngine {
       if (this.charTexts[idx]) {
         const t = this.charTexts[idx]
         t.setColor('#ff4444')
-        this.scene.time.delayedCall(100, () => t.setColor('#888888'))
+        this.scene.time.delayedCall(100, () => {
+          if (t.active) t.setColor('#888888')
+        })
       }
     }
   }

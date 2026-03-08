@@ -30,6 +30,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight'): Prof
     bossWeaknessKnown: null,
     gameMode: 'regular' as const,
     gold: 0,
+    showFingerHints: true,
   }
 }
 
@@ -44,6 +45,7 @@ export function loadProfile(slot: number): ProfileData | null {
     const data = JSON.parse(raw) as ProfileData
     if (!data.gameMode) data.gameMode = 'regular'
     if (data.gold === undefined) data.gold = 0
+    if (data.showFingerHints === undefined) data.showFingerHints = true
     return data
   } catch {
     return null

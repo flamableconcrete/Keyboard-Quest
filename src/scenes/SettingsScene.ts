@@ -61,6 +61,44 @@ export class SettingsScene extends Phaser.Scene {
     regularBtn.on('pointerdown', () => setMode('regular'))
     advancedBtn.on('pointerdown', () => setMode('advanced'))
 
+    // Finger Hints label
+    this.add.text(width / 2, 440, 'Finger Hints', {
+      fontSize: '26px', color: '#ffffff'
+    }).setOrigin(0.5)
+
+    // ON button
+    const onBtn = this.add.text(width / 2 - 80, 510, '[ ON ]', {
+      fontSize: '28px',
+      color: profile.showFingerHints ? '#ffd700' : '#888888',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    // OFF button
+    const offBtn = this.add.text(width / 2 + 80, 510, '[ OFF ]', {
+      fontSize: '28px',
+      color: !profile.showFingerHints ? '#ffd700' : '#888888',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    // Finger hints description
+    const hintsDesc = this.add.text(width / 2, 580, this.getHintsDescription(profile.showFingerHints), {
+      fontSize: '18px', color: '#aaaaaa', wordWrap: { width: 700 }, align: 'center',
+    }).setOrigin(0.5)
+
+    const setHints = (on: boolean) => {
+      const p = loadProfile(this.profileSlot)!
+      p.showFingerHints = on
+      saveProfile(this.profileSlot, p)
+      onBtn.setColor(on ? '#ffd700' : '#888888')
+      offBtn.setColor(!on ? '#ffd700' : '#888888')
+      hintsDesc.setText(this.getHintsDescription(on))
+    }
+
+    onBtn.on('pointerdown', () => setHints(true))
+    offBtn.on('pointerdown', () => setHints(false))
+
     // Back button
     const back = this.add.text(60, 40, '← BACK', {
       fontSize: '22px', color: '#aaaaff'
@@ -75,5 +113,12 @@ export class SettingsScene extends Phaser.Scene {
       return 'Regular: Enemies queue up and wait. Only the lead enemy can be defeated. No damage taken.'
     }
     return 'Advanced: Enemies march in real-time. Type fast or take damage!'
+  }
+
+  private getHintsDescription(on: boolean): string {
+    if (on) {
+      return 'Show which finger to use and the next letter to type during levels.'
+    }
+    return 'Finger hints are hidden. For experienced typists.'
   }
 }
