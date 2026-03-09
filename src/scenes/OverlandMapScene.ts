@@ -6,6 +6,10 @@ import { getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
 import { WORLD1_MAP } from '../data/maps/world1'
+import { WORLD2_MAP } from '../data/maps/world2'
+import { WORLD3_MAP } from '../data/maps/world3'
+import { WORLD4_MAP } from '../data/maps/world4'
+import { WORLD5_MAP } from '../data/maps/world5'
 import type { WorldMapData } from '../data/maps/types'
 import { COMMON_FRAMES } from '../data/maps/common'
 
@@ -73,8 +77,14 @@ export class OverlandMapScene extends Phaser.Scene {
 
   /** Returns map data for worlds that have tilemap support, null otherwise. */
   private getMapData(world: number): WorldMapData | null {
-    if (world === 1) return WORLD1_MAP
-    return null
+    switch (world) {
+      case 1: return WORLD1_MAP
+      case 2: return WORLD2_MAP
+      case 3: return WORLD3_MAP
+      case 4: return WORLD4_MAP
+      case 5: return WORLD5_MAP
+      default: return null
+    }
   }
 
   create() {
