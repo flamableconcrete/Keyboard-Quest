@@ -23,37 +23,6 @@ const WORLD_NAMES: Record<number, string> = {
   5: "World 5 — The Typemancer's Tower",
 }
 
-const WORLD_BG_COLORS: Record<number, number> = {
-  1: 0x2d4a1e,
-  2: 0x1a2a3a,
-  3: 0x3a2a1a,
-  4: 0x1a3a1a,
-  5: 0x2a1a3a,
-}
-
-// Node positions — hand-placed on a 1280x720 canvas
-// Fallback layout for worlds 2-5 (world 1 uses mapData.nodePositions)
-const NODE_LAYOUT: NodePosition[] = [
-  { x: 150, y: 600 }, // l1
-  { x: 280, y: 550 }, // l2
-  { x: 400, y: 520 }, // l3
-  { x: 520, y: 480 }, // mb1
-  { x: 640, y: 450 }, // l4
-  { x: 750, y: 400 }, // l5
-  { x: 850, y: 360 }, // mb2
-  { x: 700, y: 300 }, // l6
-  { x: 820, y: 260 }, // l7
-  { x: 950, y: 300 }, // mb3
-  { x: 1050, y: 260 }, // l8/l9
-  { x: 1150, y: 200 }, // boss
-]
-
-const SPECIAL_NODE_POSITIONS: Record<string, NodePosition> = {
-  tavern:    { x: 600, y: 640 },
-  stable:    { x: 720, y: 640 },
-  inventory: { x: 480, y: 640 },
-}
-
 export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
@@ -75,35 +44,29 @@ export class OverlandMapScene extends Phaser.Scene {
     this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 
-  /** Returns map data for worlds that have tilemap support, null otherwise. */
-  private getMapData(world: number): WorldMapData | null {
+  /** Returns map data for the given world. */
+  private getMapData(world: number): WorldMapData {
     switch (world) {
       case 1: return WORLD1_MAP
       case 2: return WORLD2_MAP
       case 3: return WORLD3_MAP
       case 4: return WORLD4_MAP
       case 5: return WORLD5_MAP
-      default: return null
+      default: return WORLD1_MAP
     }
   }
 
   create() {
     this.cameras.main.fadeIn(300, 0, 0, 0)
-    const { width, height } = this.scale
+    const { width } = this.scale
     const mapData = this.getMapData(this.currentWorld)
 
-    if (mapData) {
-      // ── New tilemap-based rendering ──────────────────────────
-      this.mapRenderer = new MapRenderer(this, mapData)
-      this.mapRenderer.renderTileLayers()
-      this.mapRenderer.renderDecorations()
-      this.mapRenderer.startAtmosphere()
-      this.mapRenderer.startAnimatedTiles()
-    } else {
-      // ── Fallback: old tileSprite background ──────────────────
-      this.add.tileSprite(width / 2, height / 2, width, height, 'tile-grass')
-        .setTint(WORLD_BG_COLORS[this.currentWorld] ?? 0xffffff)
-    }
+    // Tilemap-based rendering
+    this.mapRenderer = new MapRenderer(this, mapData)
+    this.mapRenderer.renderTileLayers()
+    this.mapRenderer.renderDecorations()
+    this.mapRenderer.startAtmosphere()
+    this.mapRenderer.startAnimatedTiles()
 
     // World title
     this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
@@ -124,39 +87,26 @@ export class OverlandMapScene extends Phaser.Scene {
 
     const levels = getLevelsForWorld(this.currentWorld)
 
-    // Resolve node positions based on whether we have map data
-    const nodePositions: NodePosition[] = mapData
-      ? mapData.nodePositions
-      : NODE_LAYOUT
-    const specialPositions: Record<string, NodePosition> = mapData
-      ? mapData.specialNodes
-      : SPECIAL_NODE_POSITIONS
+    // Bezier paths
+    const completedIds = new Set<string>(
+      levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
+    )
+    this.worldPath = this.mapRenderer!.renderPaths(levels, completedIds)
 
-    if (mapData) {
-      // Use MapRenderer for curved bezier paths
-      const completedIds = new Set<string>(
-        levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
-      )
-      this.worldPath = this.mapRenderer!.renderPaths(levels, completedIds)
-    } else {
-      // Fallback: old straight-line paths
-      this.drawPaths(levels)
-    }
-
-    this.drawNodes(levels, nodePositions)
-    this.drawSpecialNodes(specialPositions)
+    this.drawNodes(levels, mapData.nodePositions)
+    this.drawSpecialNodes(mapData.specialNodes)
     this.drawMasteryChest()
     this.drawSettingsButton()
 
-    let startPos = nodePositions[0] || { x: 0, y: 0 }
+    let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
     this.currentNodeIndex = 0
     if (this.profile.currentLevelNodeId) {
       const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
-      if (idx !== -1 && nodePositions[idx]) {
-        startPos = nodePositions[idx]
+      if (idx !== -1 && mapData.nodePositions[idx]) {
+        startPos = mapData.nodePositions[idx]
         this.currentNodeIndex = idx
-      } else if (specialPositions[this.profile.currentLevelNodeId]) {
-        startPos = specialPositions[this.profile.currentLevelNodeId]
+      } else if (mapData.specialNodes[this.profile.currentLevelNodeId]) {
+        startPos = mapData.specialNodes[this.profile.currentLevelNodeId]
       }
     }
 
@@ -230,26 +180,7 @@ export class OverlandMapScene extends Phaser.Scene {
     return avg >= minCombinedStars
   }
 
-  /** Fallback path drawing for worlds without map data. */
-  private drawPaths(levels: LevelConfig[]) {
-    const gfx = this.add.graphics()
-    gfx.lineStyle(4, 0x888844)
-    levels.forEach((_level, i) => {
-      if (i === 0) return
-      const from = NODE_LAYOUT[i - 1]
-      const to = NODE_LAYOUT[i]
-      if (from && to) {
-        gfx.beginPath()
-        gfx.moveTo(from.x, from.y)
-        gfx.lineTo(to.x, to.y)
-        gfx.strokePath()
-      }
-    })
-  }
-
   private drawNodes(levels: LevelConfig[], nodePositions: NodePosition[]) {
-    const hasCommon = this.textures.exists('map-common')
-
     levels.forEach((level, idx) => {
       const pos = nodePositions[idx]
       if (!pos) return
@@ -262,8 +193,8 @@ export class OverlandMapScene extends Phaser.Scene {
         : unlocked && !gated ? 0xffffff
         : 0x444444
 
-      const spriteKey = level.isBoss ? 'node-boss' : level.isMiniBoss ? 'node-cave' : 'node-castle'
-      const nodeSprite = this.add.sprite(pos.x, pos.y, spriteKey).setTint(color)
+      const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
+      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color)
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
@@ -304,7 +235,7 @@ export class OverlandMapScene extends Phaser.Scene {
       }
 
       // Completion shimmer particles
-      if (completed && hasCommon) {
+      if (completed) {
         this.add.particles(pos.x, pos.y, 'map-common', {
           frame: COMMON_FRAMES.particleSpark,
           frequency: 600,
@@ -321,25 +252,18 @@ export class OverlandMapScene extends Phaser.Scene {
       // Star display under completed nodes
       if (completed) {
         const r = this.profile.levelResults[level.id]
-        if (hasCommon) {
-          // Pixel-art stars: 5 speed + 5 accuracy
-          const totalStars = 10
-          const startX = pos.x - ((totalStars * 8 + 4) / 2) + 4 // 4px gap between groups
-          for (let i = 0; i < 5; i++) {
-            const frame = i < r.speedStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
-            this.add.sprite(startX + i * 8, pos.y + 22, 'map-common', frame)
-              .setDisplaySize(8, 8).setDepth(10)
-          }
-          for (let i = 0; i < 5; i++) {
-            const frame = i < r.accuracyStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
-            this.add.sprite(startX + 44 + i * 8, pos.y + 22, 'map-common', frame)
-              .setDisplaySize(8, 8).setDepth(10)
-          }
-        } else {
-          this.add.text(pos.x, pos.y + 22,
-            `⚡${r.speedStars} 🎯${r.accuracyStars}`,
-            { fontSize: '11px', color: '#ffff88' }
-          ).setOrigin(0.5).setDepth(10)
+        // Pixel-art stars: 5 speed + 5 accuracy
+        const totalStars = 10
+        const startX = pos.x - ((totalStars * 8 + 4) / 2) + 4 // 4px gap between groups
+        for (let i = 0; i < 5; i++) {
+          const frame = i < r.speedStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
+          this.add.sprite(startX + i * 8, pos.y + 22, 'map-common', frame)
+            .setDisplaySize(8, 8).setDepth(10)
+        }
+        for (let i = 0; i < 5; i++) {
+          const frame = i < r.accuracyStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
+          this.add.sprite(startX + 44 + i * 8, pos.y + 22, 'map-common', frame)
+            .setDisplaySize(8, 8).setDepth(10)
         }
       }
 
@@ -365,7 +289,7 @@ export class OverlandMapScene extends Phaser.Scene {
   private drawSpecialNodes(specialPositions: Record<string, NodePosition>) {
     // Tavern
     const tp = specialPositions['tavern']
-    const tavernNode = this.add.sprite(tp.x, tp.y, 'node-castle')
+    const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
       .setInteractive({ useHandCursor: true })
     this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(10)
     tavernNode.on('pointerdown', () => {
@@ -376,7 +300,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     // Stable
     const sp = specialPositions['stable']
-    const stableNode = this.add.sprite(sp.x, sp.y, 'node-cave')
+    const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
       .setInteractive({ useHandCursor: true })
     this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(10)
     stableNode.on('pointerdown', () => {
