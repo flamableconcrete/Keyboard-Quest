@@ -63,7 +63,8 @@ export class OverlandMapScene extends Phaser.Scene {
     const { width, height } = this.scale
 
     // Background
-    this.add.rectangle(width / 2, height / 2, width, height, WORLD_BG_COLORS[this.currentWorld] ?? 0x2d4a1e)
+    this.add.tileSprite(width / 2, height / 2, width, height, 'tile-grass')
+      .setTint(WORLD_BG_COLORS[this.currentWorld] ?? 0xffffff)
 
     // World title
     this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
