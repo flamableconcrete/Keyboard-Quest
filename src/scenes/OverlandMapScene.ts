@@ -50,6 +50,8 @@ export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
   private currentWorld!: number
+  private avatar!: Phaser.GameObjects.Sprite
+  private isGliding = false
 
   constructor() { super('OverlandMap') }
 
@@ -89,6 +91,17 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawSpecialNodes()
     this.drawMasteryChest()
     this.drawSettingsButton()
+
+    let startPos = NODE_LAYOUT[0] || { x: 0, y: 0 }
+    if (this.profile.currentLevelNodeId) {
+      const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
+      if (idx !== -1 && NODE_LAYOUT[idx]) {
+        startPos = NODE_LAYOUT[idx]
+      } else if (SPECIAL_NODE_POSITIONS[this.profile.currentLevelNodeId]) {
+        startPos = SPECIAL_NODE_POSITIONS[this.profile.currentLevelNodeId]
+      }
+    }
+    this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(5)
   }
 
   private drawWorldArrows() {
@@ -185,7 +198,7 @@ export class OverlandMapScene extends Phaser.Scene {
         nodeSprite.setInteractive({ useHandCursor: true })
         nodeSprite.on('pointerover', () => this.showTooltip(level, pos))
         nodeSprite.on('pointerout', () => this.hideTooltip())
-        nodeSprite.on('pointerdown', () => this.enterLevel(level))
+        nodeSprite.on('pointerdown', () => this.enterLevel(level, pos))
       }
 
       // Star display under completed nodes
@@ -215,7 +228,9 @@ export class OverlandMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
     this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(10)
     tavernNode.on('pointerdown', () => {
-      this.scene.start('Tavern', { profileSlot: this.profileSlot })
+      this.glideAvatarTo(tp, 'tavern', () => {
+        this.scene.start('Tavern', { profileSlot: this.profileSlot })
+      })
     })
 
     // Stable
@@ -224,7 +239,9 @@ export class OverlandMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
     this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(10)
     stableNode.on('pointerdown', () => {
-      this.scene.start('Stable', { profileSlot: this.profileSlot })
+      this.glideAvatarTo(sp, 'stable', () => {
+        this.scene.start('Stable', { profileSlot: this.profileSlot })
+      })
     })
 
     // Inventory
@@ -233,7 +250,9 @@ export class OverlandMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
     this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(10)
     inventoryNode.on('pointerdown', () => {
-      this.scene.start('Inventory', { profileSlot: this.profileSlot })
+      this.glideAvatarTo(ip, 'inventory', () => {
+        this.scene.start('Inventory', { profileSlot: this.profileSlot })
+      })
     })
   }
 
@@ -327,7 +346,36 @@ export class OverlandMapScene extends Phaser.Scene {
     })
   }
 
-  private enterLevel(level: LevelConfig) {
-    this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+  private glideAvatarTo(pos: NodePosition, nodeId: string, onComplete: () => void) {
+    if (this.isGliding) return
+
+    const distance = Phaser.Math.Distance.Between(this.avatar.x, this.avatar.y, pos.x, pos.y)
+    
+    if (distance < 1) {
+      this.profile.currentLevelNodeId = nodeId
+      saveProfile(this.profileSlot, this.profile)
+      return onComplete()
+    }
+
+    this.isGliding = true
+    this.tweens.add({
+      targets: this.avatar,
+      x: pos.x,
+      y: pos.y,
+      duration: Math.max(100, distance * 2), // dynamic duration based on distance
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        this.profile.currentLevelNodeId = nodeId
+        saveProfile(this.profileSlot, this.profile)
+        this.isGliding = false
+        onComplete()
+      }
+    })
+  }
+
+  private enterLevel(level: LevelConfig, pos: NodePosition) {
+    this.glideAvatarTo(pos, level.id, () => {
+      this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+    })
   }
 }
