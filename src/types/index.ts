@@ -34,6 +34,7 @@ export interface ProfileData {
   focusPoints: number
   currentWorld: number
   currentLevelId: string
+  currentLevelNodeId?: string
   unlockedLetters: string[]
   unlockedLevelIds: string[]
   levelResults: Record<string, LevelResult>

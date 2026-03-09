@@ -15,6 +15,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight'): Prof
     focusPoints: 0,
     currentWorld: 1,
     currentLevelId: 'w1_l1',
+    currentLevelNodeId: undefined,
     unlockedLetters: [...HOME_ROW],
     unlockedLevelIds: ['w1_l1'],
     levelResults: {},
