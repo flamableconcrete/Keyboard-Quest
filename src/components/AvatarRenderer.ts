@@ -8,6 +8,7 @@ const SIZE = GRID * PIXEL // 48
 export class AvatarRenderer {
   static generateAll(scene: Phaser.Scene): void {
     for (const config of AVATAR_CONFIGS) {
+      if (scene.textures.exists(config.id)) continue
       AvatarRenderer.generateOne(scene, config)
     }
   }
