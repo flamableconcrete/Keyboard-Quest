@@ -69,16 +69,16 @@ export class OverlandMapScene extends Phaser.Scene {
     // World title
     this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
       fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setDepth(10)
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
       fontSize: '20px', color: '#ffffff'
-    })
+    }).setDepth(10)
 
     this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
       fontSize: '20px', color: '#ffd700'
-    }).setOrigin(1, 0)
+    }).setOrigin(1, 0).setDepth(10)
 
     // World navigation arrows
     this.drawWorldArrows()
@@ -99,7 +99,7 @@ export class OverlandMapScene extends Phaser.Scene {
     if (this.currentWorld > 1) {
       const prev = this.add.text(30, height / 2, '◀', {
         fontSize: '36px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true }).setDepth(10)
       prev.on('pointerdown', () => {
         this.profile.currentWorld = this.currentWorld - 1
         saveProfile(this.profileSlot, this.profile)
@@ -107,7 +107,7 @@ export class OverlandMapScene extends Phaser.Scene {
       })
       this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
         fontSize: '14px', color: '#aaaaff'
-      }).setOrigin(0, 0.5)
+      }).setOrigin(0, 0.5).setDepth(10)
     }
 
     // Next world arrow — only if world boss beaten
@@ -118,7 +118,7 @@ export class OverlandMapScene extends Phaser.Scene {
       if (worldCleared) {
         const next = this.add.text(width - 30, h / 2, '▶', {
           fontSize: '36px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true })
+        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(10)
         next.on('pointerdown', () => {
           this.profile.currentWorld = this.currentWorld + 1
           saveProfile(this.profileSlot, this.profile)
@@ -126,10 +126,10 @@ export class OverlandMapScene extends Phaser.Scene {
         })
         this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
           fontSize: '14px', color: '#aaffaa'
-        }).setOrigin(1, 0.5)
+        }).setOrigin(1, 0.5).setDepth(10)
       } else {
         const { width: w } = this.scale
-        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5)
+        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5).setDepth(10)
       }
     }
   }
@@ -178,14 +178,14 @@ export class OverlandMapScene extends Phaser.Scene {
         : unlocked && !gated ? 0xffffff
         : 0x444444
 
-      const isBoss = level.isBoss || level.isMiniBoss
-      const circle = this.add.circle(pos.x, pos.y, isBoss ? 20 : 14, color)
+      const spriteKey = level.isBoss ? 'node-boss' : level.isMiniBoss ? 'node-cave' : 'node-castle'
+      const nodeSprite = this.add.sprite(pos.x, pos.y, spriteKey).setTint(color)
 
       if (unlocked && !gated) {
-        circle.setInteractive({ useHandCursor: true })
-        circle.on('pointerover', () => this.showTooltip(level, pos))
-        circle.on('pointerout', () => this.hideTooltip())
-        circle.on('pointerdown', () => this.enterLevel(level))
+        nodeSprite.setInteractive({ useHandCursor: true })
+        nodeSprite.on('pointerover', () => this.showTooltip(level, pos))
+        nodeSprite.on('pointerout', () => this.hideTooltip())
+        nodeSprite.on('pointerdown', () => this.enterLevel(level))
       }
 
       // Star display under completed nodes
@@ -194,16 +194,16 @@ export class OverlandMapScene extends Phaser.Scene {
         this.add.text(pos.x, pos.y + 22,
           `⚡${r.speedStars} 🎯${r.accuracyStars}`,
           { fontSize: '11px', color: '#ffff88' }
-        ).setOrigin(0.5)
+        ).setOrigin(0.5).setDepth(10)
       }
 
       // Gate hint
       if (gated && unlocked) {
-        this.add.text(pos.x, pos.y - 24, '🔒', { fontSize: '14px' }).setOrigin(0.5)
+        this.add.text(pos.x, pos.y - 24, '🔒', { fontSize: '14px' }).setOrigin(0.5).setDepth(10)
         const gate = level.bossGate!
         this.add.text(pos.x, pos.y + 24, `Need avg ${gate.minCombinedStars}★`, {
           fontSize: '10px', color: '#ff8888'
-        }).setOrigin(0.5)
+        }).setOrigin(0.5).setDepth(10)
       }
     })
   }
@@ -211,27 +211,27 @@ export class OverlandMapScene extends Phaser.Scene {
   private drawSpecialNodes() {
     // Tavern
     const tp = SPECIAL_NODE_POSITIONS['tavern']
-    const tavernNode = this.add.rectangle(tp.x, tp.y, 80, 40, 0x6a3a1a)
+    const tavernNode = this.add.sprite(tp.x, tp.y, 'node-castle')
       .setInteractive({ useHandCursor: true })
-    this.add.text(tp.x, tp.y, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5)
+    this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(10)
     tavernNode.on('pointerdown', () => {
       this.scene.start('Tavern', { profileSlot: this.profileSlot })
     })
 
     // Stable
     const sp = SPECIAL_NODE_POSITIONS['stable']
-    const stableNode = this.add.rectangle(sp.x, sp.y, 80, 40, 0x2a5a1a)
+    const stableNode = this.add.sprite(sp.x, sp.y, 'node-cave')
       .setInteractive({ useHandCursor: true })
-    this.add.text(sp.x, sp.y, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5)
+    this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(10)
     stableNode.on('pointerdown', () => {
       this.scene.start('Stable', { profileSlot: this.profileSlot })
     })
 
     // Inventory
     const ip = SPECIAL_NODE_POSITIONS['inventory']
-    const inventoryNode = this.add.rectangle(ip.x, ip.y, 80, 40, 0x4e4e6a)
+    const inventoryNode = this.add.sprite(ip.x, ip.y, 'node-castle')
       .setInteractive({ useHandCursor: true })
-    this.add.text(ip.x, ip.y, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5)
+    this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(10)
     inventoryNode.on('pointerdown', () => {
       this.scene.start('Inventory', { profileSlot: this.profileSlot })
     })
@@ -307,7 +307,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.tooltipText = this.add.text(pos.x, pos.y - 35, `${label}${level.name}`, {
       fontSize: '14px', color: '#ffffff', backgroundColor: '#000000',
       padding: { x: 6, y: 4 }
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setDepth(10)
   }
 
   private hideTooltip() {
@@ -317,9 +317,9 @@ export class OverlandMapScene extends Phaser.Scene {
 
   private drawSettingsButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
+    const btn = this.add.text(width - 20, 50, '⚙ SETTINGS', {
       fontSize: '18px', color: '#aaaaaa'
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(10)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
