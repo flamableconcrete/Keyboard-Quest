@@ -7,6 +7,7 @@ import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
 import { WORLD1_MAP } from '../data/maps/world1'
 import type { WorldMapData } from '../data/maps/types'
+import { COMMON_FRAMES } from '../data/maps/common'
 
 interface NodePosition { x: number; y: number }
 
@@ -56,6 +57,7 @@ export class OverlandMapScene extends Phaser.Scene {
   private avatar!: Phaser.GameObjects.Sprite
   private isGliding = false
   private mapRenderer?: MapRenderer
+  private glowRect?: Phaser.GameObjects.Rectangle
   /** Composite bezier path for avatar path-following (used by Task 8). */
   worldPath?: Phaser.Curves.Path
 
@@ -221,6 +223,8 @@ export class OverlandMapScene extends Phaser.Scene {
   }
 
   private drawNodes(levels: LevelConfig[], nodePositions: NodePosition[]) {
+    const hasCommon = this.textures.exists('map-common')
+
     levels.forEach((level, idx) => {
       const pos = nodePositions[idx]
       if (!pos) return
@@ -238,23 +242,93 @@ export class OverlandMapScene extends Phaser.Scene {
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
-        nodeSprite.on('pointerover', () => this.showTooltip(level, pos))
-        nodeSprite.on('pointerout', () => this.hideTooltip())
+
+        // Hover bounce + glow
+        nodeSprite.on('pointerover', () => {
+          this.tweens.add({
+            targets: nodeSprite,
+            scaleX: 1.15,
+            scaleY: 1.15,
+            duration: 150,
+            ease: 'Back.easeOut',
+          })
+          // Create glow rect behind node
+          this.glowRect?.destroy()
+          this.glowRect = this.add.rectangle(
+            pos.x, pos.y,
+            nodeSprite.width + 12, nodeSprite.height + 12,
+            0xffffff, 0.2
+          ).setDepth(nodeSprite.depth - 1)
+          this.showTooltip(level, pos)
+        })
+
+        nodeSprite.on('pointerout', () => {
+          this.tweens.add({
+            targets: nodeSprite,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 150,
+            ease: 'Sine.easeIn',
+          })
+          this.glowRect?.destroy()
+          this.glowRect = undefined
+          this.hideTooltip()
+        })
+
         nodeSprite.on('pointerdown', () => this.enterLevel(level, pos))
+      }
+
+      // Completion shimmer particles
+      if (completed && hasCommon) {
+        this.add.particles(pos.x, pos.y, 'map-common', {
+          frame: COMMON_FRAMES.particleSpark,
+          frequency: 600,
+          lifespan: 800,
+          quantity: 1,
+          tint: 0xffd700,
+          scale: { start: 0.4, end: 0 },
+          alpha: { start: 0.8, end: 0 },
+          speed: { min: 5, max: 15 },
+          gravityY: -10,
+        })
       }
 
       // Star display under completed nodes
       if (completed) {
         const r = this.profile.levelResults[level.id]
-        this.add.text(pos.x, pos.y + 22,
-          `⚡${r.speedStars} 🎯${r.accuracyStars}`,
-          { fontSize: '11px', color: '#ffff88' }
-        ).setOrigin(0.5).setDepth(10)
+        if (hasCommon) {
+          // Pixel-art stars: 5 speed + 5 accuracy
+          const totalStars = 10
+          const startX = pos.x - ((totalStars * 8 + 4) / 2) + 4 // 4px gap between groups
+          for (let i = 0; i < 5; i++) {
+            const frame = i < r.speedStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
+            this.add.sprite(startX + i * 8, pos.y + 22, 'map-common', frame)
+              .setDisplaySize(8, 8).setDepth(10)
+          }
+          for (let i = 0; i < 5; i++) {
+            const frame = i < r.accuracyStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
+            this.add.sprite(startX + 44 + i * 8, pos.y + 22, 'map-common', frame)
+              .setDisplaySize(8, 8).setDepth(10)
+          }
+        } else {
+          this.add.text(pos.x, pos.y + 22,
+            `⚡${r.speedStars} 🎯${r.accuracyStars}`,
+            { fontSize: '11px', color: '#ffff88' }
+          ).setOrigin(0.5).setDepth(10)
+        }
       }
 
-      // Gate hint
+      // Gate hint with pulsing lock
       if (gated && unlocked) {
-        this.add.text(pos.x, pos.y - 24, '🔒', { fontSize: '14px' }).setOrigin(0.5).setDepth(10)
+        const lockText = this.add.text(pos.x, pos.y - 24, '🔒', { fontSize: '14px' })
+          .setOrigin(0.5).setDepth(10).setAlpha(0.8)
+        this.tweens.add({
+          targets: lockText,
+          alpha: { from: 0.4, to: 0.8 },
+          duration: 1000,
+          yoyo: true,
+          repeat: -1,
+        })
         const gate = level.bossGate!
         this.add.text(pos.x, pos.y + 24, `Need avg ${gate.minCombinedStars}★`, {
           fontSize: '10px', color: '#ff8888'
@@ -368,12 +442,25 @@ export class OverlandMapScene extends Phaser.Scene {
     this.tooltipText = this.add.text(pos.x, pos.y - 35, `${label}${level.name}`, {
       fontSize: '14px', color: '#ffffff', backgroundColor: '#000000',
       padding: { x: 6, y: 4 }
-    }).setOrigin(0.5).setDepth(10)
+    }).setOrigin(0.5).setDepth(10).setAlpha(0)
+
+    this.tweens.add({
+      targets: this.tooltipText,
+      alpha: 1,
+      duration: 150,
+    })
   }
 
   private hideTooltip() {
-    this.tooltipText?.destroy()
+    if (!this.tooltipText) return
+    const text = this.tooltipText
     this.tooltipText = undefined
+    this.tweens.add({
+      targets: text,
+      alpha: 0,
+      duration: 100,
+      onComplete: () => text.destroy(),
+    })
   }
 
   private drawSettingsButton() {
