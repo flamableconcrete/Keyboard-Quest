@@ -40,7 +40,12 @@ export class OverlandMapScene extends Phaser.Scene {
 
   init(data: { profileSlot: number; world?: number }) {
     this.profileSlot = data.profileSlot
-    this.profile = loadProfile(this.profileSlot)!
+    const profile = loadProfile(this.profileSlot)
+    if (!profile) {
+      this.scene.start('ProfileSelect')
+      return
+    }
+    this.profile = profile
     this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 

@@ -1,6 +1,6 @@
 // src/scenes/ProfileSelectScene.ts
 import Phaser from 'phaser'
-import { getAllProfiles, saveProfile, deleteProfile, exportProfile, importProfile, createProfile } from '../utils/profile'
+import { getAllProfiles, loadProfile, saveProfile, deleteProfile, exportProfile, importProfile, createProfile } from '../utils/profile'
 import { ProfileData } from '../types'
 import { AVATAR_CONFIGS } from '../data/avatars'
 
@@ -194,6 +194,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
   private startNaming(slot: number) {
     this.typingBuffer = ''
+    this.input.keyboard?.removeAllListeners()
     this.children.removeAll(true)
     const { width, height } = this.scale
 
@@ -303,6 +304,8 @@ export class ProfileSelectScene extends Phaser.Scene {
   }
 
   private startGame(slot: number, profile: ProfileData) {
+    // Guard against navigating with a deleted/missing profile
+    if (!loadProfile(slot)) return
     // Store active profile slot in registry for other scenes
     this.registry.set('profileSlot', slot)
     this.registry.set('profile', profile)
