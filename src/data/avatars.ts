@@ -99,7 +99,7 @@ function generateAvatarConfigs(): AvatarConfig[] {
     const accessoryIndex = (i * 7 + accessoryOffset) % ACCESSORIES.length;
 
     configs.push({
-      id: `avatar_${String(i + 1).padStart(2, '0')}`,
+      id: `avatar_${i}`,
       skinTone: SKIN_TONES[skinIndex],
       hairStyle: HAIR_STYLES[hairStyleIndex],
       hairColor: HAIR_COLORS[hairColorIndex],
