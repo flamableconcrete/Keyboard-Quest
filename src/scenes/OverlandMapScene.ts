@@ -78,6 +78,7 @@ export class OverlandMapScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(300, 0, 0, 0)
     const { width, height } = this.scale
     const mapData = this.getMapData(this.currentWorld)
 
@@ -167,7 +168,10 @@ export class OverlandMapScene extends Phaser.Scene {
       prev.on('pointerdown', () => {
         this.profile.currentWorld = this.currentWorld - 1
         saveProfile(this.profileSlot, this.profile)
-        this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld - 1 })
+        this.cameras.main.fadeOut(300, 0, 0, 0)
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+          this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld - 1 })
+        })
       })
       this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
         fontSize: '14px', color: '#aaaaff'
@@ -186,7 +190,10 @@ export class OverlandMapScene extends Phaser.Scene {
         next.on('pointerdown', () => {
           this.profile.currentWorld = this.currentWorld + 1
           saveProfile(this.profileSlot, this.profile)
-          this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld + 1 })
+          this.cameras.main.fadeOut(300, 0, 0, 0)
+          this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld + 1 })
+          })
         })
         this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
           fontSize: '14px', color: '#aaffaa'
