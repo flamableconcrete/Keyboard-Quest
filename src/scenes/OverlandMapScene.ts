@@ -316,7 +316,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     // Inventory
     const ip = specialPositions['inventory']
-    const inventoryNode = this.add.sprite(ip.x, ip.y, 'node-castle')
+    const inventoryNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
       .setInteractive({ useHandCursor: true })
     this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(10)
     inventoryNode.on('pointerdown', () => {

@@ -176,6 +176,7 @@ export class PreloadScene extends Phaser.Scene {
 
     g.generateTexture('world1-tileset', 10 * T, 4 * T)
     g.destroy()
+    this.addTilesetFrames('world1-tileset', 10, 4)
   }
 
   /* ── World 2: The Shadowed Fen tileset (10×4 = 320×128) ── */
@@ -296,6 +297,7 @@ export class PreloadScene extends Phaser.Scene {
 
     g.generateTexture('world2-tileset', 10 * T, 4 * T)
     g.destroy()
+    this.addTilesetFrames('world2-tileset', 10, 4)
   }
 
   /* ── World 3: The Ember Peaks tileset (10×4 = 320×128) ── */
@@ -421,6 +423,7 @@ export class PreloadScene extends Phaser.Scene {
 
     g.generateTexture('world3-tileset', 10 * T, 4 * T)
     g.destroy()
+    this.addTilesetFrames('world3-tileset', 10, 4)
   }
 
   /* ── World 4: The Shrouded Wilds tileset (10×4 = 320×128) ── */
@@ -573,6 +576,7 @@ export class PreloadScene extends Phaser.Scene {
 
     g.generateTexture('world4-tileset', 10 * T, 4 * T)
     g.destroy()
+    this.addTilesetFrames('world4-tileset', 10, 4)
   }
 
   /* ── World 5: The Typemancer's Tower tileset (10×4 = 320×128) ── */
@@ -731,6 +735,7 @@ export class PreloadScene extends Phaser.Scene {
 
     g.generateTexture('world5-tileset', 10 * T, 4 * T)
     g.destroy()
+    this.addTilesetFrames('world5-tileset', 10, 4)
   }
 
   /* ── Task 5: Common map spritesheet (8×2 = 256×64) ── */
@@ -850,6 +855,17 @@ export class PreloadScene extends Phaser.Scene {
         for (let col = 0; col < 8; col++) {
           tex.add(row * 8 + col, 0, col * T, row * T, T, T)
         }
+      }
+    }
+  }
+
+  /** Add individual spritesheet frames to a generated tileset texture. */
+  private addTilesetFrames(key: string, columns: number, rows: number): void {
+    const T = 32
+    const tex = this.textures.get(key)
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        tex.add(row * columns + col, 0, col * T, row * T, T, T)
       }
     }
   }

@@ -157,9 +157,9 @@ export class MapRenderer {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  /** Render a single TileGrid layer as Phaser images with setCrop. */
+  /** Render a single TileGrid layer as Phaser images using spritesheet frames. */
   private renderGrid(grid: TileGrid, depth: number): void {
-    const { tilesetKey, tilesetColumns } = this.mapData
+    const { tilesetKey } = this.mapData
 
     for (let row = 0; row < grid.length; row++) {
       const rowData = grid[row]
@@ -167,19 +167,13 @@ export class MapRenderer {
         const tileIndex = rowData[col]
         if (tileIndex < 0) continue // -1 = empty
 
-        // Compute source position in tileset spritesheet
-        const srcCol = tileIndex % tilesetColumns
-        const srcRow = Math.floor(tileIndex / tilesetColumns)
-        const srcX = srcCol * TILE_SIZE
-        const srcY = srcRow * TILE_SIZE
-
         const img = this.scene.add.image(
           col * TILE_SIZE,
           row * TILE_SIZE,
           tilesetKey,
+          tileIndex,
         )
         img.setOrigin(0, 0)
-        img.setCrop(srcX, srcY, TILE_SIZE, TILE_SIZE)
         img.setDepth(depth)
 
         this.tileImages.push(img)
@@ -187,19 +181,14 @@ export class MapRenderer {
     }
   }
 
-  /** Place a single decoration sprite using setCrop from the tileset. */
+  /** Place a single decoration sprite using spritesheet frame from the tileset. */
   private placeDecorationSprite(
     deco: DecorationPlacement,
   ): Phaser.GameObjects.Image {
-    const { tilesetKey, tilesetColumns } = this.mapData
-    const srcCol = deco.tileIndex % tilesetColumns
-    const srcRow = Math.floor(deco.tileIndex / tilesetColumns)
-    const srcX = srcCol * TILE_SIZE
-    const srcY = srcRow * TILE_SIZE
+    const { tilesetKey } = this.mapData
 
-    const img = this.scene.add.image(deco.x, deco.y, tilesetKey)
+    const img = this.scene.add.image(deco.x, deco.y, tilesetKey, deco.tileIndex)
     img.setOrigin(0, 0)
-    img.setCrop(srcX, srcY, TILE_SIZE, TILE_SIZE)
 
     if (deco.depthOffset !== undefined) {
       img.setDepth(deco.y + deco.depthOffset)
