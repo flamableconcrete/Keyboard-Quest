@@ -381,8 +381,8 @@ function buildAnimatedTiles(): AnimatedTile[] {
 // ── Export ───────────────────────────────────────────────────
 export const WORLD1_MAP: WorldMapData = {
   world: 1,
-  tilesetKey: 'tileset-world1',
-  tilesetColumns: 8,
+  tilesetKey: 'world1-tileset',
+  tilesetColumns: 10,
 
   ground: buildGround(),
   detail: buildDetail(),

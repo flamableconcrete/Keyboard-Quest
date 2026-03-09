@@ -4,6 +4,9 @@ import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
+import { MapRenderer } from '../utils/mapRenderer'
+import { WORLD1_MAP } from '../data/maps/world1'
+import type { WorldMapData } from '../data/maps/types'
 
 interface NodePosition { x: number; y: number }
 
@@ -24,7 +27,7 @@ const WORLD_BG_COLORS: Record<number, number> = {
 }
 
 // Node positions — hand-placed on a 1280x720 canvas
-// Reused across worlds (world prefix differs, layout is the same)
+// Fallback layout for worlds 2-5 (world 1 uses mapData.nodePositions)
 const NODE_LAYOUT: NodePosition[] = [
   { x: 150, y: 600 }, // l1
   { x: 280, y: 550 }, // l2
@@ -52,6 +55,9 @@ export class OverlandMapScene extends Phaser.Scene {
   private currentWorld!: number
   private avatar!: Phaser.GameObjects.Sprite
   private isGliding = false
+  private mapRenderer?: MapRenderer
+  /** Composite bezier path for avatar path-following (used by Task 8). */
+  worldPath?: Phaser.Curves.Path
 
   constructor() { super('OverlandMap') }
 
@@ -61,12 +67,28 @@ export class OverlandMapScene extends Phaser.Scene {
     this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 
+  /** Returns map data for worlds that have tilemap support, null otherwise. */
+  private getMapData(world: number): WorldMapData | null {
+    if (world === 1) return WORLD1_MAP
+    return null
+  }
+
   create() {
     const { width, height } = this.scale
+    const mapData = this.getMapData(this.currentWorld)
 
-    // Background
-    this.add.tileSprite(width / 2, height / 2, width, height, 'tile-grass')
-      .setTint(WORLD_BG_COLORS[this.currentWorld] ?? 0xffffff)
+    if (mapData) {
+      // ── New tilemap-based rendering ──────────────────────────
+      this.mapRenderer = new MapRenderer(this, mapData)
+      this.mapRenderer.renderTileLayers()
+      this.mapRenderer.renderDecorations()
+      this.mapRenderer.startAtmosphere()
+      this.mapRenderer.startAnimatedTiles()
+    } else {
+      // ── Fallback: old tileSprite background ──────────────────
+      this.add.tileSprite(width / 2, height / 2, width, height, 'tile-grass')
+        .setTint(WORLD_BG_COLORS[this.currentWorld] ?? 0xffffff)
+    }
 
     // World title
     this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
@@ -86,19 +108,38 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawWorldArrows()
 
     const levels = getLevelsForWorld(this.currentWorld)
-    this.drawPaths(levels)
-    this.drawNodes(levels)
-    this.drawSpecialNodes()
+
+    // Resolve node positions based on whether we have map data
+    const nodePositions: NodePosition[] = mapData
+      ? mapData.nodePositions
+      : NODE_LAYOUT
+    const specialPositions: Record<string, NodePosition> = mapData
+      ? mapData.specialNodes
+      : SPECIAL_NODE_POSITIONS
+
+    if (mapData) {
+      // Use MapRenderer for curved bezier paths
+      const completedIds = new Set<string>(
+        levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
+      )
+      this.worldPath = this.mapRenderer!.renderPaths(levels, completedIds)
+    } else {
+      // Fallback: old straight-line paths
+      this.drawPaths(levels)
+    }
+
+    this.drawNodes(levels, nodePositions)
+    this.drawSpecialNodes(specialPositions)
     this.drawMasteryChest()
     this.drawSettingsButton()
 
-    let startPos = NODE_LAYOUT[0] || { x: 0, y: 0 }
+    let startPos = nodePositions[0] || { x: 0, y: 0 }
     if (this.profile.currentLevelNodeId) {
       const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
-      if (idx !== -1 && NODE_LAYOUT[idx]) {
-        startPos = NODE_LAYOUT[idx]
-      } else if (SPECIAL_NODE_POSITIONS[this.profile.currentLevelNodeId]) {
-        startPos = SPECIAL_NODE_POSITIONS[this.profile.currentLevelNodeId]
+      if (idx !== -1 && nodePositions[idx]) {
+        startPos = nodePositions[idx]
+      } else if (specialPositions[this.profile.currentLevelNodeId]) {
+        startPos = specialPositions[this.profile.currentLevelNodeId]
       }
     }
     this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(5)
@@ -162,6 +203,7 @@ export class OverlandMapScene extends Phaser.Scene {
     return avg >= minCombinedStars
   }
 
+  /** Fallback path drawing for worlds without map data. */
   private drawPaths(levels: LevelConfig[]) {
     const gfx = this.add.graphics()
     gfx.lineStyle(4, 0x888844)
@@ -178,9 +220,9 @@ export class OverlandMapScene extends Phaser.Scene {
     })
   }
 
-  private drawNodes(levels: LevelConfig[]) {
+  private drawNodes(levels: LevelConfig[], nodePositions: NodePosition[]) {
     levels.forEach((level, idx) => {
-      const pos = NODE_LAYOUT[idx]
+      const pos = nodePositions[idx]
       if (!pos) return
 
       const unlocked = this.isUnlocked(level.id)
@@ -221,9 +263,9 @@ export class OverlandMapScene extends Phaser.Scene {
     })
   }
 
-  private drawSpecialNodes() {
+  private drawSpecialNodes(specialPositions: Record<string, NodePosition>) {
     // Tavern
-    const tp = SPECIAL_NODE_POSITIONS['tavern']
+    const tp = specialPositions['tavern']
     const tavernNode = this.add.sprite(tp.x, tp.y, 'node-castle')
       .setInteractive({ useHandCursor: true })
     this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(10)
@@ -234,7 +276,7 @@ export class OverlandMapScene extends Phaser.Scene {
     })
 
     // Stable
-    const sp = SPECIAL_NODE_POSITIONS['stable']
+    const sp = specialPositions['stable']
     const stableNode = this.add.sprite(sp.x, sp.y, 'node-cave')
       .setInteractive({ useHandCursor: true })
     this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(10)
@@ -245,7 +287,7 @@ export class OverlandMapScene extends Phaser.Scene {
     })
 
     // Inventory
-    const ip = SPECIAL_NODE_POSITIONS['inventory']
+    const ip = specialPositions['inventory']
     const inventoryNode = this.add.sprite(ip.x, ip.y, 'node-castle')
       .setInteractive({ useHandCursor: true })
     this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(10)
@@ -350,7 +392,7 @@ export class OverlandMapScene extends Phaser.Scene {
     if (this.isGliding) return
 
     const distance = Phaser.Math.Distance.Between(this.avatar.x, this.avatar.y, pos.x, pos.y)
-    
+
     if (distance < 1) {
       this.profile.currentLevelNodeId = nodeId
       saveProfile(this.profileSlot, this.profile)
