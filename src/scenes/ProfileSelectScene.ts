@@ -2,12 +2,14 @@
 import Phaser from 'phaser'
 import { getAllProfiles, saveProfile, deleteProfile, exportProfile, importProfile, createProfile } from '../utils/profile'
 import { ProfileData } from '../types'
+import { AVATAR_CONFIGS } from '../data/avatars'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
 
 export class ProfileSelectScene extends Phaser.Scene {
   private typingBuffer = ''
   private profiles: (ProfileData | null)[] = []
+  private selectedAvatarId: string = 'avatar_0'
 
   constructor() { super('ProfileSelect') }
 
@@ -212,15 +214,91 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Enter' && this.typingBuffer.length > 0) {
-        const profile = createProfile(this.typingBuffer)
-        saveProfile(slot, profile)
-        this.startGame(slot, profile)
+        this.input.keyboard?.removeAllListeners()
+        this.showAvatarGallery(slot, this.typingBuffer)
       } else if (event.key === 'Backspace') {
         this.typingBuffer = this.typingBuffer.slice(0, -1)
       } else if (event.key.length === 1 && this.typingBuffer.length < 16) {
         this.typingBuffer += event.key
       }
       nameDisplay.setText(this.typingBuffer + '_')
+    })
+  }
+
+  private showAvatarGallery(slot: number, playerName: string) {
+    this.children.removeAll(true)
+    this.selectedAvatarId = 'avatar_0'
+    const { width, height } = this.scale
+
+    // Title
+    this.add.text(width / 2, 30, 'Choose Your Avatar', {
+      fontSize: '32px', color: '#ffd700', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    // Player name
+    this.add.text(width / 2, 65, playerName, {
+      fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    // Avatar grid
+    const cols = 6
+    const cellSize = 72
+    const gridWidth = cols * cellSize
+    const startX = width / 2 - gridWidth / 2 + cellSize / 2
+    const startY = 120
+
+    let highlightRect: Phaser.GameObjects.Rectangle | null = null
+
+    AVATAR_CONFIGS.forEach((config, index) => {
+      const col = index % cols
+      const row = Math.floor(index / cols)
+      const ax = startX + col * cellSize
+      const ay = startY + row * cellSize
+
+      // Dark frame
+      const frame = this.add.rectangle(ax, ay, 56, 56, 0x2a2a4a)
+      frame.setStrokeStyle(2, 0x4444aa)
+
+      // Avatar image
+      const img = this.add.image(ax, ay, config.id).setDisplaySize(48, 48)
+      img.setInteractive({ useHandCursor: true })
+
+      // Default selection highlight for first avatar
+      if (config.id === this.selectedAvatarId) {
+        highlightRect = this.add.rectangle(ax, ay, 60, 60)
+        highlightRect.setFillStyle(0x000000, 0)
+        highlightRect.setStrokeStyle(3, 0xffd700)
+      }
+
+      img.on('pointerdown', () => {
+        this.selectedAvatarId = config.id
+        if (highlightRect) {
+          highlightRect.destroy()
+        }
+        highlightRect = this.add.rectangle(ax, ay, 60, 60)
+        highlightRect.setFillStyle(0x000000, 0)
+        highlightRect.setStrokeStyle(3, 0xffd700)
+      })
+    })
+
+    // CONFIRM button
+    const confirmY = height - 60
+    this.drawPixelPanel(width / 2, confirmY, 200, 50, 0x2a6a2a, 0x44aa44)
+    const confirmText = this.add.text(width / 2, confirmY, 'CONFIRM', {
+      fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    confirmText.on('pointerdown', () => {
+      const profile = createProfile(playerName, this.selectedAvatarId)
+      saveProfile(slot, profile)
+      this.startGame(slot, profile)
+    })
+
+    // Back button
+    const backText = this.add.text(40, height - 60, '< Back', {
+      fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
+    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+    backText.on('pointerdown', () => {
+      this.startNaming(slot)
     })
   }
 
