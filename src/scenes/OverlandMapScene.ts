@@ -55,9 +55,11 @@ export class OverlandMapScene extends Phaser.Scene {
   private profileSlot!: number
   private currentWorld!: number
   private avatar!: Phaser.GameObjects.Sprite
+  private avatarShadow?: Phaser.GameObjects.Ellipse
   private isGliding = false
   private mapRenderer?: MapRenderer
   private glowRect?: Phaser.GameObjects.Rectangle
+  private currentNodeIndex = 0
   /** Composite bezier path for avatar path-following (used by Task 8). */
   worldPath?: Phaser.Curves.Path
 
@@ -136,14 +138,20 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawSettingsButton()
 
     let startPos = nodePositions[0] || { x: 0, y: 0 }
+    this.currentNodeIndex = 0
     if (this.profile.currentLevelNodeId) {
       const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
       if (idx !== -1 && nodePositions[idx]) {
         startPos = nodePositions[idx]
+        this.currentNodeIndex = idx
       } else if (specialPositions[this.profile.currentLevelNodeId]) {
         startPos = specialPositions[this.profile.currentLevelNodeId]
       }
     }
+
+    // Drop shadow beneath avatar
+    this.avatarShadow = this.add.ellipse(startPos.x, startPos.y + 2, 16, 6, 0x000000, 0.25)
+      .setDepth(4)
     this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(5)
   }
 
@@ -475,6 +483,37 @@ export class OverlandMapScene extends Phaser.Scene {
     })
   }
 
+  /** Emit a short burst of dust particles at the avatar position. */
+  private emitDustPuff() {
+    if (!this.textures.exists('map-common')) return
+    this.add.particles(this.avatar.x, this.avatar.y, 'map-common', {
+      frame: COMMON_FRAMES.particleDust,
+      quantity: Phaser.Math.Between(5, 8),
+      lifespan: 300,
+      speed: { min: 15, max: 40 },
+      scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      emitting: false,
+    }).explode()
+  }
+
+  /** Move shadow to match avatar position (shadow sits 2px below). */
+  private syncShadow() {
+    if (this.avatarShadow) {
+      this.avatarShadow.setPosition(this.avatar.x, this.avatar.y + 2)
+    }
+  }
+
+  /**
+   * Compute a sinusoidal walk-bob offset: oscillates ±2px at ~200ms period.
+   * Uses wall-clock elapsed time so it works independently of any tween.
+   */
+  private glideStartTime = 0
+  private walkBobOffset(): number {
+    const elapsed = this.time.now - this.glideStartTime
+    return Math.sin((elapsed / 200) * Math.PI) * 2
+  }
+
   private glideAvatarTo(pos: NodePosition, nodeId: string, onComplete: () => void) {
     if (this.isGliding) return
 
@@ -487,18 +526,81 @@ export class OverlandMapScene extends Phaser.Scene {
     }
 
     this.isGliding = true
-    this.tweens.add({
-      targets: this.avatar,
-      x: pos.x,
-      y: pos.y,
-      duration: Math.max(100, distance * 2), // dynamic duration based on distance
-      ease: 'Sine.easeInOut',
-      onComplete: () => {
-        this.profile.currentLevelNodeId = nodeId
-        saveProfile(this.profileSlot, this.profile)
-        this.isGliding = false
-        onComplete()
+    this.glideStartTime = this.time.now
+
+    // Determine if we can use bezier path-following
+    const levels = getLevelsForWorld(this.currentWorld)
+    const targetLevelIdx = levels.findIndex(l => l.id === nodeId)
+    const canUsePath = this.worldPath && targetLevelIdx !== -1
+
+    const finishGlide = () => {
+      // Snap to final position (no bob)
+      this.avatar.setPosition(pos.x, pos.y)
+      this.syncShadow()
+      // Update tracking
+      if (targetLevelIdx !== -1) {
+        this.currentNodeIndex = targetLevelIdx
       }
+      this.profile.currentLevelNodeId = nodeId
+      saveProfile(this.profileSlot, this.profile)
+      this.isGliding = false
+      // Dust puff on arrival
+      this.emitDustPuff()
+      onComplete()
+    }
+
+    if (canUsePath) {
+      // Bezier path-following between nodes
+      const numCurves = this.worldPath!.curves.length
+      if (numCurves === 0) {
+        this.glideDirectTo(pos, distance, finishGlide)
+        return
+      }
+
+      const startT = this.currentNodeIndex / numCurves
+      const endT = targetLevelIdx / numCurves
+      const obj = { val: 0 }
+
+      this.tweens.add({
+        targets: obj,
+        val: 1,
+        duration: Math.max(200, distance * 2),
+        ease: 'Sine.easeInOut',
+        onUpdate: () => {
+          const t = Phaser.Math.Linear(startT, endT, obj.val)
+          const clampedT = Phaser.Math.Clamp(t, 0, 1)
+          const pt = this.worldPath!.getPoint(clampedT)
+          if (pt) {
+            this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
+            this.syncShadow()
+          }
+        },
+        onComplete: finishGlide,
+      })
+    } else {
+      // Direct tween for special nodes or worlds without paths
+      this.glideDirectTo(pos, distance, finishGlide)
+    }
+  }
+
+  /** Simple direct linear-interpolation tween (used for special nodes or fallback). */
+  private glideDirectTo(pos: NodePosition, distance: number, onComplete: () => void) {
+    const obj = { val: 0 }
+    const startX = this.avatar.x
+    const startY = this.avatar.y
+
+    this.tweens.add({
+      targets: obj,
+      val: 1,
+      duration: Math.max(100, distance * 2),
+      ease: 'Sine.easeInOut',
+      onUpdate: () => {
+        const x = Phaser.Math.Linear(startX, pos.x, obj.val)
+        const y = Phaser.Math.Linear(startY, pos.y, obj.val)
+        this.avatar.setPosition(x, y + this.walkBobOffset())
+        this.syncShadow()
+      },
+      onComplete,
     })
   }
 
