@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { AvatarRenderer } from '../components/AvatarRenderer'
 
 export class PreloadScene extends Phaser.Scene {
   constructor() { super('Preload') }
@@ -26,5 +27,7 @@ export class PreloadScene extends Phaser.Scene {
     })
   }
 
-  create() {}
+  create() {
+    AvatarRenderer.generateAll(this)
+  }
 }
