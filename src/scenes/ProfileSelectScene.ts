@@ -169,6 +169,7 @@ export class ProfileSelectScene extends Phaser.Scene {
       targets: newHeroText,
       alpha: 0.4,
       duration: 1000,
+      ease: 'Sine.easeInOut',
       yoyo: true,
       repeat: -1
     })
