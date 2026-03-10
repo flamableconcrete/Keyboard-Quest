@@ -1,5 +1,6 @@
 // src/scenes/level-types/SillyChallengeLevel.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
@@ -140,7 +141,15 @@ export class SillyChallengeLevel extends Phaser.Scene {
 
   private entityReachedPlayer(entity: SillyEntity) {
     this.removeEntity(entity)
-    this.playerHp--
+    const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) {
@@ -152,6 +161,17 @@ export class SillyChallengeLevel extends Phaser.Scene {
     const entity = this.entities.find(g => g.word === word)
     if (entity) {
       this.removeEntity(entity)
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+      if (Math.random() < cleaveChance) {
+        const nextEnemy = this.entities.find(e => e !== entity)
+        if (nextEnemy) {
+          this.removeEntity(nextEnemy)
+          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        }
+      }
     }
     
     const next = this.entities[0] ?? null

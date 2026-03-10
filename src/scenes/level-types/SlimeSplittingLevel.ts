@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
@@ -112,7 +113,15 @@ export class SlimeSplittingLevel extends Phaser.Scene {
 
   private slimeReachedPlayer(slime: Slime) {
     this.removeSlime(slime)
-    this.playerHp--
+    const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
@@ -124,6 +133,18 @@ export class SlimeSplittingLevel extends Phaser.Scene {
       const oldX = slime.x
       const oldY = slime.y
       this.removeSlime(slime)
+
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+      if (Math.random() < cleaveChance) {
+        const nextEnemy = this.slimes.find(s => s !== slime)
+        if (nextEnemy) {
+          this.removeSlime(nextEnemy)
+          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        }
+      }
       
       if (word.length > 2) {
         const [w1, w2] = this.splitWord(word)

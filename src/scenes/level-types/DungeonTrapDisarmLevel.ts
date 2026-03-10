@@ -1,5 +1,6 @@
 // src/scenes/level-types/DungeonTrapDisarmLevel.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
@@ -159,7 +160,15 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
 
   private trapExploded(trap: Trap) {
     this.removeTrap(trap)
-    this.playerHp--
+    const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(300, 0.02)
     this.cameras.main.flash(200, 255, 0, 0)

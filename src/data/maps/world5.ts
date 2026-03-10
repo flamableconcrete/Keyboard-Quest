@@ -357,6 +357,7 @@ export const WORLD5_MAP: WorldMapData = {
     inventory: { x: 400, y: 700 },
     tavern: { x: 540, y: 700 },
     stable: { x: 680, y: 700 },
+    shop: { x: 820, y: 700 },
   },
 
   pathSegments: buildPathSegments(),

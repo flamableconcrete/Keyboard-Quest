@@ -100,11 +100,15 @@ export interface ItemData {
   name: string
   slot: 'weapon' | 'armor' | 'accessory'
   description: string
+  goldCost: number
   effect: {
     hp?: number
     power?: number
     focusBonus?: number
     captureChanceBonus?: number
+    defeatAdditionalEnemiesChance?: number
+    absorbAttacksChance?: number
+    bonusGoldChance?: number
   }
 }
 
