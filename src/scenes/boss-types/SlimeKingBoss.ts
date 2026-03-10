@@ -108,7 +108,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     const { width, height } = this.scale
     // Get a long word for the king
     const difficulty = Math.ceil(this.level.world / 2) + 2 // Harder words for boss
-    const words = getWordPool(this.level.unlockedLetters, 1, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)
     const word = words[0] || 'slimeking'
     
     this.createSlime(word, width / 2, height / 2 - 50, 200)

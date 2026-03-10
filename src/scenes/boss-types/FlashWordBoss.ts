@@ -79,7 +79,7 @@ export class FlashWordBoss extends Phaser.Scene {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
     const wordsToGenerate = Math.min(Math.ceil(this.level.wordCount / this.maxPhases), this.bossHp)
-    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     this.wordQueue = [...words]
     this.loadNextWord()
   }

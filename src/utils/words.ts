@@ -1,10 +1,11 @@
 import { WORD_BANK } from '../data/wordBank'
 
-export function filterWordsByLetters(bank: string[], letters: string[]): string[] {
+export function filterWordsByLetters(bank: string[], letters: string[], maxLength?: number): string[] {
   const letterSet = new Set(letters.map(l => l.toLowerCase()))
-  return bank.filter(word =>
-    word.toLowerCase().split('').every(ch => letterSet.has(ch))
-  )
+  return bank.filter(word => {
+    if (maxLength && word.length > maxLength) return false
+    return word.toLowerCase().split('').every(ch => letterSet.has(ch))
+  })
 }
 
 export function pickWords(pool: string[], count: number, difficulty: number): string[] {
@@ -41,8 +42,8 @@ export function pickWords(pool: string[], count: number, difficulty: number): st
   return selected
 }
 
-export function getWordPool(unlockedLetters: string[], count: number, difficulty: number): string[] {
-  const filtered = filterWordsByLetters(WORD_BANK, unlockedLetters)
+export function getWordPool(unlockedLetters: string[], count: number, difficulty: number, maxLength?: number): string[] {
+  const filtered = filterWordsByLetters(WORD_BANK, unlockedLetters, maxLength)
   return pickWords(filtered, Math.min(count, filtered.length), difficulty)
 }
 

@@ -165,7 +165,7 @@ export class ClockworkDragonBoss extends Phaser.Scene {
 
     const { width, height } = this.scale
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    const word = getWordPool(this.level.unlockedLetters, 1, difficulty)[0]
+    const word = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)[0]
 
     const orbitRadius = 150 + (indexInOrbit % 2) * 50
     const orbitAngle = (indexInOrbit / totalInOrbit) * Math.PI * 2

@@ -135,7 +135,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     
     // Ensure we don't generate more words than remaining boss HP
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
-    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     
     this.wordQueue = [...words]
     
