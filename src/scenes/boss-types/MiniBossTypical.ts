@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { TypingHands } from '../../components/TypingHands'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
 
@@ -31,6 +32,7 @@ export class MiniBossTypical extends Phaser.Scene {
   private gameMode: 'regular' | 'advanced' = 'regular'
   private wrongKeyCount = 0
   private nextAttackThreshold = 0
+  private typingHands?: TypingHands
 
   constructor() { super('MiniBossTypical') }
 
@@ -103,10 +105,25 @@ export class MiniBossTypical extends Phaser.Scene {
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 120,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
+    })
+
+    // Typing hands overlay (player setting)
+    const profile = loadProfile(this.profileSlot)
+    if (profile?.showFingerHints) {
+      this.typingHands = new TypingHands(this, width / 2, height - 50)
+    }
+
+    this.input.keyboard?.on('keydown', () => {
+      if (this.wordQueue.length > 0 && this.typingHands) {
+        const word = this.wordQueue[0]
+        const nextIdx = this.engine.getTypedSoFar().length
+        const nextCh = word[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
     })
 
     // Timer
@@ -143,6 +160,9 @@ export class MiniBossTypical extends Phaser.Scene {
     const word = this.wordQueue[0]
     this.bossLabel.setText(word)
     this.engine.setWord(word)
+    if (this.typingHands && word[0]) {
+      this.typingHands.highlightFinger(word[0])
+    }
   }
 
   private bossAttack() {
@@ -205,6 +225,7 @@ export class MiniBossTypical extends Phaser.Scene {
     this.finished = true
     this.timerEvent?.remove()
     this.attackTimer?.remove()
+    this.typingHands?.fadeOut()
     this.engine.destroy()
 
     if (passed) {
