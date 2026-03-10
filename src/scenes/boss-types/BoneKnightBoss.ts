@@ -47,9 +47,9 @@ export class BoneKnightBoss extends Phaser.Scene {
         this.playerHp = 5
         this.phase = 1
         this.activeShieldIndex = 0
-        // @ts-ignore - Ignore existing code that references undeclared properties to fix build
+        // @ts-ignore - these exist in other boss files, likely copied over and only partially removed
         this.horses = []
-        // @ts-ignore - Ignore existing code that references undeclared properties to fix build
+        // @ts-ignore
         this.wordQueue = []
     }
 

@@ -45,6 +45,8 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
   private readonly MAX_VISIBLE_QUEUE = 4 // max goblins on screen at once in regular mode
   private pathY = 0                      // fixed Y for all goblins (set in create)
+  private wrongKeyCount = 0
+  private nextAttackThreshold = 0
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -60,6 +62,8 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.wordQueue = []
     this.timeLeft = 0
     this.letterShieldCount = 0
+    this.wrongKeyCount = 0
+    this.nextAttackThreshold = Phaser.Math.Between(5, 8)
     this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
     this.gameMode = profile?.gameMode ?? 'regular'
@@ -287,6 +291,34 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       return
     }
     this.cameras.main.flash(80, 120, 0, 0)
+
+    if (!this.finished) {
+      this.wrongKeyCount++
+      if (this.wrongKeyCount >= this.nextAttackThreshold) {
+        this.wrongKeyCount = 0
+        this.nextAttackThreshold = Phaser.Math.Between(5, 8)
+
+        // Find goblin to attack (active one, or closest)
+        const attacker = this.activeGoblin || this.goblins.reduce<Goblin | null>((min, g) =>
+            !min || g.x < min.x ? g : min, null)
+
+        if (attacker) {
+            // Visual attack cue
+            this.tweens.add({
+              targets: attacker.sprite,
+              scaleX: 1.5,
+              scaleY: 1.5,
+              yoyo: true,
+              duration: 150,
+              onComplete: () => {
+                if (attacker.sprite && attacker.sprite.active) {
+                  this.goblinReachedPlayer(attacker)
+                }
+              }
+            })
+        }
+      }
+    }
   }
 
   private removeGoblin(goblin: Goblin) {
