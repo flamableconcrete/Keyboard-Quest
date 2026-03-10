@@ -18,7 +18,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 90,
     storyBeat: 'The Shadowed Fen is home to restless skeletons who guard an ancient ford.',
     rewards: { xp: 160 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -31,7 +30,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 100,
     storyBeat: 'Ogre champions challenge all who pass through Dorn Flats.',
     rewards: { xp: 180 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -44,7 +42,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 110,
     storyBeat: 'Undead march along the red-mossed road. Hold the line!',
     rewards: { xp: 200 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -57,7 +54,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Thornback the Troll, Keeper of T, bars your path!',
     rewards: { xp: 380, title: 'Seeker of T' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 8, levelIds: ['w2_l1', 'w2_l2', 'w2_l3'] },
     isMiniBoss: true,
     bossId: 'baron_typo',
@@ -74,7 +70,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 90,
     storyBeat: 'With T restored, the forest paths open wider.',
     rewards: { xp: 200 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -87,7 +82,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 100,
     storyBeat: 'Slimes multiply in the damp fen.',
     rewards: { xp: 220 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -100,7 +94,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'Ancient dwarven traps line the Stone Shelf passage.',
     rewards: { xp: 240 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -113,7 +106,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'Irontongue the Iron Witch, Keeper of I, seals the keep!',
     rewards: { xp: 420, title: 'Seeker of I' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l4', 'w2_l5', 'w2_l6'] },
     isMiniBoss: true,
     bossId: 'spider_boss',
@@ -130,7 +122,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 110,
     storyBeat: 'Strange runes appear on the thistle-lined path.',
     rewards: { xp: 240 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -143,7 +134,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'The heroes of Heronshire offer their swords.',
     rewards: { xp: 200, companionId: 'archer' },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -156,7 +146,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 160,
     storyBeat: 'Hexus the Hollow Horned One, Keeper of H, guards the ridge!',
     rewards: { xp: 460, title: 'Seeker of H' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l7', 'w2_l8'] },
     isMiniBoss: true,
     bossId: 'flash_word_boss',
@@ -173,7 +162,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'An alchemist offers potions in exchange for correctly typed ingredients.',
     rewards: { xp: 260, item: 'iron_helm' },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -186,7 +174,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'A scholar catalogues the creatures of the fen.',
     rewards: { xp: 220 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -199,7 +186,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 165,
     storyBeat: 'Crackthorn the Crone, Keeper of C, cackles in the hollow!',
     rewards: { xp: 500, title: 'Seeker of C' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 12, levelIds: ['w2_l9', 'w2_l10'] },
     isMiniBoss: true,
     bossId: 'bone_knight_boss',
@@ -216,7 +202,6 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     timeLimit: 200,
     storyBeat: 'Five heads, five tongues — the Hydra speaks only in riddles of letters!',
     rewards: { xp: 1000, title: 'Slayer of the Hydra' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 16, levelIds: ['w2_mb1', 'w2_mb2', 'w2_mb3', 'w2_mb4'] },
     isBoss: true,
     bossId: 'hydra',

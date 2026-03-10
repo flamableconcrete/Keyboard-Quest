@@ -18,7 +18,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 60,
     storyBeat: 'The last working quill chooses you. Drive back the goblins of Oakhaven Outskirts to begin your quest!',
     rewards: { xp: 50 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -31,7 +30,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 60,
     storyBeat: 'Goblins have raided the village of Riverbend Village! Drive them off!',
     rewards: { xp: 100 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -44,7 +42,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 75,
     storyBeat: 'More goblins! These ones carry stolen words on their backs.',
     rewards: { xp: 120 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -57,7 +54,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'Knuckle the Ogre, Keeper of E, stands in your way!',
     rewards: { xp: 300, title: 'Seeker of E' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 6, levelIds: ['w1_l2', 'w1_l3'] },
     isMiniBoss: true,
     bossId: 'knuckle_keeper_of_e',
@@ -74,7 +70,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 90,
     storyBeat: 'The letter E has been restored! New words flood back into the world.',
     rewards: { xp: 150 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -87,7 +82,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 45,
     storyBeat: 'Ancient traps guard the goblin chieftain\'s lair. Disarm them fast!',
     rewards: { xp: 160 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -100,7 +94,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'Nessa the Snake Dancer, Keeper of N, coils to strike!',
     rewards: { xp: 350, title: 'Seeker of N' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 7, levelIds: ['w1_l4', 'w1_l5'] },
     isMiniBoss: true,
     bossId: 'nessa_keeper_of_n',
@@ -117,7 +110,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 60,
     storyBeat: 'A goblin cook challenges you to an EXPLODING CHEESE contest!',
     rewards: { xp: 130 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -130,7 +122,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 90,
     storyBeat: 'Undead scouts guard the mountain pass. Type them down!',
     rewards: { xp: 180 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -143,7 +134,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'Rend the Red, Keeper of R, strikes from the shadows!',
     rewards: { xp: 400, title: 'Seeker of R' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l7'] },
     isMiniBoss: true,
     bossId: 'rend_the_red',
@@ -160,7 +150,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'Study the Monster Manual — learn the weaknesses of Grizzlefang before you face him.',
     rewards: { xp: 100 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -173,7 +162,6 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     timeLimit: 300,
     storyBeat: 'Grizzlefang the Keyboard Ogre — armor forged from broken keys. Shatter it!',
     rewards: { xp: 600, item: 'iron_gauntlet', title: 'Hero of the Heartland' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l8'] },
     isBoss: true,
     bossId: 'grizzlefang',

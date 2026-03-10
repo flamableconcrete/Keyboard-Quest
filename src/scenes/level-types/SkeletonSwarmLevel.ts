@@ -184,8 +184,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    const captureAttempt = this.level.captureEligible ? { monsterId: 'skeleton', monsterName: 'Skeleton' } : undefined
-
     const profile = loadProfile(this.profileSlot)
     const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
 
@@ -193,7 +191,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       this.scene.start('LevelResult', {
         level: this.level, profileSlot: this.profileSlot,
         accuracyStars: acc, speedStars: spd, passed, 
-        companionUsed, captureAttempt
+        companionUsed
       })
     })
   }

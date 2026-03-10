@@ -5,8 +5,6 @@ import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel } from '../utils/scoring'
 import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
-import { ITEMS } from '../data/items'
-import { createCompanion } from '../data/companions'
 
 interface ResultData {
   level: LevelConfig
@@ -15,7 +13,6 @@ interface ResultData {
   speedStars: number
   passed: boolean
   companionUsed: boolean
-  captureAttempt?: { monsterId: string; monsterName: string }
 }
 
 export class LevelResultScene extends Phaser.Scene {
@@ -51,11 +48,12 @@ export class LevelResultScene extends Phaser.Scene {
     const pProfile = loadProfile(this.resultData.profileSlot)
     const accessoryItem = pProfile?.equipment?.accessory ? getItem(pProfile.equipment.accessory) : null
     const goldChance = accessoryItem?.effect?.bonusGoldChance || 0
+    const goldMultiplier = accessoryItem?.effect?.goldMultiplier || 0
 
     if (Math.random() < goldChance) {
       baseGold *= 2
     }
-    const goldEarned = baseGold
+    const goldEarned = Math.floor(baseGold * (1 + goldMultiplier))
     this.profile.gold = (this.profile.gold ?? 0) + goldEarned
 
     // Save level result (only improve, never overwrite with worse total score)
@@ -98,34 +96,7 @@ export class LevelResultScene extends Phaser.Scene {
       this.profile.unlockedLetters.push(level.miniBossUnlocksLetter)
     }
 
-    // Capture attempt with Lucky Charm bonus
-    if (this.resultData.captureAttempt) {
-      const accessory = this.profile.equipment.accessory
-      const item = accessory ? ITEMS.find(i => i.id === accessory) : null
-      const bonusChance = item?.effect.captureChanceBonus ?? 0
-      const captureSuccess = Math.random() < (0.2 + bonusChance)
-
-      if (captureSuccess) {
-        const pet = createCompanion(this.resultData.captureAttempt.monsterId)
-        if (!this.profile.pets.find(p => p.id === pet.id)) {
-          this.profile.pets.push(pet)
-          if (this.profile.pets.length >= 10 && !this.profile.titles.includes('Beast Tamer')) {
-            this.profile.titles.push('Beast Tamer')
-          }
-        }
-      }
-
-      saveProfile(this.resultData.profileSlot, this.profile)
-
-      const captureMsg = captureSuccess
-        ? `You captured a ${this.resultData.captureAttempt.monsterName}!`
-        : `The ${this.resultData.captureAttempt.monsterName} escaped...`
-      this.add.text(width / 2, 520, captureMsg, {
-        fontSize: '22px', color: captureSuccess ? '#aaffaa' : '#ff8888'
-      }).setOrigin(0.5)
-    } else {
-      saveProfile(this.resultData.profileSlot, this.profile)
-    }
+    saveProfile(this.resultData.profileSlot, this.profile)
 
     // Victory detection — route to VictoryScene if Typemancer defeated
     if (this.resultData.level.bossId === 'typemancer' && passed) {

@@ -249,8 +249,7 @@ export class InventoryScene extends Phaser.Scene {
     if (effect.hp) parts.push(`+${effect.hp} HP`)
     if (effect.power) parts.push(`+${effect.power} PWR`)
     if (effect.focusBonus) parts.push(`+${effect.focusBonus} FOCUS`)
-    if (effect.captureChanceBonus)
-      parts.push(`+${(effect.captureChanceBonus * 100).toFixed(0)}% Capture`)
+    if (effect.goldMultiplier) parts.push(`+${(effect.goldMultiplier * 100).toFixed(0)}% Gold`)
     return parts.join(', ')
   }
 }
