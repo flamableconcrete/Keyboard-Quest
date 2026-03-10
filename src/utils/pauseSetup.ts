@@ -1,8 +1,6 @@
 import Phaser from 'phaser'
 
 export function setupPause(scene: Phaser.Scene, profileSlot: number) {
-  const { width, height } = scene.scale
-
   // Add a subtle "Pause / Quit" button in the top left corner
   // so it doesn't conflict with timers, HP, or typing area
   const pauseBtn = scene.add.text(20, 20, '[ ESC to Pause ]', {
