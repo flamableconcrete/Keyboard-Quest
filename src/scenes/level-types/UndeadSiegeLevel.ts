@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
+import { getItem } from '../../data/items'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
@@ -133,6 +134,18 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     if (undead) {
       this.removeUndead(undead)
       this.undeadsDefeated++
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+      if (Math.random() < cleaveChance) {
+        const nextEnemy = this.undeads.find(u => u !== undead)
+        if (nextEnemy) {
+          this.removeUndead(nextEnemy)
+          this.undeadsDefeated++
+          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        }
+      }
     }
     const next = this.undeads[0] ?? null
     this.setActiveUndead(next)

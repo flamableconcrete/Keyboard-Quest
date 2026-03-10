@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
@@ -114,7 +115,15 @@ export class MonsterArenaLevel extends Phaser.Scene {
 
   private monsterReachedPlayer(monster: Monster) {
     this.removeMonster(monster)
-    this.playerHp--
+    const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
     this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
@@ -124,7 +133,12 @@ export class MonsterArenaLevel extends Phaser.Scene {
   private onWordComplete(word: string, _elapsed: number) {
     const monster = this.monsters.find(m => m.word === word)
     if (monster) {
-      monster.hp--
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const powerBonus = weaponItem?.effect?.power || 0
+
+      monster.hp -= (1 + powerBonus)
+
       this.updateMonsterHpText(monster)
       if (monster.hp <= 0) {
         this.removeMonster(monster)

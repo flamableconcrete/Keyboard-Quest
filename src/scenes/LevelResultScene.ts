@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
+import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel } from '../utils/scoring'
 import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
 import { ITEMS } from '../data/items'
@@ -45,7 +46,16 @@ export class LevelResultScene extends Phaser.Scene {
     this.profile.characterLevel = calcCharacterLevel(this.profile.xp)
 
     // Award gold — 2 gold per enemy (word) defeated
-    const goldEarned = level.wordCount * 2
+    // Calculate gold based on bonus chance
+    let baseGold = level.wordCount * 2
+    const pProfile = loadProfile(this.resultData.profileSlot)
+    const accessoryItem = pProfile?.equipment?.accessory ? getItem(pProfile.equipment.accessory) : null
+    const goldChance = accessoryItem?.effect?.bonusGoldChance || 0
+
+    if (Math.random() < goldChance) {
+      baseGold *= 2
+    }
+    const goldEarned = baseGold
     this.profile.gold = (this.profile.gold ?? 0) + goldEarned
 
     // Save level result (only improve, never overwrite with worse total score)

@@ -1,5 +1,6 @@
 // src/scenes/boss-types/DiceLichBoss.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
@@ -221,7 +222,15 @@ export class DiceLichBoss extends Phaser.Scene {
       yoyo: true,
       duration: 100,
       onComplete: () => {
-        this.playerHp -= damage
+        const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp -= damage
+    }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
         if (this.currentCurse === 6) {

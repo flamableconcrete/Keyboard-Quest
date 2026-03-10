@@ -1,5 +1,6 @@
 // src/scenes/boss-types/BaronTypoBoss.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
@@ -185,7 +186,15 @@ export class BaronTypoBoss extends Phaser.Scene {
       yoyo: true,
       duration: 150,
       onComplete: () => {
-        this.playerHp--
+        const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
         
@@ -198,7 +207,10 @@ export class BaronTypoBoss extends Phaser.Scene {
     if (this.finished) return
 
     this.wordQueue.shift()
-    this.bossHp--
+    const pProfileBoss = loadProfile(this.profileSlot)
+    const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
+    const powerBonus = weaponItemBoss?.effect?.power || 0
+    this.bossHp -= (1 + powerBonus)
     this.bossHpText.setText(`Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`)
 
     // Visual damage cue

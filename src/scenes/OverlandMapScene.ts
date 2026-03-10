@@ -346,6 +346,18 @@ export class OverlandMapScene extends Phaser.Scene {
         this.scene.start('Inventory', { profileSlot: this.profileSlot })
       })
     })
+
+    // Shop
+    const shp = specialPositions['shop']
+    const shopNode = this.add.sprite(shp.x, shp.y, 'map-common', COMMON_FRAMES.nodeTavern) // Reusing tavern icon, or nodeInventory
+      .setInteractive({ useHandCursor: true }).setDepth(1000)
+    shopNode.setTint(0xffaa00) // Distinct color for shop
+    this.add.text(shp.x, shp.y + 20, 'SHOP', { fontSize: '12px', color: '#ffaa00' }).setOrigin(0.5).setDepth(2000)
+    shopNode.on('pointerdown', () => {
+      this.glideAvatarTo(shp, 'shop', () => {
+        this.scene.start('Shop', { profileSlot: this.profileSlot })
+      })
+    })
   }
 
   private drawMasteryChest() {

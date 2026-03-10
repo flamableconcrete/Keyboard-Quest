@@ -1,11 +1,13 @@
 import { ItemData } from '../types'
 
 export const ITEMS: ItemData[] = [
+  // --- ORIGINAL ITEMS (For backwards compatibility) ---
   {
     id: 'rusty_quill',
     name: 'Rusty Quill',
     slot: 'weapon',
     description: 'A worn writing quill. Still works.',
+    goldCost: 0,
     effect: { power: 1 },
   },
   {
@@ -13,6 +15,7 @@ export const ITEMS: ItemData[] = [
     name: 'Ink Blotter',
     slot: 'armor',
     description: 'Absorbs minor stains and spells.',
+    goldCost: 0,
     effect: { hp: 1 },
   },
   {
@@ -20,6 +23,7 @@ export const ITEMS: ItemData[] = [
     name: 'Iron Gauntlet',
     slot: 'armor',
     description: 'Heavy but protective.',
+    goldCost: 0,
     effect: { hp: 2 },
   },
   {
@@ -27,6 +31,7 @@ export const ITEMS: ItemData[] = [
     name: 'Focus Ring',
     slot: 'accessory',
     description: 'Sharpens the mind.',
+    goldCost: 0,
     effect: { focusBonus: 5 },
   },
   {
@@ -34,6 +39,7 @@ export const ITEMS: ItemData[] = [
     name: 'Lucky Charm',
     slot: 'accessory',
     description: 'Increases capture chance.',
+    goldCost: 0,
     effect: { captureChanceBonus: 0.1 },
   },
   {
@@ -41,6 +47,7 @@ export const ITEMS: ItemData[] = [
     name: 'Obsidian Nib',
     slot: 'weapon',
     description: 'A sharp nib made of volcanic glass.',
+    goldCost: 0,
     effect: { power: 3 },
   },
   {
@@ -48,6 +55,7 @@ export const ITEMS: ItemData[] = [
     name: 'Padded Envelope',
     slot: 'armor',
     description: 'Soft and surprisingly durable.',
+    goldCost: 0,
     effect: { hp: 3 },
   },
   {
@@ -55,7 +63,134 @@ export const ITEMS: ItemData[] = [
     name: 'Scholars Monocle',
     slot: 'accessory',
     description: 'Better clarity for faster typing.',
+    goldCost: 0,
     effect: { focusBonus: 10 },
+  },
+
+  // --- SHOP WEAPONS ---
+  {
+    id: 'copper_shortsword',
+    name: 'Copper Shortsword',
+    slot: 'weapon',
+    description: 'A basic blade. Sometimes cuts through two weak foes.',
+    goldCost: 50,
+    effect: { power: 1, defeatAdditionalEnemiesChance: 0.1 },
+  },
+  {
+    id: 'iron_broadsword',
+    name: 'Iron Broadsword',
+    slot: 'weapon',
+    description: 'Heavy and reliable. Good for crowd control.',
+    goldCost: 150,
+    effect: { power: 2, defeatAdditionalEnemiesChance: 0.2 },
+  },
+  {
+    id: 'steel_longsword',
+    name: 'Steel Longsword',
+    slot: 'weapon',
+    description: 'A finely crafted longsword. Cuts with precision.',
+    goldCost: 350,
+    effect: { power: 3, defeatAdditionalEnemiesChance: 0.35 },
+  },
+  {
+    id: 'mithril_blade',
+    name: 'Mithril Blade',
+    slot: 'weapon',
+    description: 'Light as a feather, sharp as a dragon\'s tooth.',
+    goldCost: 800,
+    effect: { power: 5, defeatAdditionalEnemiesChance: 0.5 },
+  },
+  {
+    id: 'excalibur',
+    name: 'Excalibur',
+    slot: 'weapon',
+    description: 'A legendary sword that cleaves through darkness.',
+    goldCost: 2000,
+    effect: { power: 8, defeatAdditionalEnemiesChance: 0.75 },
+  },
+
+  // --- ARMOR ---
+  {
+    id: 'leather_tunic',
+    name: 'Leather Tunic',
+    slot: 'armor',
+    description: 'Stiff leather that might deflect a glancing blow.',
+    goldCost: 40,
+    effect: { absorbAttacksChance: 0.1 },
+  },
+  {
+    id: 'chainmail_shirt',
+    name: 'Chainmail Shirt',
+    slot: 'armor',
+    description: 'Interlocking iron rings protect against slashes.',
+    goldCost: 120,
+    effect: { absorbAttacksChance: 0.2 },
+  },
+  {
+    id: 'steel_plate',
+    name: 'Steel Plate',
+    slot: 'armor',
+    description: 'Solid steel plating. Slows you down but takes a beating.',
+    goldCost: 300,
+    effect: { absorbAttacksChance: 0.35 },
+  },
+  {
+    id: 'dragon_scale_mail',
+    name: 'Dragon Scale Mail',
+    slot: 'armor',
+    description: 'Impenetrable scales from a fallen beast.',
+    goldCost: 750,
+    effect: { absorbAttacksChance: 0.5 },
+  },
+  {
+    id: 'aegis_armor',
+    name: 'Aegis Armor',
+    slot: 'armor',
+    description: 'Blessed by the gods to ward off harm.',
+    goldCost: 1800,
+    effect: { absorbAttacksChance: 0.75 },
+  },
+
+  // --- ACCESSORIES ---
+  {
+    id: 'lucky_coin',
+    name: 'Lucky Coin',
+    slot: 'accessory',
+    description: 'A coin that sometimes doubles your earnings.',
+    goldCost: 60,
+    effect: { bonusGoldChance: 0.15 },
+  },
+  {
+    id: 'hunters_charm',
+    name: 'Hunter\'s Charm',
+    slot: 'accessory',
+    description: 'Makes monsters more docile, easier to capture.',
+    goldCost: 100,
+    effect: { captureChanceBonus: 0.15 },
+  },
+  {
+    id: 'golden_idol',
+    name: 'Golden Idol',
+    slot: 'accessory',
+    description: 'Attracts wealth to its bearer.',
+    goldCost: 250,
+    effect: { bonusGoldChance: 0.3 },
+  },
+  {
+    id: 'taming_bell',
+    name: 'Taming Bell',
+    slot: 'accessory',
+    description: 'Its soothing ring increases capture chances greatly.',
+    goldCost: 400,
+    effect: { captureChanceBonus: 0.3 },
+  },
+  {
+    id: 'midas_ring',
+    name: 'Ring of Midas',
+    slot: 'accessory',
+    description: 'Turns fallen foes into pure gold.',
+    goldCost: 1000,
+    effect: { bonusGoldChance: 0.6 },
   },
 ]
 

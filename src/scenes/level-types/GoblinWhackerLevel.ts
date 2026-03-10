@@ -1,5 +1,6 @@
 // src/scenes/level-types/GoblinWhackerLevel.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { TypingHands } from '../../components/TypingHands'
@@ -251,7 +252,15 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
   private goblinReachedPlayer(goblin: Goblin) {
     this.removeGoblin(goblin)
-    this.playerHp--
+    const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
     if (this.hpHearts[this.playerHp]) {
       this.hpHearts[this.playerHp].setVisible(false)
     }
@@ -271,6 +280,20 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     if (goblin) {
       this.removeGoblin(goblin)
       this.goblinsDefeated++
+
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+      if (Math.random() < cleaveChance) {
+        const nextEnemy = this.goblins.find(g => g !== goblin)
+        if (nextEnemy) {
+          this.removeGoblin(nextEnemy)
+          this.goblinsDefeated++
+          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        }
+      }
+
       this.updateCounterText()
     }
     // Focus next goblin

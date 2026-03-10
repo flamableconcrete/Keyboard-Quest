@@ -1,5 +1,6 @@
 // src/scenes/boss-types/SlimeKingBoss.ts
 import Phaser from 'phaser'
+import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
@@ -98,7 +99,15 @@ export class SlimeKingBoss extends Phaser.Scene {
       duration: 100,
       onComplete: () => {
         if (this.finished) return
-        this.playerHp--
+        const pProfile = loadProfile(this.profileSlot)
+    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+    if (Math.random() < absorbChance) {
+      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+    } else {
+      this.playerHp--
+    }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.01)
         if (this.playerHp <= 0) this.endLevel(false)
@@ -155,6 +164,22 @@ export class SlimeKingBoss extends Phaser.Scene {
       const oldSize = slime.size
       this.removeSlime(slime)
       
+      const pProfileWep = loadProfile(this.profileSlot)
+      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+      const powerBonus = weaponItem?.effect?.power || 0
+
+      // Bonus power destroys extra slimes immediately
+      if (powerBonus > 0) {
+        for (let i = 0; i < powerBonus; i++) {
+            const extraSlime = this.slimes.find(s => s !== slime)
+            if (extraSlime) {
+                this.removeSlime(extraSlime)
+                const cleaveText = this.add.text(extraSlime.x, extraSlime.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+                this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+            }
+        }
+      }
+
       if (word.length > 2) {
         const [w1, w2] = this.splitWord(word)
         // Offset the new slimes
