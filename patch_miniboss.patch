@@ -1,0 +1,11 @@
+--- src/scenes/boss-types/MiniBossTypical.ts
++++ src/scenes/boss-types/MiniBossTypical.ts
+@@ -101,7 +101,7 @@
+       fontSize: '24px', color: '#ffffff'
+     }).setOrigin(0.5)
+
+-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
++    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
+       fontSize: '28px', color: '#ffffff',
+       backgroundColor: '#000000', padding: { x: 8, y: 4 }
+     }).setOrigin(0.5)

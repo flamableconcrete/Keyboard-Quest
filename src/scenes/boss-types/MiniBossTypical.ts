@@ -100,7 +100,7 @@ export class MiniBossTypical extends Phaser.Scene {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
+    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
       fontSize: '28px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)

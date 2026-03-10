@@ -182,7 +182,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     const { width } = this.scale
     const y = this.pathY
     const sprite = this.add.image(width + 30, y, 'goblin')
-    const label = this.add.text(width + 30, y - 30, word, {
+    const label = this.add.text(width + 30, y - 60, word, {
       fontSize: '20px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
