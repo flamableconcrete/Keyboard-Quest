@@ -33,6 +33,10 @@ export class GuildRecruitmentLevel extends Phaser.Scene {
     // Background - Tavern theme
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a2e1b)
 
+    const pProfileAvatar = loadProfile(this.profileSlot)
+    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
+    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
     // HUD
     this.add.text(width / 2, 40, this.level.name, {
       fontSize: '28px', color: '#ffd700'

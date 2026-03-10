@@ -85,7 +85,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.pathY = height * 0.62
 
     // Hero sprite
-    this.add.image(80, this.pathY, 'hero').setScale(1.5)
+    const pProfileAvatar = loadProfile(this.profileSlot)
+    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
+    this.add.image(80, this.pathY, avatarKey).setScale(1.5)
 
     // HUD - HP hearts
     this.hpHearts = []

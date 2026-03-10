@@ -36,6 +36,12 @@ export class DungeonEscapeLevel extends Phaser.Scene {
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2e3a)
 
+
+    const pProfileAvatar = loadProfile(this.profileSlot)
+    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
+    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '22px', color: '#ffd700'

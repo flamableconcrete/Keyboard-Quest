@@ -51,6 +51,11 @@ export class SlimeSplittingLevel extends Phaser.Scene {
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1e4a4a)
 
+    const pProfileAvatar = loadProfile(this.profileSlot)
+    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
+    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
