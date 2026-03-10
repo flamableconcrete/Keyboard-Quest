@@ -222,7 +222,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         : 0x444444
 
       const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
-      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000)
+      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(1.5)
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
@@ -231,8 +231,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerover', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1.15,
-            scaleY: 1.15,
+            scaleX: 1.5 * 1.15,
+            scaleY: 1.5 * 1.15,
             duration: 150,
             ease: 'Back.easeOut',
           })
@@ -240,7 +240,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           this.glowRect?.destroy()
           this.glowRect = this.add.rectangle(
             pos.x, pos.y,
-            nodeSprite.width + 12, nodeSprite.height + 12,
+            (nodeSprite.width * 1.5) + 12, (nodeSprite.height * 1.5) + 12,
             0xffffff, 0.2
           ).setDepth(nodeSprite.depth - 1)
           this.showTooltip(level, pos)
@@ -249,8 +249,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerout', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1,
-            scaleY: 1,
+            scaleX: 1.5,
+            scaleY: 1.5,
             duration: 150,
             ease: 'Sine.easeIn',
           })
@@ -318,8 +318,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     // Tavern
     const tp = specialPositions['tavern']
     const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
-      .setInteractive({ useHandCursor: true }).setDepth(1000)
-    this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
+      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
+    this.add.text(tp.x, tp.y + 25, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
     tavernNode.on('pointerdown', () => {
       this.glideAvatarTo(tp, 'tavern', () => {
         this.scene.start('Tavern', { profileSlot: this.profileSlot })
@@ -329,8 +329,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     // Stable
     const sp = specialPositions['stable']
     const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
-      .setInteractive({ useHandCursor: true }).setDepth(1000)
-    this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
+      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
+    this.add.text(sp.x, sp.y + 25, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
     stableNode.on('pointerdown', () => {
       this.glideAvatarTo(sp, 'stable', () => {
         this.scene.start('Stable', { profileSlot: this.profileSlot })
@@ -340,8 +340,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     // Inventory
     const ip = specialPositions['inventory']
     const inventoryNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
-      .setInteractive({ useHandCursor: true }).setDepth(1000)
-    this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
+      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
+    this.add.text(ip.x, ip.y + 25, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
     inventoryNode.on('pointerdown', () => {
       this.glideAvatarTo(ip, 'inventory', () => {
         this.scene.start('Inventory', { profileSlot: this.profileSlot })
@@ -351,9 +351,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     // Shop
     const shp = specialPositions['shop']
     const shopNode = this.add.sprite(shp.x, shp.y, 'map-common', COMMON_FRAMES.nodeTavern) // Reusing tavern icon, or nodeInventory
-      .setInteractive({ useHandCursor: true }).setDepth(1000)
+      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
     shopNode.setTint(0xffaa00) // Distinct color for shop
-    this.add.text(shp.x, shp.y + 20, 'SHOP', { fontSize: '12px', color: '#ffaa00' }).setOrigin(0.5).setDepth(2000)
+    this.add.text(shp.x, shp.y + 25, 'SHOP', { fontSize: '12px', color: '#ffaa00' }).setOrigin(0.5).setDepth(2000)
     shopNode.on('pointerdown', () => {
       this.glideAvatarTo(shp, 'shop', () => {
         this.scene.start('Shop', { profileSlot: this.profileSlot })
