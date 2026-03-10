@@ -81,7 +81,11 @@ export class MiniBossTypical extends Phaser.Scene {
     }
 
     // Boss Sprite
-    if (this.level.name.toLowerCase().includes('ogre') || this.level.bossId?.toLowerCase().includes('ogre')) {
+    const isOgre = this.level.name.toLowerCase().includes('ogre') ||
+                   this.level.bossId?.toLowerCase().includes('ogre') ||
+                   this.level.storyBeat?.toLowerCase().includes('ogre');
+
+    if (isOgre) {
       generateGoblinWhackerTextures(this)
       this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(2)
     } else {
