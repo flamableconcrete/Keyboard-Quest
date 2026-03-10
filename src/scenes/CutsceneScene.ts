@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { TutorialHands } from '../components/TutorialHands'
+import { TypingHands } from '../components/TypingHands'
 import { loadProfile } from '../utils/profile'
 
 interface CutsceneData {
@@ -62,11 +62,11 @@ export class CutsceneScene extends Phaser.Scene {
     // Show finger hint for the restored letter (if enabled)
     const profile = loadProfile(this.cutsceneData.profileSlot)
     if (profile?.showFingerHints) {
-      const hands = new TutorialHands(this, width / 2, height - 160)
+      const hands = new TypingHands(this, width / 2, height - 20)
       hands.highlightFinger(letter)
     }
 
-    const cont = this.add.text(width / 2, height - 80,
+    const cont = this.add.text(width / 2, height - 40,
       'Press SPACE or click to continue', {
         fontSize: '20px', color: '#888888'
       }).setOrigin(0.5)
