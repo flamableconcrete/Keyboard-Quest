@@ -131,7 +131,7 @@ export class DiceLichBoss extends Phaser.Scene {
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
     
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...words]
+    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
     
     // Visual cue for phase change
     this.cameras.main.flash(500, 0, 255, 136)

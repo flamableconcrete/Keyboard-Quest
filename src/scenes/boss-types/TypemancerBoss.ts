@@ -143,7 +143,7 @@ export class TypemancerBoss extends Phaser.Scene {
       }
     } else {
       const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
-      this.wordQueue = [...words]
+      const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
     }
     
     // Setup attack timer based on phase

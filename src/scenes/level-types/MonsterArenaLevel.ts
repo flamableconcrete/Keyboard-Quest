@@ -58,7 +58,9 @@ export class MonsterArenaLevel extends Phaser.Scene {
 
     const difficulty = Math.ceil(this.level.world / 2)
     this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
+    const shuffledWords = [...this.words]
+    Phaser.Utils.Array.Shuffle(shuffledWords)
+    this.wordQueue = shuffledWords
 
     this.spawnMonster()
   }
