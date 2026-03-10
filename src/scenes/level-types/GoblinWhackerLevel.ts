@@ -8,6 +8,7 @@ import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface Goblin {
   word: string
@@ -57,6 +58,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxGoblinReach = 80
 

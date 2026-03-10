@@ -4,6 +4,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface Skeleton {
   word: string
@@ -45,6 +46,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxSkeletonReach = 80
 

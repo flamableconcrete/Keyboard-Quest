@@ -27,5 +27,6 @@ export class BossBattleScene extends Phaser.Scene {
     this.scene.start(sceneName, data)
   }
 
-  create() {}
+  create() {
+  }
 }

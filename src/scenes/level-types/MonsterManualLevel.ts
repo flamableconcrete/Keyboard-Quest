@@ -4,6 +4,7 @@ import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
+import { setupPause } from '../../utils/pauseSetup'
 
 export class MonsterManualLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -22,6 +23,7 @@ export class MonsterManualLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     // Background

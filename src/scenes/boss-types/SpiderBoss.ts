@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface WebLine {
   index: number;
@@ -61,6 +62,7 @@ export class SpiderBoss extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     const centerX = width / 2
     const centerY = height / 2

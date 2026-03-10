@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { setupPause } from '../../utils/pauseSetup'
 
 export class DiceLichBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -47,6 +48,7 @@ export class DiceLichBoss extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     // Dark background
     this.add.rectangle(width / 2, height / 2, width, height, 0x050505)

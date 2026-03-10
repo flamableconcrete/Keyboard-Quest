@@ -4,6 +4,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface Monster {
   word: string
@@ -39,6 +40,7 @@ export class MonsterArenaLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxMonsterReach = 80
 

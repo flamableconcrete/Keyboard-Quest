@@ -5,6 +5,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface Trap {
   word: string
@@ -46,6 +47,7 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     // Background
