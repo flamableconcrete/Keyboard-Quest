@@ -2,7 +2,8 @@
 import Phaser from 'phaser'
 import { getAllProfiles, loadProfile, saveProfile, deleteProfile, exportProfile, importProfile, createProfile } from '../utils/profile'
 import { ProfileData } from '../types'
-import { AVATAR_CONFIGS } from '../data/avatars'
+import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
+import { AvatarRenderer } from '../components/AvatarRenderer'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
 
@@ -226,9 +227,11 @@ export class ProfileSelectScene extends Phaser.Scene {
     })
   }
 
-  private showAvatarGallery(slot: number, playerName: string) {
+  private showAvatarGallery(slot: number, playerName: string, keepSelected: boolean = false) {
     this.children.removeAll(true)
-    this.selectedAvatarId = 'avatar_0'
+    if (!keepSelected || !AVATAR_CONFIGS.some(c => c.id === this.selectedAvatarId)) {
+      this.selectedAvatarId = AVATAR_CONFIGS[0]?.id || 'avatar_0'
+    }
     const { width, height } = this.scale
 
     // Title
@@ -282,8 +285,19 @@ export class ProfileSelectScene extends Phaser.Scene {
       })
     })
 
-    // CONFIRM button
+    // Randomize button
     const confirmY = height - 60
+    this.drawPixelPanel(width / 2 + 250, confirmY, 150, 40, 0x2a2a4a, 0x5555aa)
+    const randomizeText = this.add.text(width / 2 + 250, confirmY, 'Randomize', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    randomizeText.on('pointerdown', () => {
+      randomizeAvatarConfigs()
+      AvatarRenderer.generateAll(this)
+      this.showAvatarGallery(slot, playerName, true)
+    })
+
+    // CONFIRM button
     this.drawPixelPanel(width / 2, confirmY, 200, 50, 0x2a6a2a, 0x44aa44)
     const confirmText = this.add.text(width / 2, confirmY, 'CONFIRM', {
       fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
