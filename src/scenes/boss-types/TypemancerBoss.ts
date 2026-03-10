@@ -135,14 +135,14 @@ export class TypemancerBoss extends Phaser.Scene {
     
     if (this.phase === 5) {
       // Sentence mode: 15 words distributed in sentences of 5
-      const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+      const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
       this.wordQueue = []
       for (let i = 0; i < words.length; i += 5) {
         const sentence = words.slice(i, i + 5).join(' ')
         if (sentence) this.wordQueue.push(sentence)
       }
     } else {
-      const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+      const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
       this.wordQueue = [...words]
     }
     

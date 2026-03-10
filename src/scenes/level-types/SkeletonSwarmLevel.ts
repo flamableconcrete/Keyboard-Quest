@@ -63,7 +63,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     })
 
     const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty)
+    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
     this.wordQueue = [...this.words]
 
     this.spawnWave()

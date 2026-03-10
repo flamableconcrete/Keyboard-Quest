@@ -153,7 +153,7 @@ export class HydraBoss extends Phaser.Scene {
 
     const { width, height } = this.scale
     const difficulty = Math.ceil(this.level.wordCount / 10) + (this.phase - 1) // Adjusted difficulty
-    const word = getWordPool(this.level.unlockedLetters, 1, difficulty)[0]
+    const word = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)[0]
 
     // Position head randomly in a central area
     const x = Phaser.Math.Between(width * 0.2, width * 0.8)

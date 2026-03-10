@@ -114,7 +114,7 @@ export class BoneKnightBoss extends Phaser.Scene {
 
         const shieldCount = this.phase // 1, 2, 3 shields
         const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-        const words = getWordPool(this.level.unlockedLetters, shieldCount, difficulty)
+        const words = getWordPool(this.level.unlockedLetters, shieldCount, difficulty, this.level.world === 1 ? 5 : undefined)
 
         const { width, height } = this.scale
         const radius = 250

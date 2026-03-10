@@ -70,23 +70,16 @@ export class PreloadScene extends Phaser.Scene {
     // 0 - grass plain
     drawGrass(0, 0, 0x4a8c2a)
     // 1 - grass variant
-    drawGrass(1, 0, 0x5a9c3a)
+    drawGrass(1, 0, 0x4a8c2a)
     // 2 - dirt path horizontal
     drawGrass(2, 0, 0x4a8c2a)
-    g.fillStyle(0x8b6b3a)
-    g.fillRect(2 * T, 12, T, 8)
     // 3 - dirt path vertical
     drawGrass(3, 0, 0x4a8c2a)
-    g.fillStyle(0x8b6b3a)
-    g.fillRect(3 * T + 12, 0, 8, T)
     // 4 - dirt corner
     drawGrass(4, 0, 0x4a8c2a)
-    g.fillStyle(0x8b6b3a)
-    g.fillRect(4 * T + 12, 0, 8, 20)
-    g.fillRect(4 * T + 12, 12, 20, 8)
     // 5-9 - grass variants
     for (let i = 5; i <= 9; i++) {
-      drawGrass(i, 0, 0x4a8c2a + (i - 5) * 0x040404)
+      drawGrass(i, 0, 0x4a8c2a)
     }
 
     // Row 1: Water and bridges
@@ -204,17 +197,10 @@ export class PreloadScene extends Phaser.Scene {
     drawMud(1, 0, 0x343428)
     // 2 - path horizontal (mossy stone path)
     drawMud(2, 0, 0x3a3a2a)
-    g.fillStyle(0x4a5a4a)
-    g.fillRect(2 * T, 12, T, 8)
     // 3 - path vertical
     drawMud(3, 0, 0x3a3a2a)
-    g.fillStyle(0x4a5a4a)
-    g.fillRect(3 * T + 12, 0, 8, T)
     // 4 - path corner
     drawMud(4, 0, 0x3a3a2a)
-    g.fillStyle(0x4a5a4a)
-    g.fillRect(4 * T + 12, 0, 8, 20)
-    g.fillRect(4 * T + 12, 12, 20, 8)
     // 5-9 - mud variants
     for (let i = 5; i <= 9; i++) {
       drawMud(i, 0, 0x3a3a2a + (i - 5) * 0x020202)
@@ -325,17 +311,10 @@ export class PreloadScene extends Phaser.Scene {
     drawRock(1, 0, 0x342828)
     // 2 - path horizontal (ash stone path)
     drawRock(2, 0, 0x3a2a2a)
-    g.fillStyle(0x5a5a5a)
-    g.fillRect(2 * T, 12, T, 8)
     // 3 - path vertical
     drawRock(3, 0, 0x3a2a2a)
-    g.fillStyle(0x5a5a5a)
-    g.fillRect(3 * T + 12, 0, 8, T)
     // 4 - path corner
     drawRock(4, 0, 0x3a2a2a)
-    g.fillStyle(0x5a5a5a)
-    g.fillRect(4 * T + 12, 0, 8, 20)
-    g.fillRect(4 * T + 12, 12, 20, 8)
     // 5 - ash stone
     drawRock(5, 0, 0x5a5a5a)
     // 6 - cracked earth
@@ -451,17 +430,10 @@ export class PreloadScene extends Phaser.Scene {
     drawForest(1, 0, 0x264626)
     // 2 - path horizontal (root path)
     drawForest(2, 0, 0x2a4a2a)
-    g.fillStyle(0x4a3a1a)
-    g.fillRect(2 * T, 12, T, 8)
     // 3 - path vertical
     drawForest(3, 0, 0x2a4a2a)
-    g.fillStyle(0x4a3a1a)
-    g.fillRect(3 * T + 12, 0, 8, T)
     // 4 - path corner
     drawForest(4, 0, 0x2a4a2a)
-    g.fillStyle(0x4a3a1a)
-    g.fillRect(4 * T + 12, 0, 8, 20)
-    g.fillRect(4 * T + 12, 12, 20, 8)
     // 5 - tangled roots
     drawForest(5, 0, 0x2a4a2a)
     g.fillStyle(0x4a3a1a)
@@ -602,17 +574,10 @@ export class PreloadScene extends Phaser.Scene {
     drawArcane(1, 0, 0x281838)
     // 2 - path horizontal (gold-trimmed)
     drawArcane(2, 0, 0x2a1a3a)
-    g.fillStyle(0x8a7a2a)
-    g.fillRect(2 * T, 12, T, 8)
     // 3 - path vertical
     drawArcane(3, 0, 0x2a1a3a)
-    g.fillStyle(0x8a7a2a)
-    g.fillRect(3 * T + 12, 0, 8, T)
     // 4 - path corner
     drawArcane(4, 0, 0x2a1a3a)
-    g.fillStyle(0x8a7a2a)
-    g.fillRect(4 * T + 12, 0, 8, 20)
-    g.fillRect(4 * T + 12, 12, 20, 8)
     // 5 - floating stone
     g.fillStyle(0x0a0a1a)
     g.fillRect(5 * T, 0, T, T)

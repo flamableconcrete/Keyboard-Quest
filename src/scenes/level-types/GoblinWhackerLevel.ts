@@ -31,6 +31,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private maxGoblinReach = 0  // x position where goblin damages player
   private hpHearts: Phaser.GameObjects.Image[] = []
   private timerText!: Phaser.GameObjects.Text
+  private counterText!: Phaser.GameObjects.Text
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
@@ -84,6 +85,10 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
+    }).setOrigin(1, 0)
+
+    this.counterText = this.add.text(width - 20, 50, '', {
+      fontSize: '22px', color: '#ffaaaa'
     }).setOrigin(1, 0)
 
     // Level name
@@ -141,8 +146,11 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
     // Word pool
     const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty)
+    const maxLength = this.level.world === 1 ? 5 : undefined
+    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, maxLength)
     this.wordQueue = [...this.words]
+
+    this.updateCounterText()
 
     // Timer
     if (this.level.timeLimit) {
@@ -240,11 +248,16 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
+  private updateCounterText() {
+    this.counterText.setText(`Goblins Defeated: ${this.goblinsDefeated} / ${this.level.wordCount}`)
+  }
+
   private onWordComplete(word: string, _elapsed: number) {
     const goblin = this.goblins.find(g => g.word === word)
     if (goblin) {
       this.removeGoblin(goblin)
       this.goblinsDefeated++
+      this.updateCounterText()
     }
     // Focus next goblin
     const next = this.goblins[0] ?? null

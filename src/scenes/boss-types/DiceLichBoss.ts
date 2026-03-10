@@ -130,7 +130,7 @@ export class DiceLichBoss extends Phaser.Scene {
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
     
-    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     this.wordQueue = [...words]
     
     // Visual cue for phase change
@@ -178,11 +178,11 @@ export class DiceLichBoss extends Phaser.Scene {
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
     
     if (val === 1) { // Easy: pick a short word
-      const easyPool = getWordPool(this.level.unlockedLetters, 10, 1)
+      const easyPool = getWordPool(this.level.unlockedLetters, 10, 1, this.level.world === 1 ? 5 : undefined)
       word = easyPool[Phaser.Math.Between(0, easyPool.length - 1)]
       this.wordQueue[0] = word
     } else if (val === 4) { // Long: pick a hard word
-      const hardPool = getWordPool(this.level.unlockedLetters, 10, difficulty + 2)
+      const hardPool = getWordPool(this.level.unlockedLetters, 10, difficulty + 2, this.level.world === 1 ? 5 : undefined)
       word = hardPool[Phaser.Math.Between(0, hardPool.length - 1)]
       this.wordQueue[0] = word
     }

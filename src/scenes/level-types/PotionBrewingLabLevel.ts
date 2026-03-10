@@ -58,7 +58,7 @@ export class PotionBrewingLabLevel extends Phaser.Scene {
     // Word pool (5-10 words for recipe)
     const difficulty = Math.ceil(this.level.world / 2)
     const count = Math.min(10, Math.max(5, this.level.wordCount))
-    this.words = getWordPool(this.level.unlockedLetters, count, difficulty)
+    this.words = getWordPool(this.level.unlockedLetters, count, difficulty, this.level.world === 1 ? 5 : undefined)
     this.wordQueue = [...this.words]
 
     // Draw recipe list on left

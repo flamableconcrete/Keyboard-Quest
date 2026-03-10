@@ -9,9 +9,118 @@ export function generateGoblinWhackerTextures(scene: Phaser.Scene) {
 
   generateGoblinTexture(scene)
   generateGoblinDeathTexture(scene)
+  generateOgreTexture(scene)
   generateHeroTexture(scene)
   generateHeartTexture(scene)
   generateForestBackground(scene)
+}
+
+function generateOgreTexture(scene: Phaser.Scene) {
+  const g = scene.add.graphics()
+  const s = 5 // pixel scale for ogre (larger than goblin's 3)
+
+  // Body (darker green/brownish green)
+  g.fillStyle(0x4a5d23) // darker olive green
+  g.fillRect(3 * s, 6 * s, 10 * s, 10 * s)
+
+  // Belly (lighter/yellowish green)
+  g.fillStyle(0x556b2f) // olive green
+  g.fillRect(4 * s, 8 * s, 8 * s, 6 * s)
+
+  // Head (larger, protruding)
+  g.fillStyle(0x4a5d23)
+  g.fillRect(4 * s, 1 * s, 8 * s, 6 * s)
+  g.fillRect(3 * s, 4 * s, 10 * s, 3 * s) // jaw
+
+  // Angry brow ridge (dark brown)
+  g.fillStyle(0x3e2723)
+  g.fillTriangle(3 * s, 3 * s, 8 * s, 4 * s, 8 * s, 3 * s)
+  g.fillTriangle(13 * s, 3 * s, 8 * s, 4 * s, 8 * s, 3 * s)
+
+  // Eyes (glowing red slits)
+  g.fillStyle(0xff0000)
+  g.fillRect(4 * s, 4 * s, 2 * s, 1 * s)
+  g.fillRect(10 * s, 4 * s, 2 * s, 1 * s)
+  // Eye glow
+  g.fillStyle(0xff5555, 0.5)
+  g.fillRect(4 * s, 4 * s, 2 * s, 1 * s)
+  g.fillRect(10 * s, 4 * s, 2 * s, 1 * s)
+
+  // Scar across left eye
+  g.fillStyle(0x8b0000)
+  g.fillRect(3 * s, 2 * s, 1 * s, 1 * s)
+  g.fillRect(4 * s, 3 * s, 1 * s, 1 * s)
+  g.fillRect(5 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(6 * s, 5 * s, 1 * s, 1 * s)
+
+  // Horns (grey/bone)
+  g.fillStyle(0xcccccc)
+  g.fillRect(2 * s, 1 * s, 2 * s, 2 * s)
+  g.fillRect(12 * s, 1 * s, 2 * s, 2 * s)
+  g.fillStyle(0xaaaaaa)
+  g.fillRect(1 * s, 0 * s, 1 * s, 2 * s) // will offset
+  g.fillRect(14 * s, 0 * s, 1 * s, 2 * s)
+
+  // Ears (pointed out)
+  g.fillStyle(0x4a5d23)
+  g.fillRect(1 * s, 3 * s, 2 * s, 2 * s)
+  g.fillRect(13 * s, 3 * s, 2 * s, 2 * s)
+
+  // Mouth/Jaw
+  g.fillStyle(0x1a2410)
+  g.fillRect(5 * s, 6 * s, 6 * s, 1 * s)
+  // Sharp jagged teeth
+  g.fillStyle(0xffffff)
+  g.fillRect(5 * s, 5 * s, 1 * s, 1 * s)
+  g.fillRect(7 * s, 5 * s, 1 * s, 1 * s)
+  g.fillRect(9 * s, 5 * s, 1 * s, 1 * s)
+  // Massive lower Tusks
+  g.fillStyle(0xeeeeee)
+  g.fillRect(4 * s, 5 * s, 1 * s, 2 * s)
+  g.fillRect(11 * s, 5 * s, 1 * s, 2 * s)
+  g.fillStyle(0xbbbbbb)
+  g.fillRect(4 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(11 * s, 4 * s, 1 * s, 1 * s)
+
+  // Arms (huge)
+  g.fillStyle(0x4a5d23)
+  g.fillRect(1 * s, 7 * s, 3 * s, 8 * s)
+  g.fillRect(12 * s, 7 * s, 3 * s, 8 * s)
+
+  // Legs (thick, dark)
+  g.fillStyle(0x2a3d13)
+  g.fillRect(3 * s, 16 * s, 4 * s, 4 * s)
+  g.fillRect(9 * s, 16 * s, 4 * s, 4 * s)
+
+  // Heavy Loincloth
+  g.fillStyle(0x4b3621)
+  g.fillRect(3 * s, 14 * s, 10 * s, 3 * s)
+  // Iron belt buckle
+  g.fillStyle(0x666666)
+  g.fillRect(7 * s, 14 * s, 2 * s, 2 * s)
+
+  // Spiky war club in right hand
+  g.fillStyle(0x3e2723) // dark wood
+  g.fillRect(13 * s, 2 * s, 4 * s, 14 * s)
+  g.fillStyle(0x2c1c18) // shadow
+  g.fillRect(12 * s, 1 * s, 6 * s, 4 * s)
+  // Giant iron spikes on club
+  g.fillStyle(0x888888)
+  g.fillRect(12 * s, 2 * s, 1 * s, 2 * s)
+  g.fillRect(17 * s, 3 * s, 1 * s, 2 * s)
+  g.fillRect(11 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(18 * s, 1 * s, 1 * s, 1 * s)
+  g.fillRect(12 * s, 6 * s, 1 * s, 1 * s)
+  g.fillRect(17 * s, 7 * s, 1 * s, 1 * s)
+  g.fillRect(14 * s, 0 * s, 2 * s, 1 * s)
+
+  // Black outline (simplified)
+  g.lineStyle(1, 0x000000, 0.8)
+  g.strokeRect(3 * s, 6 * s, 10 * s, 10 * s)
+  g.strokeRect(4 * s, 1 * s, 8 * s, 6 * s)
+
+  g.generateTexture('ogre', 20 * s, 22 * s)
+  g.destroy()
 }
 
 function generateGoblinTexture(scene: Phaser.Scene) {

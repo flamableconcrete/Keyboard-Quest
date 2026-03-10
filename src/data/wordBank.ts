@@ -1,7 +1,35 @@
 export const WORD_BANK: string[] = [
-  'ad', 'add', 'ads', 'ask', 'dad', 'dads', 'fad', 'fads', 'lad', 'lads',
-  'sad', 'all', 'fall', 'falls', 'lass', 'flask', 'alas', 'dal',
-  'lake', 'safe', 'desk', 'jade', 'sale', 'fade', 'flake', 'snake',
+  'as', 'ask', 'asks', 'ad', 'add', 'adds', 'ads', 'sad', 'fad', 'fads',
+  'dad', 'dads', 'lad', 'lads', 'lass', 'alas', 'fall', 'falls', 'flask',
+  'flasks', 'salad', 'salads', 'salsa', 'salsas', 'fallal', 'alfalfa', 'dal',
+
+  'ale', 'ales', 'lead', 'leads', 'sled', 'sleds', 'fled', 'seek', 'seeks',
+  'leak', 'leaks', 'leeks', 'feel', 'feels', 'seed', 'seeds', 'feed', 'feeds',
+  'flea', 'fleas', 'ease', 'eases', 'lease', 'leases', 'false', 'sale', 'sales',
+  'seal', 'seals', 'dead', 'deaf', 'deal', 'deals', 'desk', 'desks', 'elf',
+  'elfs', 'self', 'less', 'else', 'flee', 'flees', 'lake', 'lakes', 'fake',
+  'fakes', 'sake', 'sakes', 'safe', 'jade', 'fade', 'flake',
+
+  'and', 'sand', 'land', 'lane', 'sane', 'lean', 'lend', 'lends', 'send', 'sends',
+  'fend', 'fends', 'kneel', 'kneels', 'lens', 'den', 'dens', 'fan', 'fans',
+  'snake', 'snakes', 'sense', 'senses', 'dense', 'end', 'ends', 'need', 'needs',
+  'dean', 'deans', 'sandals', 'flannel', 'flannels',
+
+  'are', 'red', 'read', 'reads', 'rear', 'rears', 'rare', 'dare', 'dares', 'dark',
+  'darks', 'fear', 'fears', 'jar', 'jars', 'far', 'fars', 'earn', 'earns',
+  'near', 'nears', 'learn', 'learns', 'snare', 'snares', 'dread', 'dreads',
+  'elder', 'elders', 'reader', 'readers', 'leader', 'leaders', 'dealer',
+  'dealers', 'frank', 'franks', 'rank', 'ranks', 'drank', 'freak', 'freaks',
+  'real', 'rear',
+
+  'old', 'older', 'fold', 'folds', 'ford', 'fords', 'role', 'roles', 'lore',
+  'lord', 'lords', 'door', 'doors', 'odor', 'odors', 'nod', 'nods', 'nor',
+  'floor', 'floors', 'fond', 'food', 'foods', 'fool', 'fools', 'roof', 'roofs',
+  'solo', 'solos', 'lose', 'loser', 'losers', 'lone', 'loner', 'loners', 'drone',
+  'drones', 'snore', 'snores', 'rose', 'roses', 'nose', 'noses', 'reason',
+  'reasons', 'season', 'seasons', 'lesson', 'lessons', 'order', 'orders',
+  'road', 'roads', 'load', 'loads', 'toast', 'tread', 'trend',
+
   'sand', 'land', 'lane', 'sane', 'lean', 'leak', 'seal', 'deal',
   'dare', 'read', 'near', 'learn', 'snare', 'dread', 'elder',
   'load', 'road', 'lore', 'role', 'fold', 'ford', 'drone', 'snore',

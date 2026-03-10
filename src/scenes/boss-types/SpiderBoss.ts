@@ -206,7 +206,7 @@ export class SpiderBoss extends Phaser.Scene {
     if (availableLines.length === 0) return
 
     const line = Phaser.Utils.Array.GetRandom(availableLines)
-    const letter = getWordPool(this.level.unlockedLetters, 1, 1)[0].charAt(0)
+    const letter = getWordPool(this.level.unlockedLetters, 1, 1, this.level.world === 1 ? 5 : undefined)[0].charAt(0)
     
     line.letter = letter
     this.lettersSpawned++

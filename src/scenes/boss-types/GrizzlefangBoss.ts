@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
 
 export class GrizzlefangBoss extends Phaser.Scene {
@@ -17,7 +18,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
   private wordsPerPhase = 5
   private wordQueue: string[] = []
 
-  private bossSprite!: Phaser.GameObjects.Rectangle
+  private bossSprite!: Phaser.GameObjects.Image
   private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
@@ -56,6 +57,8 @@ export class GrizzlefangBoss extends Phaser.Scene {
   }
 
   create() {
+    generateGoblinWhackerTextures(this)
+
     setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
@@ -80,7 +83,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Grizzlefang is big and orange/brown)
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 300, 300, 0x8b4513)
+    this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(3)
     
     this.bossMaxHp = this.weaknessActive
       ? Math.max(1, Math.floor(this.level.wordCount * 0.8))
@@ -134,7 +137,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     
     // Ensure we don't generate more words than remaining boss HP
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
-    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     
     this.wordQueue = [...words]
     
@@ -204,9 +207,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
     this.bossHpText.setText(`Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`)
 
     // Visual damage cue
-    this.bossSprite.setFillStyle(0xffffff)
+    this.bossSprite.setTintFill(0xffffff)
     this.time.delayedCall(100, () => {
-      if (this.bossSprite) this.bossSprite.setFillStyle(0x8b4513) // Back to brown
+      if (this.bossSprite) this.bossSprite.clearTint()
     })
 
     this.loadNextWord()

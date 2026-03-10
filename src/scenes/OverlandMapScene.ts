@@ -118,7 +118,11 @@ export class OverlandMapScene extends Phaser.Scene {
     // Drop shadow beneath avatar
     this.avatarShadow = this.add.ellipse(startPos.x, startPos.y + 2, 16, 6, 0x000000, 0.25)
       .setDepth(999)
-    this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(1000)
+
+    const avatarTexture = this.profile.avatarChoice || 'avatar_0'
+    this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
+    // Scale down the pixel art avatar slightly to fit the map nodes better
+    this.avatar.setScale(0.75)
   }
 
   private drawWorldArrows() {
