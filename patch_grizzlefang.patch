@@ -1,0 +1,11 @@
+--- src/scenes/boss-types/GrizzlefangBoss.ts
++++ src/scenes/boss-types/GrizzlefangBoss.ts
+@@ -99,7 +99,7 @@
+       fontSize: '24px', color: '#ff8800'
+     }).setOrigin(0.5)
+
+-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
++    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
+       fontSize: '32px', color: '#ffffff',
+       backgroundColor: '#000000', padding: { x: 8, y: 4 }
+     }).setOrigin(0.5)

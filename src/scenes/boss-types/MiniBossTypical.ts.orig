@@ -1,32 +1,27 @@
-// src/scenes/boss-types/GrizzlefangBoss.ts
+// src/scenes/boss-types/MiniBossTypical.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { TypingHands } from '../../components/TypingHands'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
 
-export class GrizzlefangBoss extends Phaser.Scene {
+export class MiniBossTypical extends Phaser.Scene {
   private level!: LevelConfig
   private profileSlot!: number
+  private words: string[] = []
   private engine!: TypingEngine
-  
-  private phase = 1
-  private maxPhases = 3
-  private wordsPerPhase = 5
   private wordQueue: string[] = []
-
-  private bossSprite!: Phaser.GameObjects.Image
+  private bossSprite!: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Image
   private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
-  
   private bossHp = 0
   private bossMaxHp = 0
 
-  private playerHp = 5 // Boss fights might give you more HP
+  private playerHp = 3
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
   private timeLeft = 0
@@ -37,21 +32,15 @@ export class GrizzlefangBoss extends Phaser.Scene {
   private gameMode: 'regular' | 'advanced' = 'regular'
   private wrongKeyCount = 0
   private nextAttackThreshold = 0
+  private typingHands?: TypingHands
 
-  constructor() { super('GrizzlefangBoss') }
+  constructor() { super('MiniBossTypical') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     this.level = data.level
     this.profileSlot = data.profileSlot
     this.finished = false
-    this.playerHp = 5
-    this.phase = 1
-    this.wordQueue = []
-    this.wrongKeyCount = 0
-    this.nextAttackThreshold = 0
-    // Number of words is dictated by config, let's distribute evenly across 3 phases
-    this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
-    // Check if player has studied the Monster Manual for this boss
+    this.playerHp = 3
     const profile = loadProfile(data.profileSlot)
     this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
     this.gameMode = profile?.gameMode ?? 'regular'
@@ -60,13 +49,11 @@ export class GrizzlefangBoss extends Phaser.Scene {
   }
 
   create() {
-    generateGoblinWhackerTextures(this)
-
     setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
-    // Dark Background for major boss
-    this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
+    // Background
+    this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e2a)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -77,32 +64,44 @@ export class GrizzlefangBoss extends Phaser.Scene {
     }).setOrigin(1, 0)
 
     // Level name
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '28px', color: '#ff8800'
-    }).setOrigin(0.5, 0)
-    
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
+    this.add.text(width / 2, 20, this.level.name + ' (Mini-Boss)', {
+      fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
 
-    // Boss Sprite (Grizzlefang is big and orange/brown)
-    this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(3)
-    
-    this.bossMaxHp = this.weaknessActive
-      ? Math.max(1, Math.floor(this.level.wordCount * 0.8))
-      : this.level.wordCount
+    // Word pool
+    const difficulty = Math.ceil(this.level.world / 2)
+    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
+    this.wordQueue = [...this.words]
+    const rawHp = this.wordQueue.length
+    this.bossMaxHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
     this.bossHp = this.bossMaxHp
+    // Trim word queue to match reduced HP
     if (this.weaknessActive) {
-      this.add.text(width / 2, 90, '⚡ Weakness Known! Boss HP -20%', {
-        fontSize: '18px', color: '#aaffaa'
+      this.wordQueue = this.wordQueue.slice(0, this.bossMaxHp)
+    }
+
+    // Boss Sprite
+    const isOgre = this.level.name.toLowerCase().includes('ogre') ||
+                   this.level.bossId?.toLowerCase().includes('ogre') ||
+                   this.level.storyBeat?.toLowerCase().includes('ogre');
+
+    if (isOgre) {
+      generateGoblinWhackerTextures(this)
+      this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(2)
+    } else {
+      this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 200, 0xaa4444)
+    }
+    if (this.weaknessActive) {
+      this.add.text(width / 2, 55, '⚡ Weakness Known! Boss HP -20%', {
+        fontSize: '16px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width / 2, height / 2 - 220, `Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`, {
-      fontSize: '24px', color: '#ff8800'
+    this.bossHpText = this.add.text(width / 2, height / 2 - 180, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
+      fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
-      fontSize: '32px', color: '#ffffff',
+    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
+      fontSize: '28px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
 
@@ -110,10 +109,25 @@ export class GrizzlefangBoss extends Phaser.Scene {
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 120,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
+    })
+
+    // Typing hands overlay (player setting)
+    const profile = loadProfile(this.profileSlot)
+    if (profile?.showFingerHints) {
+      this.typingHands = new TypingHands(this, width / 2, height - 50)
+    }
+
+    this.input.keyboard?.on('keydown', () => {
+      if (this.wordQueue.length > 0 && this.typingHands) {
+        const word = this.wordQueue[0]
+        const nextIdx = this.engine.getTypedSoFar().length
+        const nextCh = word[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
     })
 
     // Timer
@@ -129,74 +143,46 @@ export class GrizzlefangBoss extends Phaser.Scene {
       })
     }
 
-    this.startPhase()
-  }
-  
-  private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
-    
-    // In later phases, maybe the words are harder or attack is faster
-    const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    
-    // Ensure we don't generate more words than remaining boss HP
-    const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
-    const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
-    
-    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
-    
-    // Setup attack timer based on phase
-    this.attackTimer?.remove()
+    // Boss Attack Timer (Attacks every X seconds if not defeated)
     if (this.gameMode === 'advanced') {
       this.attackTimer = this.time.addEvent({
-        delay: Math.max(1500, 4000 - (this.phase * 500)), // Gets faster each phase
+        delay: 5000 - (this.level.world * 200), // Faster in later worlds
         loop: true,
         callback: this.bossAttack,
         callbackScope: this
       })
     }
-    
-    // Visual cue for phase change
-    this.cameras.main.flash(500, 255, 136, 0)
-    
+
     this.loadNextWord()
   }
 
   private loadNextWord() {
     if (this.wordQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
-        this.phase++
-        this.startPhase()
-      } else {
-        this.endLevel(true)
-      }
+      this.endLevel(true)
       return
     }
     const word = this.wordQueue[0]
     this.bossLabel.setText(word)
     this.engine.setWord(word)
+    if (this.typingHands && word[0]) {
+      this.typingHands.highlightFinger(word[0])
+    }
   }
 
   private bossAttack() {
     if (this.finished) return
-    
-    // Attack animation
+
+    // Simple visual attack cue
     this.tweens.add({
       targets: this.bossSprite,
-      scaleX: 1.1,
-      scaleY: 1.1,
-      angle: Phaser.Math.Between(-10, 10),
+      scaleX: 1.2,
+      scaleY: 1.2,
       yoyo: true,
-      duration: 100,
+      duration: 150,
       onComplete: () => {
         this.playerHp--
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
-        this.cameras.main.shake(300, 0.015)
-        
-        // Phase 3 attack double flash
-        if (this.phase === 3) {
-           this.cameras.main.flash(100, 255, 0, 0)
-        }
-        
+        this.cameras.main.shake(200, 0.01)
         if (this.playerHp <= 0) this.endLevel(false)
       }
     })
@@ -207,13 +193,20 @@ export class GrizzlefangBoss extends Phaser.Scene {
 
     this.wordQueue.shift()
     this.bossHp--
-    this.bossHpText.setText(`Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.bossHpText.setText(`Boss HP: ${this.bossHp}/${this.bossMaxHp}`)
 
     // Visual damage cue
-    this.bossSprite.setTintFill(0xffffff)
-    this.time.delayedCall(100, () => {
-      if (this.bossSprite) this.bossSprite.clearTint()
-    })
+    if (this.bossSprite instanceof Phaser.GameObjects.Image) {
+      this.bossSprite.setTintFill(0xffffff)
+      this.time.delayedCall(100, () => {
+        if (this.bossSprite) (this.bossSprite as Phaser.GameObjects.Image).clearTint()
+      })
+    } else {
+      this.bossSprite.setFillStyle(0xffffff)
+      this.time.delayedCall(100, () => {
+        if (this.bossSprite) (this.bossSprite as Phaser.GameObjects.Rectangle).setFillStyle(0xaa4444)
+      })
+    }
 
     this.loadNextWord()
   }
@@ -236,6 +229,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     this.finished = true
     this.timerEvent?.remove()
     this.attackTimer?.remove()
+    this.typingHands?.fadeOut()
     this.engine.destroy()
 
     if (passed) {
@@ -249,13 +243,13 @@ export class GrizzlefangBoss extends Phaser.Scene {
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
 
     const captureAttempt = this.level.captureEligible
-      ? { monsterId: 'grizzlefang', monsterName: 'Grizzlefang' }
+      ? { monsterId: this.level.bossId || 'miniboss', monsterName: 'Mini-Boss' }
       : undefined
 
     const profile = loadProfile(this.profileSlot)
     const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
 
-    this.time.delayedCall(1500, () => { // Longer delay for big boss
+    this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
