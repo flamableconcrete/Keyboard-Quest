@@ -10,7 +10,7 @@ export const W5_AFTER_MB4 = [...W5_AFTER_MB3, 'j']
 export const WORLD5_LEVELS: LevelConfig[] = [
   {
     id: 'w5_l1',
-    name: 'The Broken Quill',
+    name: 'Gates of the Maelstrom',
     type: 'GoblinWhacker',
     world: 5,
     unlockedLetters: W5_BASE,
@@ -23,7 +23,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l2',
-    name: 'Cipher Maze',
+    name: 'The Shifting Labyrinth',
     type: 'DungeonTrapDisarm',
     world: 5,
     unlockedLetters: W5_BASE,
@@ -36,7 +36,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l3',
-    name: 'Scroll Library',
+    name: 'Archives of Eternity',
     type: 'MonsterManual',
     world: 5,
     unlockedLetters: W5_BASE,
@@ -49,7 +49,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb1',
-    name: 'Quillmere Chamber',
+    name: 'Chamber of the Quillmaster',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_BASE,
@@ -66,7 +66,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l4',
-    name: 'Hex Forge',
+    name: 'The Enchanted Forges',
     type: 'MagicRuneTyping',
     world: 5,
     unlockedLetters: W5_AFTER_MB1,
@@ -79,7 +79,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l5',
-    name: 'Xeric Flats',
+    name: 'The Desolate Courtyard',
     type: 'SkeletonSwarm',
     world: 5,
     unlockedLetters: W5_AFTER_MB1,
@@ -92,7 +92,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb2',
-    name: 'Xylem Spire',
+    name: 'Spire of the Hexed Exile',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB1,
@@ -109,7 +109,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l6',
-    name: 'Zenith Atrium',
+    name: "The Mad King's Court",
     type: 'SillyChallenge',
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
@@ -122,7 +122,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l7',
-    name: 'Zephyr Court',
+    name: 'Prison of the Wind Faeries',
     type: 'WoodlandFestival',
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
@@ -135,7 +135,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb3',
-    name: "Zealot's Peak",
+    name: "Zealot's Ascent",
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
@@ -152,7 +152,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_l8',
-    name: 'The Final Ascent',
+    name: 'The Crumbling Stairway',
     type: 'DungeonEscape',
     world: 5,
     unlockedLetters: W5_AFTER_MB3,
@@ -165,7 +165,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb4',
-    name: "The Jester's Gauntlet",
+    name: 'Hall of Illusions',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB3,
@@ -182,7 +182,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_boss',
-    name: 'The Typemancer',
+    name: 'Throne of the Typemancer',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB4,
