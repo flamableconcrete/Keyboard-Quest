@@ -10,7 +10,7 @@ export const W4_AFTER_MB4 = [...W4_AFTER_MB3, 'v']
 export const WORLD4_LEVELS: LevelConfig[] = [
   {
     id: 'w4_l1',
-    name: 'Briarwood',
+    name: 'Twilight Thicket',
     type: 'GoblinWhacker',
     world: 4,
     unlockedLetters: W4_BASE,
@@ -23,7 +23,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l2',
-    name: 'Murkmere',
+    name: 'The Drowned Moor',
     type: 'UndeadSiege',
     world: 4,
     unlockedLetters: W4_BASE,
@@ -36,7 +36,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l3',
-    name: 'Thorngate Pass',
+    name: 'Forgotten Stone Pass',
     type: 'DungeonTrapDisarm',
     world: 4,
     unlockedLetters: W4_BASE,
@@ -49,7 +49,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb1',
-    name: 'Blackfen Bridge',
+    name: 'Troll\'s Toll Bridge',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_BASE,
@@ -66,7 +66,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l4',
-    name: 'Wychwood',
+    name: 'The Weeping Woods',
     type: 'MagicRuneTyping',
     world: 4,
     unlockedLetters: W4_AFTER_MB1,
@@ -79,7 +79,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l5',
-    name: 'Barrow Downs',
+    name: 'Ancestral Barrows',
     type: 'SkeletonSwarm',
     world: 4,
     unlockedLetters: W4_AFTER_MB1,
@@ -92,7 +92,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb2',
-    name: 'Witherwood Keep',
+    name: 'Keep of the Wraith-Witch',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB1,
@@ -109,7 +109,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l6',
-    name: 'Yewmere Crossing',
+    name: 'Venomous Shallows',
     type: 'SlimeSplitting',
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
@@ -122,7 +122,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l7',
-    name: 'Yeldrith Valley',
+    name: 'The Jester\'s Glade',
     type: 'SillyChallenge',
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
@@ -135,7 +135,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb3',
-    name: 'Yore Heights',
+    name: 'Frosthowl Summit',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
@@ -152,7 +152,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l8',
-    name: 'Veldt Ruins',
+    name: 'Ruins of the Old Kingdom',
     type: 'MonsterArena',
     world: 4,
     unlockedLetters: W4_AFTER_MB3,
@@ -165,7 +165,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_l9',
-    name: 'Vex Hollow',
+    name: 'Shadow-Warden\'s Trap',
     type: 'DungeonEscape',
     world: 4,
     unlockedLetters: W4_AFTER_MB3,
@@ -178,7 +178,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb4',
-    name: 'Virelith Vault',
+    name: 'Vault of the Ancients',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB3,
@@ -195,7 +195,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_boss',
-    name: 'The Dice Lich',
+    name: 'Sanctum of the Dice Lich',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB4,
