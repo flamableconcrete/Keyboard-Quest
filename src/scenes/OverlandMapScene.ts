@@ -33,6 +33,7 @@ export class OverlandMapScene extends Phaser.Scene {
   private mapRenderer?: MapRenderer
   private glowRect?: Phaser.GameObjects.Rectangle
   private currentNodeIndex = 0
+  private avatarBasePos: NodePosition = { x: 0, y: 0 }
   /** Composite bezier path for avatar path-following (used by Task 8). */
   worldPath?: Phaser.Curves.Path
 
@@ -120,9 +121,26 @@ export class OverlandMapScene extends Phaser.Scene {
       .setDepth(999)
 
     const avatarTexture = this.profile.avatarChoice || 'avatar_0'
+    this.avatarBasePos = { x: startPos.x, y: startPos.y }
     this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
     // Scale down the pixel art avatar slightly to fit the map nodes better
     this.avatar.setScale(0.75)
+  }
+
+  update(time: number) {
+    if (!this.isGliding && this.avatar) {
+      // Idle bobbing
+      const bobOffset = Math.sin(time / 200) * 2;
+      this.avatar.y = this.avatarBasePos.y + bobOffset;
+      this.avatar.x = this.avatarBasePos.x;
+
+      // Keep shadow still but pulse it slightly
+      if (this.avatarShadow) {
+        this.avatarShadow.setPosition(this.avatarBasePos.x, this.avatarBasePos.y + 2);
+        const shadowScale = 1 - (bobOffset * 0.05);
+        this.avatarShadow.setScale(shadowScale, shadowScale);
+      }
+    }
   }
 
   private drawWorldArrows() {
@@ -447,10 +465,10 @@ export class OverlandMapScene extends Phaser.Scene {
     }).explode()
   }
 
-  /** Move shadow to match avatar position (shadow sits 2px below). */
+  /** Move shadow to match avatar base position (shadow sits 2px below base). */
   private syncShadow() {
     if (this.avatarShadow) {
-      this.avatarShadow.setPosition(this.avatar.x, this.avatar.y + 2)
+      this.avatarShadow.setPosition(this.avatarBasePos.x, this.avatarBasePos.y + 2)
     }
   }
 
@@ -485,6 +503,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     const finishGlide = () => {
       // Snap to final position (no bob)
+      this.avatarBasePos = { x: pos.x, y: pos.y }
       this.avatar.setPosition(pos.x, pos.y)
       this.syncShadow()
       // Update tracking
@@ -521,6 +540,7 @@ export class OverlandMapScene extends Phaser.Scene {
           const clampedT = Phaser.Math.Clamp(t, 0, 1)
           const pt = this.worldPath!.getPoint(clampedT)
           if (pt) {
+            this.avatarBasePos = { x: pt.x, y: pt.y }
             this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
             this.syncShadow()
           }
@@ -547,6 +567,7 @@ export class OverlandMapScene extends Phaser.Scene {
       onUpdate: () => {
         const x = Phaser.Math.Linear(startX, pos.x, obj.val)
         const y = Phaser.Math.Linear(startY, pos.y, obj.val)
+        this.avatarBasePos = { x, y }
         this.avatar.setPosition(x, y + this.walkBobOffset())
         this.syncShadow()
       },
