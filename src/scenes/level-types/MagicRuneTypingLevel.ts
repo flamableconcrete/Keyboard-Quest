@@ -41,6 +41,12 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
     graphics.strokeCircle(width / 2, height / 2, 200)
     graphics.strokeCircle(width / 2, height / 2, 220)
 
+
+    const pProfileAvatar = loadProfile(this.profileSlot)
+    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
+    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '22px', color: '#ffd700'
