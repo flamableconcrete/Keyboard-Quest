@@ -3,14 +3,14 @@ import Phaser from 'phaser'
 export function setupPause(scene: Phaser.Scene, profileSlot: number) {
   const { width, height } = scene.scale
 
-  // Add a subtle "Pause / Quit" button in the bottom right corner
+  // Add a subtle "Pause / Quit" button in the top left corner
   // so it doesn't conflict with timers, HP, or typing area
-  const pauseBtn = scene.add.text(width - 20, height - 20, '[ ESC to Pause ]', {
+  const pauseBtn = scene.add.text(20, 20, '[ ESC to Pause ]', {
     fontSize: '18px',
     color: '#888888',
     backgroundColor: '#000000AA',
     padding: { x: 8, y: 4 }
-  }).setOrigin(1, 1).setInteractive({ useHandCursor: true }).setDepth(9999)
+  }).setOrigin(0, 0).setInteractive({ useHandCursor: true }).setDepth(9999)
 
   pauseBtn.on('pointerdown', () => {
     scene.scene.pause()
