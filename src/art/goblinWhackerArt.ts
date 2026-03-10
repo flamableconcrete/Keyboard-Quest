@@ -9,9 +9,81 @@ export function generateGoblinWhackerTextures(scene: Phaser.Scene) {
 
   generateGoblinTexture(scene)
   generateGoblinDeathTexture(scene)
+  generateOgreTexture(scene)
   generateHeroTexture(scene)
   generateHeartTexture(scene)
   generateForestBackground(scene)
+}
+
+function generateOgreTexture(scene: Phaser.Scene) {
+  const g = scene.add.graphics()
+  const s = 5 // pixel scale for ogre (larger than goblin's 3)
+
+  // Body (darker green/brownish green)
+  g.fillStyle(0x556b2f) // olive green
+  g.fillRect(3 * s, 6 * s, 10 * s, 10 * s)
+
+  // Belly (lighter/yellowish green)
+  g.fillStyle(0x6b8e23) // olive drab
+  g.fillRect(4 * s, 8 * s, 8 * s, 6 * s)
+
+  // Head
+  g.fillStyle(0x556b2f)
+  g.fillRect(4 * s, 1 * s, 8 * s, 6 * s)
+
+  // Eyes (yellow with red pupils)
+  g.fillStyle(0xffff00)
+  g.fillRect(5 * s, 3 * s, 2 * s, 2 * s)
+  g.fillRect(9 * s, 3 * s, 2 * s, 2 * s)
+  g.fillStyle(0xff0000)
+  g.fillRect(5 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(9 * s, 4 * s, 1 * s, 1 * s)
+
+  // Ears (smaller relative to head)
+  g.fillStyle(0x556b2f)
+  g.fillRect(2 * s, 2 * s, 2 * s, 2 * s)
+  g.fillRect(12 * s, 2 * s, 2 * s, 2 * s)
+
+  // Mouth/Tusks
+  g.fillStyle(0x223311)
+  g.fillRect(6 * s, 5 * s, 4 * s, 1 * s)
+  // Tusks
+  g.fillStyle(0xffffff)
+  g.fillRect(6 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(9 * s, 4 * s, 1 * s, 1 * s)
+
+  // Arms (thick)
+  g.fillStyle(0x556b2f)
+  g.fillRect(1 * s, 7 * s, 2 * s, 7 * s)
+  g.fillRect(13 * s, 7 * s, 2 * s, 7 * s)
+
+  // Legs (thick, short)
+  g.fillStyle(0x334411)
+  g.fillRect(4 * s, 16 * s, 3 * s, 4 * s)
+  g.fillRect(9 * s, 16 * s, 3 * s, 4 * s)
+
+  // Loincloth
+  g.fillStyle(0x8B4513)
+  g.fillRect(4 * s, 14 * s, 8 * s, 3 * s)
+
+  // Huge club in right hand
+  g.fillStyle(0x5c4033) // dark brown
+  g.fillRect(14 * s, 3 * s, 3 * s, 12 * s)
+  g.fillStyle(0x3e2723)
+  g.fillRect(13 * s, 2 * s, 5 * s, 3 * s)
+  // spikes on club
+  g.fillStyle(0xaaaaaa)
+  g.fillRect(13 * s, 3 * s, 1 * s, 1 * s)
+  g.fillRect(17 * s, 4 * s, 1 * s, 1 * s)
+  g.fillRect(13 * s, 5 * s, 1 * s, 1 * s)
+
+  // Black outline (simplified)
+  g.lineStyle(1, 0x000000, 0.6)
+  g.strokeRect(3 * s, 6 * s, 10 * s, 10 * s)
+  g.strokeRect(4 * s, 1 * s, 8 * s, 6 * s)
+
+  g.generateTexture('ogre', 18 * s, 20 * s)
+  g.destroy()
 }
 
 function generateGoblinTexture(scene: Phaser.Scene) {

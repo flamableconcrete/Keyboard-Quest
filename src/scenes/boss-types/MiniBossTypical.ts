@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
+import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 
 export class MiniBossTypical extends Phaser.Scene {
   private level!: LevelConfig
@@ -12,7 +13,7 @@ export class MiniBossTypical extends Phaser.Scene {
   private words: string[] = []
   private engine!: TypingEngine
   private wordQueue: string[] = []
-  private bossSprite!: Phaser.GameObjects.Rectangle
+  private bossSprite!: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Image
   private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private bossHp = 0
@@ -76,7 +77,12 @@ export class MiniBossTypical extends Phaser.Scene {
     }
 
     // Boss Sprite
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 200, 0xaa4444)
+    if (this.level.name.toLowerCase().includes('ogre') || this.level.bossId?.toLowerCase().includes('ogre')) {
+      generateGoblinWhackerTextures(this)
+      this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(2)
+    } else {
+      this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 200, 0xaa4444)
+    }
     if (this.weaknessActive) {
       this.add.text(width / 2, 55, '⚡ Weakness Known! Boss HP -20%', {
         fontSize: '16px', color: '#aaffaa'
@@ -164,10 +170,17 @@ export class MiniBossTypical extends Phaser.Scene {
     this.bossHpText.setText(`Boss HP: ${this.bossHp}/${this.bossMaxHp}`)
 
     // Visual damage cue
-    this.bossSprite.setFillStyle(0xffffff)
-    this.time.delayedCall(100, () => {
-      if (this.bossSprite) this.bossSprite.setFillStyle(0xaa4444)
-    })
+    if (this.bossSprite instanceof Phaser.GameObjects.Image) {
+      this.bossSprite.setTintFill(0xffffff)
+      this.time.delayedCall(100, () => {
+        if (this.bossSprite) (this.bossSprite as Phaser.GameObjects.Image).clearTint()
+      })
+    } else {
+      this.bossSprite.setFillStyle(0xffffff)
+      this.time.delayedCall(100, () => {
+        if (this.bossSprite) (this.bossSprite as Phaser.GameObjects.Rectangle).setFillStyle(0xaa4444)
+      })
+    }
 
     this.loadNextWord()
   }
