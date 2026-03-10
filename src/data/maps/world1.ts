@@ -279,7 +279,6 @@ function buildDecorations(): DecorationPlacement[] {
   decs.push({ tileIndex: FENCE, x: 102, y: 550 })
   decs.push({ tileIndex: FENCE, x: 134, y: 550 })
   decs.push({ tileIndex: FENCE, x: 166, y: 550 })
-  decs.push({ tileIndex: FENCE, x: 198, y: 550 })
 
   // Cottages — starting village
   decs.push({
