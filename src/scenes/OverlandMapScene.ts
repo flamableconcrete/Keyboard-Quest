@@ -76,16 +76,16 @@ export class OverlandMapScene extends Phaser.Scene {
     // World title
     this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
       fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5).setDepth(10)
+    }).setOrigin(0.5).setDepth(2000)
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
       fontSize: '20px', color: '#ffffff'
-    }).setDepth(10)
+    }).setDepth(2000)
 
     this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
       fontSize: '20px', color: '#ffd700'
-    }).setOrigin(1, 0).setDepth(10)
+    }).setOrigin(1, 0).setDepth(2000)
 
     // World navigation arrows
     this.drawWorldArrows()
@@ -117,8 +117,8 @@ export class OverlandMapScene extends Phaser.Scene {
 
     // Drop shadow beneath avatar
     this.avatarShadow = this.add.ellipse(startPos.x, startPos.y + 2, 16, 6, 0x000000, 0.25)
-      .setDepth(4)
-    this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(5)
+      .setDepth(999)
+    this.avatar = this.add.sprite(startPos.x, startPos.y, 'avatar').setDepth(1000)
   }
 
   private drawWorldArrows() {
@@ -129,7 +129,7 @@ export class OverlandMapScene extends Phaser.Scene {
     if (this.currentWorld > 1) {
       const prev = this.add.text(30, height / 2, '◀', {
         fontSize: '36px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true }).setDepth(10)
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
       prev.on('pointerdown', () => {
         this.profile.currentWorld = this.currentWorld - 1
         saveProfile(this.profileSlot, this.profile)
@@ -140,7 +140,7 @@ export class OverlandMapScene extends Phaser.Scene {
       })
       this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
         fontSize: '14px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setDepth(10)
+      }).setOrigin(0, 0.5).setDepth(2000)
     }
 
     // Next world arrow — only if world boss beaten
@@ -151,7 +151,7 @@ export class OverlandMapScene extends Phaser.Scene {
       if (worldCleared) {
         const next = this.add.text(width - 30, h / 2, '▶', {
           fontSize: '36px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(10)
+        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
         next.on('pointerdown', () => {
           this.profile.currentWorld = this.currentWorld + 1
           saveProfile(this.profileSlot, this.profile)
@@ -162,10 +162,10 @@ export class OverlandMapScene extends Phaser.Scene {
         })
         this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
           fontSize: '14px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setDepth(10)
+        }).setOrigin(1, 0.5).setDepth(2000)
       } else {
         const { width: w } = this.scale
-        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5).setDepth(10)
+        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5).setDepth(2000)
       }
     }
   }
@@ -199,7 +199,7 @@ export class OverlandMapScene extends Phaser.Scene {
         : 0x444444
 
       const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
-      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color)
+      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000)
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
@@ -263,19 +263,19 @@ export class OverlandMapScene extends Phaser.Scene {
         for (let i = 0; i < 5; i++) {
           const frame = i < r.speedStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
           this.add.sprite(startX + i * 8, pos.y + 22, 'map-common', frame)
-            .setDisplaySize(8, 8).setDepth(10)
+            .setDisplaySize(8, 8).setDepth(2000)
         }
         for (let i = 0; i < 5; i++) {
           const frame = i < r.accuracyStars ? COMMON_FRAMES.starFilled : COMMON_FRAMES.starEmpty
           this.add.sprite(startX + 44 + i * 8, pos.y + 22, 'map-common', frame)
-            .setDisplaySize(8, 8).setDepth(10)
+            .setDisplaySize(8, 8).setDepth(2000)
         }
       }
 
       // Gate hint with pulsing lock
       if (gated && unlocked) {
         const lockText = this.add.text(pos.x, pos.y - 24, '🔒', { fontSize: '14px' })
-          .setOrigin(0.5).setDepth(10).setAlpha(0.8)
+          .setOrigin(0.5).setDepth(2000).setAlpha(0.8)
         this.tweens.add({
           targets: lockText,
           alpha: { from: 0.4, to: 0.8 },
@@ -286,7 +286,7 @@ export class OverlandMapScene extends Phaser.Scene {
         const gate = level.bossGate!
         this.add.text(pos.x, pos.y + 24, `Need avg ${gate.minCombinedStars}★`, {
           fontSize: '10px', color: '#ff8888'
-        }).setOrigin(0.5).setDepth(10)
+        }).setOrigin(0.5).setDepth(2000)
       }
     })
   }
@@ -295,8 +295,8 @@ export class OverlandMapScene extends Phaser.Scene {
     // Tavern
     const tp = specialPositions['tavern']
     const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
-      .setInteractive({ useHandCursor: true })
-    this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(10)
+      .setInteractive({ useHandCursor: true }).setDepth(1000)
+    this.add.text(tp.x, tp.y + 20, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
     tavernNode.on('pointerdown', () => {
       this.glideAvatarTo(tp, 'tavern', () => {
         this.scene.start('Tavern', { profileSlot: this.profileSlot })
@@ -306,8 +306,8 @@ export class OverlandMapScene extends Phaser.Scene {
     // Stable
     const sp = specialPositions['stable']
     const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
-      .setInteractive({ useHandCursor: true })
-    this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(10)
+      .setInteractive({ useHandCursor: true }).setDepth(1000)
+    this.add.text(sp.x, sp.y + 20, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
     stableNode.on('pointerdown', () => {
       this.glideAvatarTo(sp, 'stable', () => {
         this.scene.start('Stable', { profileSlot: this.profileSlot })
@@ -317,8 +317,8 @@ export class OverlandMapScene extends Phaser.Scene {
     // Inventory
     const ip = specialPositions['inventory']
     const inventoryNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
-      .setInteractive({ useHandCursor: true })
-    this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(10)
+      .setInteractive({ useHandCursor: true }).setDepth(1000)
+    this.add.text(ip.x, ip.y + 20, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
     inventoryNode.on('pointerdown', () => {
       this.glideAvatarTo(ip, 'inventory', () => {
         this.scene.start('Inventory', { profileSlot: this.profileSlot })
@@ -347,17 +347,17 @@ export class OverlandMapScene extends Phaser.Scene {
 
     if (this.profile.worldMasteryRewards.includes(claimKey)) {
       // Already claimed — show greyed chest
-      this.add.rectangle(cx, cy, 50, 50, 0x555555)
-      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5)
-      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5)
+      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000)
+      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
+      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000)
       return
     }
 
     // Unclaimed — show gold pulsing chest
     const chest = this.add.rectangle(cx, cy, 50, 50, 0xffd700)
-      .setInteractive({ useHandCursor: true })
-    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5)
-    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5)
+      .setInteractive({ useHandCursor: true }).setDepth(2000)
+    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
+    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
 
     this.tweens.add({
       targets: chest,
@@ -371,17 +371,17 @@ export class OverlandMapScene extends Phaser.Scene {
       saveProfile(this.profileSlot, this.profile)
 
       const { width: w, height: h } = this.scale
-      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700)
-      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e)
+      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000)
+      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000)
       this.add.text(w / 2, h / 2 - 50, '✨ World Mastery Reward! ✨', {
         fontSize: '22px', color: '#ffd700'
-      }).setOrigin(0.5)
+      }).setOrigin(0.5).setDepth(3000)
       this.add.text(w / 2, h / 2, `You earned: ${item}`, {
         fontSize: '20px', color: '#ffffff'
-      }).setOrigin(0.5)
+      }).setOrigin(0.5).setDepth(3000)
       this.add.text(w / 2, h / 2 + 50, 'Click to continue', {
         fontSize: '16px', color: '#aaaaaa'
-      }).setOrigin(0.5)
+      }).setOrigin(0.5).setDepth(3000)
 
       this.input.once('pointerdown', () => {
         this.scene.restart({ profileSlot: this.profileSlot, world: this.currentWorld })
@@ -396,7 +396,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.tooltipText = this.add.text(pos.x, pos.y - 35, `${label}${level.name}`, {
       fontSize: '14px', color: '#ffffff', backgroundColor: '#000000',
       padding: { x: 6, y: 4 }
-    }).setOrigin(0.5).setDepth(10).setAlpha(0)
+    }).setOrigin(0.5).setDepth(2000).setAlpha(0)
 
     this.tweens.add({
       targets: this.tooltipText,
@@ -421,7 +421,7 @@ export class OverlandMapScene extends Phaser.Scene {
     const { width } = this.scale
     const btn = this.add.text(width - 20, 50, '⚙ SETTINGS', {
       fontSize: '18px', color: '#aaaaaa'
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(10)
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
