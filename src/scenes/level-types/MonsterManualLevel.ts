@@ -49,7 +49,7 @@ export class MonsterManualLevel extends Phaser.Scene {
 
     // Word pool - we'll just generate a generic description from words
     const difficulty = Math.max(1, Math.ceil(this.level.world / 2))
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount || 10, difficulty)
+    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount || 10, difficulty, this.level.world === 1 ? 5 : undefined)
     
     // Create a visual paragraph
     this.add.text(width / 2, 200, this.words.join(' '), {

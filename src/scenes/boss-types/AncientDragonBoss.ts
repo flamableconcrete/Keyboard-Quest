@@ -118,7 +118,7 @@ export class AncientDragonBoss extends Phaser.Scene {
     if (this.phase === 2) wordsPerSentence = 4
     if (this.phase === 3) wordsPerSentence = 6
 
-    const words = getWordPool(this.level.unlockedLetters, wordsRemaining, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, wordsRemaining, difficulty, this.level.world === 1 ? 5 : undefined)
     
     this.sentenceQueue = []
     for (let i = 0; i < words.length; i += wordsPerSentence) {

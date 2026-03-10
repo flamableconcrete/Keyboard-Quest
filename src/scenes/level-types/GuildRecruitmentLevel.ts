@@ -56,7 +56,7 @@ export class GuildRecruitmentLevel extends Phaser.Scene {
 
     // Word pool (Pitch text)
     const difficulty = Math.max(1, Math.ceil(this.level.world / 2))
-    const words = getWordPool(this.level.unlockedLetters, this.level.wordCount || 15, difficulty)
+    const words = getWordPool(this.level.unlockedLetters, this.level.wordCount || 15, difficulty, this.level.world === 1 ? 5 : undefined)
     
     // Display the pitch
     this.add.text(width / 2, 200, words.join(' '), {
