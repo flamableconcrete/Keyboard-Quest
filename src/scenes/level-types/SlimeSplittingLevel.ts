@@ -37,6 +37,10 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     this.profileSlot = data.profileSlot
     this.finished = false
     this.playerHp = 3
+    this.slimes = []
+    this.activeSlime = null
+    this.words = []
+    this.wordQueue = []
   }
 
   create() {

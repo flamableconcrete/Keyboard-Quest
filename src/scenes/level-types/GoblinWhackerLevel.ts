@@ -54,6 +54,13 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.finished = false
     this.goblinsDefeated = 0
     this.playerHp = 3
+    this.goblins = []
+    this.activeGoblin = null
+    this.words = []
+    this.wordQueue = []
+    this.timeLeft = 0
+    this.letterShieldCount = 0
+    this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
     this.gameMode = profile?.gameMode ?? 'regular'
   }

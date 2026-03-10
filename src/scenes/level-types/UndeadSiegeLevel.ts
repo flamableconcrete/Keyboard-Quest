@@ -42,6 +42,10 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     this.undeadsDefeated = 0
     this.castleHp = 5
     this.currentWave = 1
+    this.undeads = []
+    this.activeUndead = null
+    this.words = []
+    this.wordQueue = []
   }
 
   create() {

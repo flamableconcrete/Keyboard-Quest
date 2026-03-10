@@ -43,6 +43,7 @@ export class TypemancerBoss extends Phaser.Scene {
     this.finished = false
     this.playerHp = 5
     this.phase = 1
+    this.wordQueue = []
     // Number of words is dictated by config, distributed across 5 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
   }
