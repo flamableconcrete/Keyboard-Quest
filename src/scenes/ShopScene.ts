@@ -80,7 +80,7 @@ export class ShopScene extends Phaser.Scene {
     if (item.effect.defeatAdditionalEnemiesChance) effectStr += `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave `
     if (item.effect.absorbAttacksChance) effectStr += `${item.effect.absorbAttacksChance * 100}% Block `
     if (item.effect.bonusGoldChance) effectStr += `${item.effect.bonusGoldChance * 100}% Bonus Gold `
-    if (item.effect.captureChanceBonus) effectStr += `+${item.effect.captureChanceBonus * 100}% Capture `
+    if (item.effect.goldMultiplier) effectStr += `+${item.effect.goldMultiplier * 100}% Gold `
 
     this.add.text(x - 180, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
     this.add.text(x - 180, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 360 } }).setOrigin(0, 0)

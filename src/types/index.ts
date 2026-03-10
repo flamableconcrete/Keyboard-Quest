@@ -86,7 +86,6 @@ export interface LevelConfig {
     companionId?: string
     title?: string
   }
-  captureEligible: boolean
   bossGate: { minCombinedStars: number; levelIds: string[] } | null
   miniBossUnlocksLetter?: string  // if this is a mini-boss level
   isBoss?: boolean
@@ -105,7 +104,7 @@ export interface ItemData {
     hp?: number
     power?: number
     focusBonus?: number
-    captureChanceBonus?: number
+    goldMultiplier?: number
     defeatAdditionalEnemiesChance?: number
     absorbAttacksChance?: number
     bonusGoldChance?: number

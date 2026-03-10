@@ -18,7 +18,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 100,
     storyBeat: 'Fire goblins have made their home in the volcanic reaches of the Ember Peaks.',
     rewards: { xp: 240 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -31,7 +30,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'Ash walkers stir from their resting places in Cinderholt.',
     rewards: { xp: 260 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -44,7 +42,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 100,
     storyBeat: 'Dragon cultists chase you through the Scalethorn tunnels!',
     rewards: { xp: 280 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -57,7 +54,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 170,
     storyBeat: 'Moloch the Magma Mole, Keeper of M, erupts from the earth!',
     rewards: { xp: 560, title: 'Seeker of M' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 12, levelIds: ['w3_l1', 'w3_l2', 'w3_l3'] },
     isMiniBoss: true,
     bossId: 'dice_lich',
@@ -74,7 +70,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 110,
     storyBeat: 'Monster gladiators compete on the cooled lava flats of Pumice Mesa.',
     rewards: { xp: 280 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -87,7 +82,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 130,
     storyBeat: 'Runes carved into the thermal spires hum with volcanic power.',
     rewards: { xp: 300 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -100,7 +94,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 180,
     storyBeat: 'Pyreth the Phoenix Paladin, Keeper of P, rises from the ashes!',
     rewards: { xp: 620, title: 'Seeker of P' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 14, levelIds: ['w3_l4', 'w3_l5'] },
     isMiniBoss: true,
     bossId: 'ancient_dragon',
@@ -117,7 +110,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Master alchemists at the Upper Crucible brew potions from volcanic minerals.',
     rewards: { xp: 320, item: 'flame_shield' },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -130,7 +122,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'Magma slimes pour from vents along Eruption Road.',
     rewards: { xp: 300 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -143,7 +134,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 190,
     storyBeat: 'Urgruth the Umber Elemental, Keeper of U, blocks the crossing!',
     rewards: { xp: 680, title: 'Seeker of U' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 14, levelIds: ['w3_l6', 'w3_l7'] },
     isMiniBoss: true,
     bossId: 'grizzlefang',
@@ -160,7 +150,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'The smiths of Grim Forge hold a naming festival.',
     rewards: { xp: 300 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -173,7 +162,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'A dragon scholar at Grudge Summit is cataloguing fire-type creatures.',
     rewards: { xp: 280 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -186,7 +174,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 195,
     storyBeat: 'Gorven the Gorgon Guard, Keeper of G, awaits at the pit!',
     rewards: { xp: 740, title: 'Seeker of G' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 16, levelIds: ['w3_l8', 'w3_l9'] },
     isMiniBoss: true,
     bossId: 'slime_king',
@@ -203,7 +190,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     timeLimit: 240,
     storyBeat: 'Gears turn and steam hisses — the mechanical dragon awakens!',
     rewards: { xp: 1500, title: 'Dragon Slayer' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 20, levelIds: ['w3_mb1', 'w3_mb2', 'w3_mb3', 'w3_mb4'] },
     isBoss: true,
     bossId: 'clockwork_dragon',

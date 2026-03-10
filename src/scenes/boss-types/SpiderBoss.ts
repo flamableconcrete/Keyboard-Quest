@@ -359,8 +359,7 @@ export class SpiderBoss extends Phaser.Scene {
         accuracyStars: acc,
         speedStars: spd,
         passed,
-        companionUsed,
-        captureAttempt: passed && this.level.captureEligible ? { monsterId: 'spider', monsterName: 'Web Spinner' } : undefined
+        companionUsed
       })
     })
   }

@@ -236,10 +236,6 @@ export class AncientDragonBoss extends Phaser.Scene {
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
 
-    const captureAttempt = this.level.captureEligible
-      ? { monsterId: 'ancient_dragon', monsterName: 'Ancient Dragon' }
-      : undefined
-
     const profile = loadProfile(this.profileSlot)
     const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
 
@@ -251,8 +247,7 @@ export class AncientDragonBoss extends Phaser.Scene {
         speedStars: spd,
         passed,
         companionUsed,
-        captureAttempt,
-      })
+        })
     })
   }
 }

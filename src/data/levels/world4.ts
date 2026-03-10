@@ -18,7 +18,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 110,
     storyBeat: 'Deep in the Shrouded Wilds, shadow goblins hunt in packs.',
     rewards: { xp: 320 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -31,7 +30,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 130,
     storyBeat: 'The dead rise from the murky mere with terrible purpose.',
     rewards: { xp: 340 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -44,7 +42,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Hidden traps litter the ancient dwarven pass through the wilds.',
     rewards: { xp: 360 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -57,7 +54,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 200,
     storyBeat: 'Brutus the Bridge Troll, Keeper of B, guards the only crossing!',
     rewards: { xp: 800, title: 'Seeker of B' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 16, levelIds: ['w4_l1', 'w4_l2', 'w4_l3'] },
     isMiniBoss: true,
     bossId: 'bone_knight_boss',
@@ -74,7 +70,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Witch runes pulse among the wych elm roots.',
     rewards: { xp: 380 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -87,7 +82,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 130,
     storyBeat: 'Barrow wights emerge from the ancient downs at dusk.',
     rewards: { xp: 360 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -100,7 +94,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 210,
     storyBeat: 'Wraith-Witch Wynna, Keeper of W, materialises within the keep!',
     rewards: { xp: 880, title: 'Seeker of W' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l4', 'w4_l5'] },
     isMiniBoss: true,
     bossId: 'flash_word_boss',
@@ -117,7 +110,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 130,
     storyBeat: 'Yew-sap slimes multiply in the crossing pools.',
     rewards: { xp: 380 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -130,7 +122,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'A jester challenges you to a word duel in the valley below.',
     rewards: { xp: 300 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -143,7 +134,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 220,
     storyBeat: 'Yax the Yeti-Lord, Keeper of Y, roars from the heights!',
     rewards: { xp: 960, title: 'Seeker of Y' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l6', 'w4_l7'] },
     isMiniBoss: true,
     bossId: 'spider_boss',
@@ -160,7 +150,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Vault-guardians of the ancient veldt ruins challenge all who approach.',
     rewards: { xp: 400 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -173,7 +162,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'A shadow warden traps you in the hollow — escape!',
     rewards: { xp: 380 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -186,7 +174,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 225,
     storyBeat: 'The Vault-Keeper, Guardian of V, will not yield the final seal!',
     rewards: { xp: 1040, title: 'Seeker of V' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 20, levelIds: ['w4_l8', 'w4_l9'] },
     isMiniBoss: true,
     bossId: 'baron_typo',
@@ -203,7 +190,6 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 280,
     storyBeat: 'In the heart of the Shrouded Wilds stands the Dice Lich — his power drawn from letters lost to chance.',
     rewards: { xp: 2000, title: 'Lich Vanquisher' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 24, levelIds: ['w4_mb1', 'w4_mb2', 'w4_mb3', 'w4_mb4'] },
     isBoss: true,
     bossId: 'dice_lich',

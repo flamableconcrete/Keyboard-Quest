@@ -18,7 +18,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 120,
     storyBeat: 'Soldiers of the Typemancer guard the base of the tower.',
     rewards: { xp: 460 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -31,7 +30,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'The maze shifts as you type — words unlock passages.',
     rewards: { xp: 480 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -44,7 +42,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: "Ancient scrolls hold the history of the Typemancer's rise.",
     rewards: { xp: 440 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -57,7 +54,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 240,
     storyBeat: 'Quixel the Quillmaster, Keeper of Q, scratches rare words into the walls!',
     rewards: { xp: 1100, title: 'Seeker of Q' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 20, levelIds: ['w5_l1', 'w5_l2', 'w5_l3'] },
     isMiniBoss: true,
     bossId: 'ancient_dragon',
@@ -74,7 +70,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'Enchanted forges ring with the sound of rare letters being hammered into shape.',
     rewards: { xp: 500 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -87,7 +82,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 140,
     storyBeat: 'Bone warriors march across the xeric flats beneath the tower.',
     rewards: { xp: 480 },
-    captureEligible: true,
     bossGate: null,
   },
   {
@@ -100,7 +94,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 250,
     storyBeat: 'Xeron the Hexed Exile, Keeper of X, casts words as weapons!',
     rewards: { xp: 1200, title: 'Seeker of X' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 22, levelIds: ['w5_l4', 'w5_l5'] },
     isMiniBoss: true,
     bossId: 'dice_lich',
@@ -117,7 +110,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'A court jester challenges you with the zaniest words in the realm.',
     rewards: { xp: 440 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -130,7 +122,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: null,
     storyBeat: 'The imprisoned faeries of Zephyr Court beg you to free them with words.',
     rewards: { xp: 460 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -143,7 +134,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 260,
     storyBeat: 'Zindark the Zealot, Keeper of Z, stands between you and the final ascent!',
     rewards: { xp: 1300, title: 'Seeker of Z' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 22, levelIds: ['w5_l6', 'w5_l7'] },
     isMiniBoss: true,
     bossId: 'grizzlefang',
@@ -160,7 +150,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 150,
     storyBeat: 'The tower trembles as you climb — type to keep your footing!',
     rewards: { xp: 520 },
-    captureEligible: false,
     bossGate: null,
   },
   {
@@ -173,7 +162,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 265,
     storyBeat: "The Typemancer's jester blocks the throne room with jokes and jabs!",
     rewards: { xp: 1400, title: "Jester's Bane" },
-    captureEligible: false,
     bossGate: { minCombinedStars: 24, levelIds: ['w5_l8'] },
     isMiniBoss: true,
     bossId: 'spider_boss',
@@ -190,7 +178,6 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     timeLimit: 360,
     storyBeat: 'The Typemancer floats above his throne, weaving letters into destruction. Face him — and type your destiny!',
     rewards: { xp: 5000, title: 'Keyboard Champion' },
-    captureEligible: false,
     bossGate: { minCombinedStars: 28, levelIds: ['w5_mb1', 'w5_mb2', 'w5_mb3', 'w5_mb4'] },
     isBoss: true,
     bossId: 'typemancer',
