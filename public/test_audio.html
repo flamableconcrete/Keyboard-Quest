@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audio Test</title>
+</head>
+<body>
+  <button id="playBtn">Play Offline Rendered Music</button>
+  <script>
+    async function generateMusic(seed) {
+      const sampleRate = 44100;
+      const bpm = 120;
+      const duration = (60 / bpm) * 16; // 16 beats = 8 seconds
+      const offlineCtx = new OfflineAudioContext(1, sampleRate * duration, sampleRate);
+
+      const osc = offlineCtx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, 0);
+      osc.frequency.setValueAtTime(880, 2);
+
+      const gain = offlineCtx.createGain();
+      gain.gain.value = 0.1;
+
+      osc.connect(gain);
+      gain.connect(offlineCtx.destination);
+
+      osc.start(0);
+      osc.stop(duration);
+
+      return await offlineCtx.startRendering();
+    }
+
+    document.getElementById('playBtn').addEventListener('click', async () => {
+      const ctx = new AudioContext();
+      const buffer = await generateMusic(123);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start();
+    });
+  </script>
+</body>
+</html>

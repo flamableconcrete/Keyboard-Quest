@@ -1,9 +1,11 @@
+import { AudioHelper } from '../utils/AudioHelper'
 import Phaser from 'phaser'
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() { super('MainMenu') }
 
   create() {
+    AudioHelper.playBGM(this, 'bgm_menu');
     const { width, height } = this.scale
 
     // Title

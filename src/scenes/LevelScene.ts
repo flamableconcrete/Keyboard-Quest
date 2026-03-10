@@ -1,3 +1,4 @@
+import { AudioHelper } from '../utils/AudioHelper'
 // src/scenes/LevelScene.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../types'
@@ -26,5 +27,7 @@ export class LevelScene extends Phaser.Scene {
     this.scene.start(sceneName, data)
   }
 
-  create() {}
+  create() {
+    AudioHelper.playBGM(this, 'bgm_level');
+  }
 }

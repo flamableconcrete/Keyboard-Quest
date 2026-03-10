@@ -1,3 +1,4 @@
+import { AudioHelper } from '../utils/AudioHelper'
 // src/scenes/OverlandMapScene.ts
 import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
@@ -40,6 +41,7 @@ export class OverlandMapScene extends Phaser.Scene {
   constructor() { super('OverlandMap') }
 
   init(data: { profileSlot: number; world?: number }) {
+    AudioHelper.playBGM(this, 'bgm_map');
     this.profileSlot = data.profileSlot
     const profile = loadProfile(this.profileSlot)
     if (!profile) {

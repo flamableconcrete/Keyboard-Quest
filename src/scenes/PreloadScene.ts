@@ -1,3 +1,4 @@
+import { generateThemeMusic } from '../utils/musicGenerator'
 import Phaser from 'phaser'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
@@ -44,8 +45,30 @@ export class PreloadScene extends Phaser.Scene {
     })
   }
 
-  create() {
+  async create() {
     AvatarRenderer.generateAll(this)
+
+    const loadingText = this.add.text(this.scale.width / 2, this.scale.height * 0.7, 'Synthesizing Audio...', {
+      fontSize: '20px', color: '#ffffff'
+    }).setOrigin(0.5);
+
+    try {
+      const themes = [
+        { key: 'bgm_menu', seed: 'MainMenuTheme123' },
+        { key: 'bgm_map', seed: 'OverworldMapHappy' },
+        { key: 'bgm_level', seed: 'ChillTypingLevel' }
+      ];
+
+      for (const t of themes) {
+        const audioBuffer = await generateThemeMusic(t.seed);
+        this.cache.audio.add(t.key, audioBuffer);
+      }
+    } catch (e) {
+      console.warn('Audio synthesis failed or not supported:', e);
+    }
+
+    loadingText.destroy();
+    this.scene.start('MainMenu');
   }
 
   /* ── Task 3: World 1 placeholder tileset (10×4 = 320×128) ── */
