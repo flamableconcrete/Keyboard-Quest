@@ -4,6 +4,7 @@ import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
+import { setupPause } from '../../utils/pauseSetup'
 
 interface SillyEntity {
   word: string
@@ -41,6 +42,7 @@ export class SillyChallengeLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxEntityReach = 80
 

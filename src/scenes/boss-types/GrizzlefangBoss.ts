@@ -6,6 +6,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
+import { setupPause } from '../../utils/pauseSetup'
 
 export class GrizzlefangBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -58,6 +59,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
   create() {
     generateGoblinWhackerTextures(this)
 
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     // Dark Background for major boss

@@ -4,6 +4,7 @@ import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
+import { setupPause } from '../../utils/pauseSetup'
 
 export class WoodlandFestivalLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -29,6 +30,7 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
   }
 
   create() {
+    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     // Background
