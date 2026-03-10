@@ -59,7 +59,8 @@ export class TutorialHands {
 
     leftFingers.forEach(([f, label], i) => {
       const x = this.cx - totalW - 20 + i * (fw + gap)
-      const rect = this.scene.add.rectangle(x, this.cy, fw, fh, 0x334466)
+      const h = f === 'lt' ? fh / 2 : fh
+      const rect = this.scene.add.rectangle(x, this.cy, fw, h, 0x334466)
       const text = this.scene.add.text(x, this.cy, label, {
         fontSize: '12px', color: '#aaaacc'
       }).setOrigin(0.5)
@@ -69,7 +70,8 @@ export class TutorialHands {
 
     rightFingers.forEach(([f, label], i) => {
       const x = this.cx + 20 + i * (fw + gap)
-      const rect = this.scene.add.rectangle(x, this.cy, fw, fh, 0x334466)
+      const h = f === 'rt' ? fh / 2 : fh
+      const rect = this.scene.add.rectangle(x, this.cy, fw, h, 0x334466)
       const text = this.scene.add.text(x, this.cy, label, {
         fontSize: '12px', color: '#aaaacc'
       }).setOrigin(0.5)
