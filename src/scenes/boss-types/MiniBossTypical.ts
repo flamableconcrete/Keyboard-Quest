@@ -71,7 +71,12 @@ export class MiniBossTypical extends Phaser.Scene {
     // Word pool
     const difficulty = Math.ceil(this.level.world / 2)
     this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
+
+    // Shuffle words
+    const shuffledWords = [...this.words]
+    Phaser.Utils.Array.Shuffle(shuffledWords)
+    this.wordQueue = shuffledWords
+
     const rawHp = this.wordQueue.length
     this.bossMaxHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
     this.bossHp = this.bossMaxHp

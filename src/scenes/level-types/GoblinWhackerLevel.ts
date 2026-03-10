@@ -148,7 +148,10 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     const difficulty = Math.ceil(this.level.world / 2)
     const maxLength = this.level.world === 1 ? 5 : undefined
     this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, maxLength)
-    this.wordQueue = [...this.words]
+    // Shuffle the word pool to randomize the order of words
+    const shuffledWords = [...this.words]
+    Phaser.Utils.Array.Shuffle(shuffledWords)
+    this.wordQueue = shuffledWords
 
     this.updateCounterText()
 

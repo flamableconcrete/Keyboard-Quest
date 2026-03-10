@@ -120,7 +120,7 @@ export class BaronTypoBoss extends Phaser.Scene {
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     
-    this.wordQueue = [...words]
+    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
     
     // Setup attack timer based on phase
     this.attackTimer?.remove()

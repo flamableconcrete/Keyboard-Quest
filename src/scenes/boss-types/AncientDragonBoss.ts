@@ -121,10 +121,11 @@ export class AncientDragonBoss extends Phaser.Scene {
     if (this.phase === 3) wordsPerSentence = 6
 
     const words = getWordPool(this.level.unlockedLetters, wordsRemaining, difficulty, this.level.world === 1 ? 5 : undefined)
+    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords);
     
     this.sentenceQueue = []
-    for (let i = 0; i < words.length; i += wordsPerSentence) {
-      const sentenceWords = words.slice(i, i + wordsPerSentence)
+    for (let i = 0; i < shuffledWords.length; i += wordsPerSentence) {
+      const sentenceWords = shuffledWords.slice(i, i + wordsPerSentence)
       if (sentenceWords.length > 0) {
         this.sentenceQueue.push(sentenceWords.join(' '))
       }
