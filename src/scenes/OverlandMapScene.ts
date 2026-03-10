@@ -222,7 +222,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         : 0x444444
 
       // Base oval
-      this.add.ellipse(pos.x, pos.y + 10, 36, 16, 0x8b6b3a).setDepth(998)
+      this.add.ellipse(pos.x, pos.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
 
       const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
       const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(1.5)
@@ -320,7 +320,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   private drawSpecialNodes(specialPositions: Record<string, NodePosition>) {
     // Tavern
     const tp = specialPositions['tavern']
-    this.add.ellipse(tp.x, tp.y + 10, 36, 16, 0x8b6b3a).setDepth(998)
+    this.add.ellipse(tp.x, tp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
     const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
       .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
     this.add.text(tp.x, tp.y + 25, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
@@ -332,7 +332,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     // Stable
     const sp = specialPositions['stable']
-    this.add.ellipse(sp.x, sp.y + 10, 36, 16, 0x8b6b3a).setDepth(998)
+    this.add.ellipse(sp.x, sp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
     const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
       .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
     this.add.text(sp.x, sp.y + 25, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
@@ -344,7 +344,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     // Inventory
     const ip = specialPositions['inventory']
-    this.add.ellipse(ip.x, ip.y + 10, 36, 16, 0x8b6b3a).setDepth(998)
+    this.add.ellipse(ip.x, ip.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
     const inventoryNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
       .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
     this.add.text(ip.x, ip.y + 25, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
@@ -356,7 +356,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     // Shop
     const shp = specialPositions['shop']
-    this.add.ellipse(shp.x, shp.y + 10, 36, 16, 0x8b6b3a).setDepth(998)
+    this.add.ellipse(shp.x, shp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
     const shopNode = this.add.sprite(shp.x, shp.y, 'map-common', COMMON_FRAMES.nodeTavern) // Reusing tavern icon, or nodeInventory
       .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
     shopNode.setTint(0xffaa00) // Distinct color for shop
