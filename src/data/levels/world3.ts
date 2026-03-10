@@ -10,7 +10,7 @@ export const W3_AFTER_MB4 = [...W3_AFTER_MB3, 'g']
 export const WORLD3_LEVELS: LevelConfig[] = [
   {
     id: 'w3_l1',
-    name: 'Molten Reach',
+    name: 'Emberfall Ascent',
     type: 'GoblinWhacker',
     world: 3,
     unlockedLetters: W3_BASE,
@@ -23,7 +23,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l2',
-    name: 'Cinderholt',
+    name: 'Ashwood Cemetery',
     type: 'UndeadSiege',
     world: 3,
     unlockedLetters: W3_BASE,
@@ -36,7 +36,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l3',
-    name: 'Scalethorn Crossing',
+    name: 'Dragon\'s Tooth Tunnels',
     type: 'DungeonEscape',
     world: 3,
     unlockedLetters: W3_BASE,
@@ -49,7 +49,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb1',
-    name: 'Molaris Gate',
+    name: 'Obsidian Gate',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_BASE,
@@ -66,7 +66,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l4',
-    name: 'Pumice Mesa',
+    name: 'The Scorched Arena',
     type: 'MonsterArena',
     world: 3,
     unlockedLetters: W3_AFTER_MB1,
@@ -79,7 +79,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l5',
-    name: 'Thermal Spires',
+    name: 'Pillars of Flame',
     type: 'MagicRuneTyping',
     world: 3,
     unlockedLetters: W3_AFTER_MB1,
@@ -92,7 +92,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb2',
-    name: 'Pyrethis Spire',
+    name: 'Spire of the Phoenix',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB1,
@@ -109,7 +109,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l6',
-    name: 'Upper Crucible',
+    name: 'The Grand Crucible',
     type: 'PotionBrewingLab',
     world: 3,
     unlockedLetters: W3_AFTER_MB2,
@@ -122,7 +122,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l7',
-    name: 'Eruption Road',
+    name: 'Magma Vents',
     type: 'SlimeSplitting',
     world: 3,
     unlockedLetters: W3_AFTER_MB2,
@@ -135,7 +135,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb3',
-    name: 'Umber Crossing',
+    name: 'The Umber Bridge',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB2,
@@ -152,7 +152,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l8',
-    name: 'Grim Forge',
+    name: 'Festival of the Fire-Smiths',
     type: 'WoodlandFestival',
     world: 3,
     unlockedLetters: W3_AFTER_MB3,
@@ -165,7 +165,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_l9',
-    name: 'Grudge Summit',
+    name: 'The Drake-Scholar\'s Rest',
     type: 'MonsterManual',
     world: 3,
     unlockedLetters: W3_AFTER_MB3,
@@ -178,7 +178,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb4',
-    name: 'Gorgrath Pit',
+    name: 'The Gorgon\'s Pit',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB3,
@@ -195,7 +195,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_boss',
-    name: 'The Clockwork Dragon',
+    name: 'The Brass Citadel',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB4,
