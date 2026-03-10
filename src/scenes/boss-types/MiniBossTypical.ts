@@ -62,7 +62,9 @@ export class MiniBossTypical extends Phaser.Scene {
 
     const pProfileAvatar = loadProfile(this.profileSlot)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+    // Prominent Avatar on the left
+    this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(4).setDepth(5)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -94,27 +96,27 @@ export class MiniBossTypical extends Phaser.Scene {
       this.wordQueue = this.wordQueue.slice(0, this.bossMaxHp)
     }
 
-    // Boss Sprite
+    // Prominent Boss Sprite on the right
     const isOgre = this.level.name.toLowerCase().includes('ogre') ||
                    this.level.bossId?.toLowerCase().includes('ogre') ||
                    this.level.storyBeat?.toLowerCase().includes('ogre');
 
     if (isOgre) {
       generateGoblinWhackerTextures(this)
-      this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(2)
+      this.bossSprite = this.add.image(width * 0.75, height / 2 - 50, 'ogre').setScale(4)
     } else {
-      this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 200, 0xaa4444)
+      this.bossSprite = this.add.rectangle(width * 0.75, height / 2 - 50, 200, 200, 0xaa4444)
     }
     if (this.weaknessActive) {
-      this.add.text(width / 2, 55, '⚡ Weakness Known! Boss HP -20%', {
+      this.add.text(width * 0.75, 55, '⚡ Weakness Known! Boss HP -20%', {
         fontSize: '16px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width / 2, height / 2 - 180, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 - 200, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
+    this.bossLabel = this.add.text(width * 0.75, height / 2 - 160, '', {
       fontSize: '28px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
@@ -187,10 +189,13 @@ export class MiniBossTypical extends Phaser.Scene {
     if (this.finished) return
     
     // Simple visual attack cue
+    // Assuming original baseScale for boss is 4 as we set earlier
+    const baseScale = this.bossSprite.scaleX; // getting scaleX to be safe if it's ogre (4) or rect (1)
+
     this.tweens.add({
       targets: this.bossSprite,
-      scaleX: 1.2,
-      scaleY: 1.2,
+      scaleX: baseScale * 1.2,
+      scaleY: baseScale * 1.2,
       yoyo: true,
       duration: 150,
       onComplete: () => {
