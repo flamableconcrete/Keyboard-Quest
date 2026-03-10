@@ -56,7 +56,7 @@ const game = new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, InventoryScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, PauseScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss
+    BossBattleScene, InventoryScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss, PauseScene
   ],
 });
 
