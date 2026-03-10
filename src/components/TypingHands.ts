@@ -85,11 +85,11 @@ export class TypingHands {
   }
 
   private buildNextLetterDisplay(cx: number, cy: number) {
-    const letterY = cy - 100
+    const letterY = cy
 
     this.nextLetterBg = this.scene.add.graphics()
     this.nextLetterBg.fillStyle(0x000000, 0.6)
-    this.nextLetterBg.fillCircle(cx, letterY, 36)
+    this.nextLetterBg.fillCircle(cx, letterY, 48)
     this.allObjects.push(this.nextLetterBg)
 
     this.nextLetterText = this.scene.add.text(cx, letterY, '', {
@@ -113,7 +113,7 @@ export class TypingHands {
     const fw = 28
     const gap = 5
     const handWidth = 5 * fw + 4 * gap
-    const handGap = 30
+    const handGap = 200
 
     const leftFingers: Finger[] = ['lp', 'lr', 'lm', 'li', 'lt']
     const rightFingers: Finger[] = ['rt', 'ri', 'rm', 'rr', 'rp']
