@@ -108,29 +108,30 @@ export class TypingHands {
   }
 
   private buildHands(cx: number, cy: number) {
-    const fingerHeights = [50, 65, 75, 65, 45] // pinky, ring, middle, index, thumb
+    const leftFingerHeights = [50, 65, 75, 65, 20] // pinky, ring, middle, index, thumb
+    const rightFingerHeights = [20, 65, 75, 65, 50] // thumb, index, middle, ring, pinky
     const fw = 28
     const gap = 5
     const handWidth = 5 * fw + 4 * gap
     const handGap = 30
 
     const leftFingers: Finger[] = ['lp', 'lr', 'lm', 'li', 'lt']
-    const rightFingers: Finger[] = ['rp', 'rr', 'rm', 'ri', 'rt']
+    const rightFingers: Finger[] = ['rt', 'ri', 'rm', 'rr', 'rp']
 
     // Left hand
     const leftStartX = cx - handGap / 2 - handWidth
     leftFingers.forEach((finger, i) => {
       const x = leftStartX + i * (fw + gap)
-      const h = fingerHeights[i]
+      const h = leftFingerHeights[i]
       const y = cy - h / 2 + 20
       this.drawFinger(x, y, fw, h, finger)
     })
 
-    // Right hand (mirrored heights)
+    // Right hand
     const rightStartX = cx + handGap / 2
     rightFingers.forEach((finger, i) => {
       const x = rightStartX + i * (fw + gap)
-      const h = fingerHeights[4 - i]
+      const h = rightFingerHeights[i]
       const y = cy - h / 2 + 20
       this.drawFinger(x, y, fw, h, finger)
     })
