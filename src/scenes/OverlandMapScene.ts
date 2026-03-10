@@ -122,9 +122,10 @@ export class OverlandMapScene extends Phaser.Scene {
 
     const avatarTexture = this.profile.avatarChoice || 'avatar_0'
     this.avatarBasePos = { x: startPos.x, y: startPos.y }
-    this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
+this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
     // Scale down the pixel art avatar slightly to fit the map nodes better
     this.avatar.setScale(0.75)
+    this.avatar.setOrigin(0.5, 1) // Anchor at bottom center so feet touch the node
   }
 
   update(time: number) {

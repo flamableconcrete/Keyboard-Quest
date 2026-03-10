@@ -3,7 +3,8 @@ import { AVATAR_CONFIGS, type AvatarConfig } from '../data/avatars'
 
 const GRID = 16
 const PIXEL = 3
-const SIZE = GRID * PIXEL // 48
+const WIDTH = GRID * PIXEL // 48
+const HEIGHT = 32 * PIXEL // 96
 
 export class AvatarRenderer {
   static generateAll(scene: Phaser.Scene): void {
@@ -14,13 +15,14 @@ export class AvatarRenderer {
   }
 
   static generateOne(scene: Phaser.Scene, config: AvatarConfig): void {
-    const rt = scene.make.renderTexture({ width: SIZE, height: SIZE }, false)
+    const rt = scene.make.renderTexture({ width: WIDTH, height: HEIGHT }, false)
     const gfx = scene.make.graphics({}, false)
 
-    AvatarRenderer.drawHead(gfx, config.skinTone)
+AvatarRenderer.drawHead(gfx, config.skinTone)
     AvatarRenderer.drawEyes(gfx, config.eyeColor, config.hairColor)
     AvatarRenderer.drawMouth(gfx)
     AvatarRenderer.drawHair(gfx, config.hairStyle, config.hairColor)
+    AvatarRenderer.drawBody(gfx, config)
     AvatarRenderer.drawAccessory(gfx, config.accessory, config.hairColor)
 
     rt.draw(gfx)
@@ -158,6 +160,39 @@ export class AvatarRenderer {
         AvatarRenderer.rect(gfx, 15, 6, 1, 3, color)
         break
     }
+  }
+
+  // ── Body ──────────────────────────────────────────────────
+
+  private static drawBody(gfx: Phaser.GameObjects.Graphics, config: AvatarConfig): void {
+    const { skinTone, shirtColor, pantsColor, shoeColor } = config
+
+    // Torso (shirt): cols 4-11, rows 16-23
+    AvatarRenderer.rect(gfx, 4, 16, 8, 8, shirtColor)
+
+    // Shoulders/Arms (shirt): cols 2-3 and 12-13, rows 16-20
+    AvatarRenderer.rect(gfx, 2, 16, 2, 5, shirtColor)
+    AvatarRenderer.rect(gfx, 12, 16, 2, 5, shirtColor)
+
+    // Hands (skin): cols 2-3 and 12-13, rows 21-23
+    AvatarRenderer.rect(gfx, 2, 21, 2, 3, skinTone)
+    AvatarRenderer.rect(gfx, 12, 21, 2, 3, skinTone)
+
+    // Pants (Left Leg): cols 4-7, rows 24-28
+    AvatarRenderer.rect(gfx, 4, 24, 3, 5, pantsColor)
+
+    // Pants (Right Leg): cols 9-12, rows 24-28
+    AvatarRenderer.rect(gfx, 9, 24, 3, 5, pantsColor)
+
+    // Waistband
+    AvatarRenderer.rect(gfx, 4, 24, 8, 1, pantsColor)
+
+    // Shoes: cols 3-6 and 9-12, rows 29-30
+    AvatarRenderer.rect(gfx, 4, 29, 3, 2, shoeColor)
+    AvatarRenderer.rect(gfx, 9, 29, 3, 2, shoeColor)
+    // Shoe tips
+    AvatarRenderer.rect(gfx, 3, 30, 1, 1, shoeColor)
+    AvatarRenderer.rect(gfx, 12, 30, 1, 1, shoeColor)
   }
 
   // ── Accessories ───────────────────────────────────────────
