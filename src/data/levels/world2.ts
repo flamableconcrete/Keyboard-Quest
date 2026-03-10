@@ -10,7 +10,7 @@ export const W2_AFTER_MB4 = [...W2_AFTER_MB3, 'c']
 export const WORLD2_LEVELS: LevelConfig[] = [
   {
     id: 'w2_l1',
-    name: 'Rondel Shore',
+    name: 'Mistweaver Shore',
     type: 'SkeletonSwarm',
     world: 2,
     unlockedLetters: W2_BASE,
@@ -23,7 +23,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l2',
-    name: 'Dorn Flats',
+    name: 'The Proving Grounds',
     type: 'MonsterArena',
     world: 2,
     unlockedLetters: W2_BASE,
@@ -36,7 +36,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l3',
-    name: 'Redfen Road',
+    name: 'Bloodmoss Path',
     type: 'UndeadSiege',
     world: 2,
     unlockedLetters: W2_BASE,
@@ -49,7 +49,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb1',
-    name: 'Tangle Gate',
+    name: 'Bramblegate Watch',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_BASE,
@@ -66,7 +66,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l4',
-    name: 'Trent Dale',
+    name: 'Elderwood Thicket',
     type: 'GoblinWhacker',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
@@ -79,7 +79,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l5',
-    name: 'Ferntide Fen',
+    name: 'The Sludge Pools',
     type: 'SlimeSplitting',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
@@ -92,7 +92,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l6',
-    name: 'Stone Shelf',
+    name: 'Dwarven Depths',
     type: 'DungeonTrapDisarm',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
@@ -105,7 +105,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb2',
-    name: 'Ironsnare Keep',
+    name: 'Ironweb Keep',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
@@ -122,7 +122,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l7',
-    name: 'Thistle Path',
+    name: 'Rune-Scarred Path',
     type: 'MagicRuneTyping',
     world: 2,
     unlockedLetters: W2_AFTER_MB2,
@@ -135,7 +135,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l8',
-    name: 'Heronshire',
+    name: 'Haven of the Silver Arrow',
     type: 'GuildRecruitment',
     world: 2,
     unlockedLetters: W2_AFTER_MB2,
@@ -148,7 +148,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb3',
-    name: 'Hollowhorn Ridge',
+    name: 'Hollowhorn Peak',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB2,
@@ -165,7 +165,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l9',
-    name: 'Lichen Croft',
+    name: 'The Alchemist\'s Grotto',
     type: 'PotionBrewingLab',
     world: 2,
     unlockedLetters: W2_AFTER_MB3,
@@ -178,7 +178,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_l10',
-    name: 'Corsen Reach',
+    name: 'The Ranger\'s Outpost',
     type: 'MonsterManual',
     world: 2,
     unlockedLetters: W2_AFTER_MB3,
@@ -191,7 +191,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb4',
-    name: 'Coldcroft Hollow',
+    name: 'Frostbite Hollow',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB3,
@@ -208,7 +208,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_boss',
-    name: 'The Hydra of the Deep Fen',
+    name: 'Lair of the Deep Fen Hydra',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB4,
