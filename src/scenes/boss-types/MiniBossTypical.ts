@@ -39,6 +39,10 @@ export class MiniBossTypical extends Phaser.Scene {
     this.profileSlot = data.profileSlot
     this.finished = false
     this.playerHp = 3
+    this.words = []
+    this.wordQueue = []
+    this.wrongKeyCount = 0
+    this.nextAttackThreshold = 0
     const profile = loadProfile(data.profileSlot)
     this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
     this.gameMode = profile?.gameMode ?? 'regular'

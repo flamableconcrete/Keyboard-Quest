@@ -46,6 +46,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
     this.finished = false
     this.playerHp = 5
     this.phase = 1
+    this.wordQueue = []
+    this.wrongKeyCount = 0
+    this.nextAttackThreshold = 0
     // Number of words is dictated by config, let's distribute evenly across 3 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
     // Check if player has studied the Monster Manual for this boss

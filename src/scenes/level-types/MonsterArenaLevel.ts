@@ -37,6 +37,10 @@ export class MonsterArenaLevel extends Phaser.Scene {
     this.profileSlot = data.profileSlot
     this.finished = false
     this.playerHp = 3
+    this.monsters = []
+    this.activeMonster = null
+    this.words = []
+    this.wordQueue = []
   }
 
   create() {

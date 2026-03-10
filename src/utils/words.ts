@@ -43,8 +43,30 @@ export function pickWords(pool: string[], count: number, difficulty: number): st
 }
 
 export function getWordPool(unlockedLetters: string[], count: number, difficulty: number, maxLength?: number): string[] {
-  const filtered = filterWordsByLetters(WORD_BANK, unlockedLetters, maxLength)
-  return pickWords(filtered, Math.min(count, filtered.length), difficulty)
+  let filtered = filterWordsByLetters(WORD_BANK, unlockedLetters, maxLength)
+
+  // Fallback: If no words match the criteria, use the base home row letters
+  if (filtered.length === 0) {
+    const fallbackLetters = ['a', 's', 'd', 'f', 'j', 'k', 'l']
+    filtered = filterWordsByLetters(WORD_BANK, fallbackLetters, maxLength)
+
+    // If it's still somehow empty (e.g. extremely strict maxLength), just grab any words
+    if (filtered.length === 0) {
+      filtered = [...WORD_BANK]
+    }
+  }
+
+  // If the filtered pool doesn't have enough words to fulfill the count without repeats,
+  // we could potentially repeat words. However, the existing logic caps it at filtered.length.
+  // We'll leave the pickWords call as is but ensure we return at least one word.
+  const selected = pickWords(filtered, Math.min(count, filtered.length), difficulty)
+
+  // Absolute fallback to ensure we never return an empty array if count > 0
+  if (selected.length === 0 && count > 0) {
+    selected.push(WORD_BANK[0])
+  }
+
+  return selected
 }
 
 export function calculateWpm(wordCount: number, elapsedMs: number): number {

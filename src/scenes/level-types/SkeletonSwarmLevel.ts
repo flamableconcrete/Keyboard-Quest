@@ -43,6 +43,10 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.playerHp = 3
     this.currentWave = 0
     this.maxWaves = Phaser.Math.Between(3, 5) // 3-5 waves
+    this.skeletons = []
+    this.activeSkeleton = null
+    this.words = []
+    this.wordQueue = []
   }
 
   create() {
