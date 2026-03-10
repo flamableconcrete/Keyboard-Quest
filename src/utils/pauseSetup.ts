@@ -15,6 +15,7 @@ export function setupPause(scene: Phaser.Scene, profileSlot: number) {
   pauseBtn.on('pointerdown', () => {
     scene.scene.pause()
     scene.scene.launch('PauseScene', { levelKey: scene.scene.key, profileSlot })
+    scene.scene.bringToTop('PauseScene')
   })
 
   pauseBtn.on('pointerover', () => pauseBtn.setColor('#ffffff'))
@@ -24,5 +25,6 @@ export function setupPause(scene: Phaser.Scene, profileSlot: number) {
   scene.input.keyboard?.on('keydown-ESC', () => {
     scene.scene.pause()
     scene.scene.launch('PauseScene', { levelKey: scene.scene.key, profileSlot })
+    scene.scene.bringToTop('PauseScene')
   })
 }
