@@ -32,6 +32,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
   private attackTimer?: Phaser.Time.TimerEvent
   private finished = false
   private weaknessActive = false
+  private gameMode: 'regular' | 'advanced' = 'regular'
+  private wrongKeyCount = 0
+  private nextAttackThreshold = 0
 
   constructor() { super('GrizzlefangBoss') }
 
@@ -46,6 +49,9 @@ export class GrizzlefangBoss extends Phaser.Scene {
     // Check if player has studied the Monster Manual for this boss
     const profile = loadProfile(data.profileSlot)
     this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
+    this.gameMode = profile?.gameMode ?? 'regular'
+    this.wrongKeyCount = 0
+    this.nextAttackThreshold = Phaser.Math.Between(2, 5)
   }
 
   create() {
@@ -132,12 +138,14 @@ export class GrizzlefangBoss extends Phaser.Scene {
     
     // Setup attack timer based on phase
     this.attackTimer?.remove()
-    this.attackTimer = this.time.addEvent({
-      delay: Math.max(1500, 4000 - (this.phase * 500)), // Gets faster each phase
-      loop: true,
-      callback: this.bossAttack,
-      callbackScope: this
-    })
+    if (this.gameMode === 'advanced') {
+      this.attackTimer = this.time.addEvent({
+        delay: Math.max(1500, 4000 - (this.phase * 500)), // Gets faster each phase
+        loop: true,
+        callback: this.bossAttack,
+        callbackScope: this
+      })
+    }
     
     // Visual cue for phase change
     this.cameras.main.flash(500, 255, 136, 0)
@@ -204,6 +212,15 @@ export class GrizzlefangBoss extends Phaser.Scene {
 
   private onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
+
+    if (this.gameMode === 'regular' && !this.finished) {
+      this.wrongKeyCount++
+      if (this.wrongKeyCount >= this.nextAttackThreshold) {
+        this.wrongKeyCount = 0
+        this.nextAttackThreshold = Phaser.Math.Between(2, 5)
+        this.bossAttack()
+      }
+    }
   }
 
   private endLevel(passed: boolean) {

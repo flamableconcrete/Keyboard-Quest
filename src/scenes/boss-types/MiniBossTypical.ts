@@ -26,6 +26,9 @@ export class MiniBossTypical extends Phaser.Scene {
   private attackTimer?: Phaser.Time.TimerEvent
   private finished = false
   private weaknessActive = false
+  private gameMode: 'regular' | 'advanced' = 'regular'
+  private wrongKeyCount = 0
+  private nextAttackThreshold = 0
 
   constructor() { super('MiniBossTypical') }
 
@@ -36,6 +39,9 @@ export class MiniBossTypical extends Phaser.Scene {
     this.playerHp = 3
     const profile = loadProfile(data.profileSlot)
     this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
+    this.gameMode = profile?.gameMode ?? 'regular'
+    this.wrongKeyCount = 0
+    this.nextAttackThreshold = Phaser.Math.Between(2, 5)
   }
 
   create() {
@@ -109,12 +115,14 @@ export class MiniBossTypical extends Phaser.Scene {
     }
 
     // Boss Attack Timer (Attacks every X seconds if not defeated)
-    this.attackTimer = this.time.addEvent({
-      delay: 5000 - (this.level.world * 200), // Faster in later worlds
-      loop: true,
-      callback: this.bossAttack,
-      callbackScope: this
-    })
+    if (this.gameMode === 'advanced') {
+      this.attackTimer = this.time.addEvent({
+        delay: 5000 - (this.level.world * 200), // Faster in later worlds
+        loop: true,
+        callback: this.bossAttack,
+        callbackScope: this
+      })
+    }
 
     this.loadNextWord()
   }
@@ -166,6 +174,15 @@ export class MiniBossTypical extends Phaser.Scene {
 
   private onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
+
+    if (this.gameMode === 'regular' && !this.finished) {
+      this.wrongKeyCount++
+      if (this.wrongKeyCount >= this.nextAttackThreshold) {
+        this.wrongKeyCount = 0
+        this.nextAttackThreshold = Phaser.Math.Between(2, 5)
+        this.bossAttack()
+      }
+    }
   }
 
   private endLevel(passed: boolean) {
