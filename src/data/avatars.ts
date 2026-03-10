@@ -112,3 +112,18 @@ function generateAvatarConfigs(): AvatarConfig[] {
 }
 
 export const AVATAR_CONFIGS: AvatarConfig[] = generateAvatarConfigs();
+
+export function randomizeAvatarConfigs(): void {
+  AVATAR_CONFIGS.length = 0;
+  const ts = Date.now();
+  for (let i = 0; i < 30; i++) {
+    AVATAR_CONFIGS.push({
+      id: `avatar_${ts}_${i}`,
+      skinTone: SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)],
+      hairStyle: HAIR_STYLES[Math.floor(Math.random() * HAIR_STYLES.length)],
+      hairColor: HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)],
+      eyeColor: EYE_COLORS[Math.floor(Math.random() * EYE_COLORS.length)],
+      accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)],
+    });
+  }
+}

@@ -14,17 +14,11 @@ const CHAR_FINGER: Record<string, Finger> = {
   p: 'rp', ';': 'rp', '/': 'rp',
 }
 
-const FINGER_LABELS: Record<Finger, string> = {
-  lp: 'Pinky', lr: 'Ring', lm: 'Mid', li: 'Index', lt: 'Thumb',
-  rt: 'Thumb', ri: 'Index', rm: 'Mid', rr: 'Ring', rp: 'Pinky',
-}
-
 export class TypingHands {
   private scene: Phaser.Scene
   private fingerOverlays: Map<Finger, Phaser.GameObjects.Graphics[]> = new Map()
   private nextLetterText!: Phaser.GameObjects.Text
   private nextLetterBg!: Phaser.GameObjects.Graphics
-  private fingerLabelText!: Phaser.GameObjects.Text
   private currentFinger: Finger | null = null
   private pulseTween?: Phaser.Tweens.Tween
   private allObjects: Phaser.GameObjects.GameObject[] = []
@@ -62,7 +56,6 @@ export class TypingHands {
           ease: 'Sine.easeInOut',
         })
       }
-      this.fingerLabelText.setText(FINGER_LABELS[finger])
     }
   }
 
@@ -99,12 +92,6 @@ export class TypingHands {
       shadow: { offsetX: 0, offsetY: 0, color: '#ffd700', blur: 12, fill: true },
     }).setOrigin(0.5)
     this.allObjects.push(this.nextLetterText)
-
-    this.fingerLabelText = this.scene.add.text(cx, letterY + 36, '', {
-      fontSize: '16px',
-      color: '#aaaacc',
-    }).setOrigin(0.5)
-    this.allObjects.push(this.fingerLabelText)
   }
 
   private buildHands(cx: number, cy: number) {

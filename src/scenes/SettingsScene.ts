@@ -1,7 +1,8 @@
 // src/scenes/SettingsScene.ts
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { AVATAR_CONFIGS } from '../data/avatars'
+import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
+import { AvatarRenderer } from '../components/AvatarRenderer'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
 
@@ -132,9 +133,12 @@ export class SettingsScene extends Phaser.Scene {
     })
   }
 
-  private showAvatarGallery(currentAvatar: string) {
+  private showAvatarGallery(currentAvatar: string, keepSelected: boolean = false) {
     this.children.removeAll(true)
     this.selectedAvatarId = currentAvatar
+    if (!keepSelected || !AVATAR_CONFIGS.some(c => c.id === this.selectedAvatarId)) {
+      this.selectedAvatarId = AVATAR_CONFIGS.some(c => c.id === currentAvatar) ? currentAvatar : (AVATAR_CONFIGS[0]?.id || 'avatar_0')
+    }
     const { width, height } = this.scale
 
     // Background
@@ -186,9 +190,24 @@ export class SettingsScene extends Phaser.Scene {
       })
     })
 
-    // CONFIRM button
+    // Randomize button
     const confirmY = height - 80
 
+    const randomizeBg = this.add.rectangle(width / 2 + 250, confirmY, 150, 40, 0x2a2a4a)
+    randomizeBg.setStrokeStyle(2, 0x5555aa)
+    randomizeBg.setInteractive({ useHandCursor: true })
+
+    this.add.text(width / 2 + 250, confirmY, 'Randomize', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    randomizeBg.on('pointerdown', () => {
+      randomizeAvatarConfigs()
+      AvatarRenderer.generateAll(this)
+      this.showAvatarGallery(this.selectedAvatarId, true)
+    })
+
+    // CONFIRM button
     // Simple rect for background instead of drawPixelPanel since it might not exist here
     const confirmBg = this.add.rectangle(width / 2, confirmY, 200, 50, 0x2a6a2a)
     confirmBg.setStrokeStyle(2, 0x44aa44)
