@@ -92,7 +92,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     // Avatar
     const avatarX = width / 2 - panelW / 2 + 50
     const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
-    this.add.image(avatarX, y, avatarKey).setDisplaySize(48, 48)
+    this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72)
 
     // Player name
     const textStartX = avatarX + 45
@@ -264,7 +264,7 @@ export class ProfileSelectScene extends Phaser.Scene {
       frame.setStrokeStyle(2, 0x4444aa)
 
       // Avatar image
-      const img = this.add.image(ax, ay, config.id).setDisplaySize(48, 48)
+      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
       img.setInteractive({ useHandCursor: true })
 
       // Default selection highlight for first avatar

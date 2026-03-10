@@ -35,7 +35,7 @@ export class SettingsScene extends Phaser.Scene {
 
     // Avatar Section
     const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
-    this.add.image(width / 2, 130, avatarKey).setDisplaySize(64, 64)
+    this.add.image(width / 2, 130, avatarKey).setDisplaySize(48, 96)
 
     const changeAvatarBtn = this.add.text(width / 2, 180, '[ Change Avatar ]', {
       fontSize: '20px',
@@ -169,7 +169,7 @@ export class SettingsScene extends Phaser.Scene {
       frame.setStrokeStyle(2, 0x4444aa)
 
       // Avatar image
-      const img = this.add.image(ax, ay, config.id).setDisplaySize(48, 48)
+      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
       img.setInteractive({ useHandCursor: true })
 
       // Default selection highlight
