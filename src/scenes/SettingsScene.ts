@@ -190,14 +190,15 @@ export class SettingsScene extends Phaser.Scene {
       })
     })
 
-    // Randomize button
+    // Buttons
     const confirmY = height - 80
 
-    const randomizeBg = this.add.rectangle(width / 2 + 250, confirmY, 150, 40, 0x2a2a4a)
+    // Randomize button
+    const randomizeBg = this.add.rectangle(width / 2 + 200, confirmY, 150, 40, 0x2a2a4a)
     randomizeBg.setStrokeStyle(2, 0x5555aa)
     randomizeBg.setInteractive({ useHandCursor: true })
 
-    this.add.text(width / 2 + 250, confirmY, 'Randomize', {
+    this.add.text(width / 2 + 200, confirmY, 'Randomize', {
       fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
@@ -205,6 +206,24 @@ export class SettingsScene extends Phaser.Scene {
       randomizeAvatarConfigs()
       AvatarRenderer.generateAll(this)
       this.showAvatarGallery(this.selectedAvatarId, true)
+    })
+
+    // Customize button
+    const customizeBg = this.add.rectangle(width / 2 - 200, confirmY, 150, 40, 0x2a6a2a)
+    customizeBg.setStrokeStyle(2, 0x44aa44)
+    customizeBg.setInteractive({ useHandCursor: true })
+
+    this.add.text(width / 2 - 200, confirmY, 'Customize', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    customizeBg.on('pointerdown', () => {
+      const p = loadProfile(this.profileSlot)!
+      this.scene.start('AvatarCustomizer', {
+        slot: this.profileSlot,
+        playerName: p.playerName,
+        isEditingExisting: true
+      })
     })
 
     // CONFIRM button

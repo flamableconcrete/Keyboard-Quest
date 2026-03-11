@@ -74,7 +74,7 @@ export class AvatarCustomizerScene extends Phaser.Scene {
     const avatarY = height / 2 + 30
 
 
-    this.previewImage = this.add.image(avatarX, avatarY, '').setScale(5)
+    this.previewImage = this.add.image(avatarX, avatarY, '').setScale(3)
 
     this.renderPreview()
 

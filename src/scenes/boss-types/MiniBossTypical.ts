@@ -65,7 +65,7 @@ export class MiniBossTypical extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
 
     // Prominent Avatar on the left
-    this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(4).setDepth(5)
+    this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(2.5).setDepth(5)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {

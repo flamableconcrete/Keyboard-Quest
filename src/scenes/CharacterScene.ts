@@ -184,11 +184,13 @@ export class CharacterScene extends Phaser.Scene {
       })
     })
 
-    // Randomize button
+    // Buttons row
     const confirmY = startY + 450
-    const randomizeBg = this.add.rectangle(startX + 200, confirmY, 150, 40, 0x2a2a4a).setStrokeStyle(2, 0x5555aa)
+
+    // Randomize button
+    const randomizeBg = this.add.rectangle(startX + 150, confirmY, 150, 40, 0x2a2a4a).setStrokeStyle(2, 0x5555aa)
       .setInteractive({ useHandCursor: true })
-    const randomizeText = this.add.text(startX + 200, confirmY, 'Randomize', {
+    const randomizeText = this.add.text(startX + 150, confirmY, 'Randomize', {
       fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
@@ -201,7 +203,24 @@ export class CharacterScene extends Phaser.Scene {
       this.drawActiveTab() // Redraw to show new avatars
     })
 
-    this.container.add([randomizeBg, randomizeText])
+    // Customize button
+    const customizeBg = this.add.rectangle(startX + 400, confirmY, 150, 40, 0x2a6a2a).setStrokeStyle(2, 0x44aa44)
+      .setInteractive({ useHandCursor: true })
+    const customizeText = this.add.text(startX + 400, confirmY, 'Customize', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    customizeBg.on('pointerdown', () => {
+      this.scene.resume('OverlandMap')
+      this.scene.stop()
+      this.scene.get('OverlandMap').scene.start('AvatarCustomizer', {
+        slot: this.profileSlot,
+        playerName: this.profile.playerName,
+        isEditingExisting: true
+      })
+    })
+
+    this.container.add([randomizeBg, randomizeText, customizeBg, customizeText])
   }
 
   private addSectionTitle(container: Phaser.GameObjects.Container, y: number, text: string) {

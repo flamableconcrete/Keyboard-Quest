@@ -96,7 +96,7 @@ export class ProfileSelectScene extends Phaser.Scene {
         AvatarRenderer.generateOne(this, profile.avatarConfig);
       }
       const avatarKey = profile.avatarConfig.id;
-      this.add.image(avatarX, y, avatarKey).setScale(2.5);
+      this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72);
     } else {
       const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
       this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72)
