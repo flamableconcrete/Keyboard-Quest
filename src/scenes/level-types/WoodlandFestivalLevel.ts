@@ -104,20 +104,14 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     if (this.finished) return
     this.finished = true
     this.engine.destroy()
-    this.aiTimer?.remove()
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
-    // WoodlandFestival has no fail state, max stars for base XP
+    this.aiTimer?.remove()// WoodlandFestival has no fail state, max stars for base XP
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,
         speedStars: 5,
-        passed,
-        companionUsed,
+        passed
       })
     })
   }

@@ -53,7 +53,7 @@ describe('checkWorldMastery', () => {
     const world1Levels = getLevelsForWorld(1)
     const results: Record<string, any> = {}
     world1Levels.forEach(l => {
-      results[l.id] = { accuracyStars: 5, speedStars: 5, completedAt: 123, companionUsed: false }
+      results[l.id] = { accuracyStars: 5, speedStars: 5, completedAt: 123 }
     })
 
     const profile: Partial<ProfileData> = {
@@ -67,7 +67,7 @@ describe('checkWorldMastery', () => {
     const world1Levels = getLevelsForWorld(1)
     const results: Record<string, any> = {}
     world1Levels.forEach(l => {
-      results[l.id] = { accuracyStars: 5, speedStars: 5, completedAt: 123, companionUsed: false }
+      results[l.id] = { accuracyStars: 5, speedStars: 5, completedAt: 123 }
     })
     
     // Make one level fail the mastery
@@ -85,7 +85,7 @@ describe('checkWorldMastery', () => {
     const results: Record<string, any> = {}
     // Only complete all but first one
     for (let i = 1; i < world1Levels.length; i++) {
-      results[world1Levels[i].id] = { accuracyStars: 5, speedStars: 5, completedAt: 123, companionUsed: false }
+      results[world1Levels[i].id] = { accuracyStars: 5, speedStars: 5, completedAt: 123 }
     }
 
     const profile: Partial<ProfileData> = {

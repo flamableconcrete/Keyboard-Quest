@@ -134,8 +134,8 @@ export class MiniBossTypical extends Phaser.Scene {
     })
 
     // Typing hands overlay (player setting)
-    const profile = loadProfile(this.profileSlot)
-    if (profile?.showFingerHints) {
+    const p = loadProfile(this.profileSlot)
+    if (p?.showFingerHints) {
       this.typingHands = new TypingHands(this, width / 2, height - 50)
     }
 
@@ -274,19 +274,14 @@ export class MiniBossTypical extends Phaser.Scene {
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: acc,
         speedStars: spd,
-        passed,
-        companionUsed,
-        })
+        passed
+      })
     })
   }
 }

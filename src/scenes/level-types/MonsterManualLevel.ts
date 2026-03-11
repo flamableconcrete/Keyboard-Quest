@@ -83,10 +83,7 @@ export class MonsterManualLevel extends Phaser.Scene {
     this.finished = true
     this.engine.destroy()
 
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
-    // Record that the player has learned the boss weakness for this world
+    const profile = loadProfile(this.profileSlot)// Record that the player has learned the boss weakness for this world
     if (profile && passed) {
       const worldBossMap: Record<number, string> = {
         1: 'grizzlefang',
@@ -106,8 +103,7 @@ export class MonsterManualLevel extends Phaser.Scene {
         profileSlot: this.profileSlot,
         accuracyStars: 5,
         speedStars: 5,
-        passed,
-        companionUsed,
+        passed
       })
     })
   }
