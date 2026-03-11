@@ -105,6 +105,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawSpecialNodes(mapData.specialNodes)
     this.drawMasteryChest()
     this.drawSettingsButton()
+    this.drawProfilesButton()
 
     let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
     this.currentNodeIndex = 0
@@ -463,13 +464,25 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawSettingsButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 50, '⚙ SETTINGS', {
-      fontSize: '18px', color: '#aaaaaa'
+    const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
+      fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
     }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
       this.scene.start('Settings', { profileSlot: this.profileSlot })
+    })
+  }
+
+  private drawProfilesButton() {
+    const { width } = this.scale
+    const btn = this.add.text(width - 20, 55, '👥 PROFILES', {
+      fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
+    btn.on('pointerover', () => btn.setColor('#ffffff'))
+    btn.on('pointerout', () => btn.setColor('#aaaaaa'))
+    btn.on('pointerdown', () => {
+      this.scene.start('ProfileSelect')
     })
   }
 
