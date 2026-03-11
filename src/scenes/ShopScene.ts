@@ -46,7 +46,13 @@ export class ShopScene extends Phaser.Scene {
         fontSize: '24px', color: '#ffffff', fontStyle: 'bold'
       }).setOrigin(0.5)
 
-      const catItems = ITEMS.filter(item => item.slot === cat && item.goldCost > 0)
+      const catItems = ITEMS.filter(item =>
+        item.slot === cat &&
+        item.goldCost > 0 &&
+        this.profile.currentShopItemIds?.includes(item.id) &&
+        !this.profile.ownedItemIds.includes(item.id)
+      )
+
       catItems.forEach((item, j) => {
         const cy = 160 + j * 100
         this.renderItemCard(cx, cy, item)
@@ -55,18 +61,23 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private renderItemCard(x: number, y: number, item: ItemData) {
-    const isOwned = this.profile.ownedItemIds.includes(item.id)
     const canAfford = (this.profile.gold ?? 0) >= item.goldCost
 
-    const bgColor = isOwned ? 0x223322 : canAfford ? 0x333366 : 0x2a2a2a
+    const bgColor = canAfford ? 0x333366 : 0x2a2a2a
     const bg = this.add.rectangle(x, y, 380, 90, bgColor)
       .setStrokeStyle(2, 0x4e4e6a)
 
-    if (!isOwned && canAfford) {
+    if (canAfford) {
       bg.setInteractive({ useHandCursor: true })
       bg.on('pointerdown', () => {
         this.profile.gold -= item.goldCost
         this.profile.ownedItemIds.push(item.id)
+
+        // Remove item from shop pool upon purchase
+        if (this.profile.currentShopItemIds) {
+          this.profile.currentShopItemIds = this.profile.currentShopItemIds.filter(id => id !== item.id)
+        }
+
         saveProfile(this.profileSlot, this.profile)
         this.scene.restart({ profileSlot: this.profileSlot })
       })
@@ -107,8 +118,8 @@ export class ShopScene extends Phaser.Scene {
     this.add.text(x - 180, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
     this.add.text(x - 180, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 360 } }).setOrigin(0, 0)
 
-    const statusText = isOwned ? 'OWNED' : `${item.goldCost} Gold`
-    const statusColor = isOwned ? '#44ff44' : canAfford ? '#ffd700' : '#ff4444'
+    const statusText = `${item.goldCost} Gold`
+    const statusColor = canAfford ? '#ffd700' : '#ff4444'
     this.add.text(x + 180, y - 30, statusText, { fontSize: '16px', color: statusColor, fontStyle: 'bold' }).setOrigin(1, 0.5)
   }
 }

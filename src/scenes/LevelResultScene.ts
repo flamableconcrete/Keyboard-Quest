@@ -5,6 +5,7 @@ import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
 import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
+import { rotateShopItems } from '../utils/shop'
 
 interface ResultData {
   level: LevelConfig
@@ -112,6 +113,14 @@ export class LevelResultScene extends Phaser.Scene {
     // Letter unlock if mini-boss
     if (level.miniBossUnlocksLetter && !this.profile.unlockedLetters.includes(level.miniBossUnlocksLetter)) {
       this.profile.unlockedLetters.push(level.miniBossUnlocksLetter)
+    }
+
+    // Rotate shop items if a mini-boss or boss was defeated
+    if (level.isMiniBoss || level.isBoss) {
+      if (!this.profile.currentShopItemIds) {
+        this.profile.currentShopItemIds = []
+      }
+      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [])
     }
 
     saveProfile(this.resultData.profileSlot, this.profile)
