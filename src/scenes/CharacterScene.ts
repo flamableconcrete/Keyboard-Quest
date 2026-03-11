@@ -11,9 +11,9 @@ export class CharacterScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
   private container!: Phaser.GameObjects.Container
-  private selectionContainer!: Phaser.GameObjects.Container
 
   private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
+  private activeSlotSelection: 'weapon' | 'armor' | 'accessory' | null = null
   private avatarConfig!: AvatarConfig
   private avatarPreviewImage!: Phaser.GameObjects.Image
   private avatarDirty = false
@@ -83,7 +83,6 @@ export class CharacterScene extends Phaser.Scene {
       })
 
     this.container = this.add.container(0, 0)
-    this.selectionContainer = this.add.container(0, 0).setVisible(false)
 
     this.drawTabs(panelX - panelWidth / 2, panelY - panelHeight / 2)
     this.drawActiveTab()
@@ -110,6 +109,7 @@ export class CharacterScene extends Phaser.Scene {
         .on('pointerdown', () => {
           if (this.activeTab !== tab.id) {
             this.activeTab = tab.id
+            this.activeSlotSelection = null // reset slot selection on tab change
             this.drawTabs(startX, startY) // redraw tabs to update selection color
             this.drawActiveTab()
           }
@@ -125,7 +125,6 @@ export class CharacterScene extends Phaser.Scene {
 
   private drawActiveTab() {
     this.container.removeAll(true)
-    this.selectionContainer.setVisible(false)
 
     const { width, height } = this.scale
     const contentX = width / 2 - 350
@@ -143,15 +142,28 @@ export class CharacterScene extends Phaser.Scene {
   private drawInventoryTab(startX: number, startY: number) {
     this.addSectionTitle(this.container, startY, 'EQUIPMENT & ITEMS')
 
-    const slots: (keyof ProfileData['equipment'])[] = ['weapon', 'armor', 'accessory']
-    slots.forEach((slot, i) => {
-      const x = startX + 100 + i * 250
-      const y = startY + 100
-      this.drawEquipmentSlot(this.container, x, y, slot)
-    })
+    // Avatar paper doll preview in center-left
+    const avatarX = startX + 250
+    const avatarY = startY + 150
+    this.renderTabPreview()
+    this.avatarPreviewImage = this.add.image(avatarX, avatarY, this.avatarConfig.id).setScale(2)
+    this.container.add(this.avatarPreviewImage)
 
-    this.addSectionTitle(this.container, startY + 200, 'OWNED SPELLS')
-    this.drawSpells(this.container, startX + 50, startY + 250)
+    // Weapon on left
+    this.drawPaperDollSlot(this.container, avatarX - 180, avatarY - 20, 'weapon')
+
+    // Armor on right
+    this.drawPaperDollSlot(this.container, avatarX + 180, avatarY - 20, 'armor')
+
+    // Accessory below
+    this.drawPaperDollSlot(this.container, avatarX, avatarY + 120, 'accessory')
+
+    if (this.activeSlotSelection) {
+      this.drawItemSelectionList(startX + 600, startY + 50, this.activeSlotSelection)
+    }
+
+    this.addSectionTitle(this.container, startY + 340, 'OWNED SPELLS')
+    this.drawSpells(this.container, startX + 50, startY + 390)
   }
 
   private drawStatsTab(startX: number, startY: number) {
@@ -396,7 +408,7 @@ export class CharacterScene extends Phaser.Scene {
     )
   }
 
-  private drawEquipmentSlot(
+  private drawPaperDollSlot(
     container: Phaser.GameObjects.Container,
     x: number,
     y: number,
@@ -405,14 +417,36 @@ export class CharacterScene extends Phaser.Scene {
     const itemId = this.profile.equipment[slot]
     const item = itemId ? getItem(itemId) : null
 
-    const box = this.add.rectangle(x, y, 200, 100, 0x16213e).setStrokeStyle(2, 0x4e4e6a)
+    const isSelected = this.activeSlotSelection === slot
+    const boxColor = isSelected ? 0x2a2a4a : 0x16213e
+    const boxStroke = isSelected ? 0x8888aa : 0x4e4e6a
+    const box = this.add.rectangle(x, y, 160, 80, boxColor).setStrokeStyle(2, boxStroke)
+
     box.setInteractive({ useHandCursor: true })
-    box.on('pointerdown', () => this.showItemSelection(slot))
+    box.on('pointerdown', () => {
+      this.activeSlotSelection = isSelected ? null : slot
+      this.drawActiveTab()
+    })
     container.add(box)
+
+    if (item) {
+      const unequipBtn = this.add.text(x + 65, y - 25, 'X', {
+        fontSize: '14px',
+        color: '#ff4444',
+        fontStyle: 'bold'
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+      unequipBtn.on('pointerdown', () => {
+        this.profile.equipment[slot] = null
+        saveProfile(this.profileSlot, this.profile)
+        this.drawActiveTab()
+      })
+      container.add(unequipBtn)
+    }
 
     container.add(
       this.add
-        .text(x, y - 40, slot.toUpperCase(), { fontSize: '14px', color: '#888888' })
+        .text(x, y - 25, slot.toUpperCase(), { fontSize: '12px', color: '#888888' })
         .setOrigin(0.5)
     )
 
@@ -420,7 +454,7 @@ export class CharacterScene extends Phaser.Scene {
     const itemColor = item ? '#ffffff' : '#444444'
     container.add(
       this.add
-        .text(x, y, itemName, { fontSize: '18px', color: itemColor, fontStyle: 'bold' })
+        .text(x, y, itemName, { fontSize: '14px', color: itemColor, fontStyle: 'bold' })
         .setOrigin(0.5)
     )
 
@@ -428,10 +462,58 @@ export class CharacterScene extends Phaser.Scene {
       const effectText = this.getEffectString(item.effect)
       container.add(
         this.add
-          .text(x, y + 25, effectText, { fontSize: '12px', color: '#00ff00' })
+          .text(x, y + 20, effectText, { fontSize: '11px', color: '#00ff00' })
           .setOrigin(0.5)
       )
     }
+  }
+
+  private drawItemSelectionList(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory') {
+    this.container.add(
+      this.add.text(x, y, `Select ${slot.toUpperCase()}`, {
+        fontSize: '20px',
+        color: '#ffd700',
+        fontStyle: 'bold'
+      }).setOrigin(0.5)
+    )
+
+    const ownedItems = this.profile.ownedItemIds
+      .map((id) => getItem(id))
+      .filter((item): item is ItemData => !!item && item.slot === slot)
+
+    if (ownedItems.length === 0) {
+      this.container.add(
+        this.add.text(x, y + 40, 'No items available.', { fontSize: '14px', color: '#888888' }).setOrigin(0.5)
+      )
+      return
+    }
+
+    ownedItems.forEach((item, i) => {
+      const itemY = y + 50 + i * 60
+      const isEquipped = this.profile.equipment[slot] === item.id
+
+      const bg = this.add.rectangle(x, itemY, 280, 50, isEquipped ? 0x2a2a4a : 0x16213e)
+        .setStrokeStyle(1, isEquipped ? 0x44aa44 : 0x4e4e6a)
+
+      bg.setInteractive({ useHandCursor: true })
+      bg.on('pointerdown', () => {
+        if (!isEquipped) {
+          this.profile.equipment[slot] = item.id
+          saveProfile(this.profileSlot, this.profile)
+          this.drawActiveTab()
+        }
+      })
+      this.container.add(bg)
+
+      this.container.add(
+        this.add.text(x, itemY - 10, item.name, { fontSize: '16px', color: isEquipped ? '#44aa44' : '#ffffff' }).setOrigin(0.5)
+      )
+
+      const effectText = this.getEffectString(item.effect)
+      this.container.add(
+        this.add.text(x, itemY + 10, effectText, { fontSize: '12px', color: '#00ff00' }).setOrigin(0.5)
+      )
+    })
   }
 
   private drawStats(container: Phaser.GameObjects.Container, x: number, y: number) {
@@ -484,72 +566,6 @@ export class CharacterScene extends Phaser.Scene {
     })
   }
 
-  private showItemSelection(slot: 'weapon' | 'armor' | 'accessory') {
-    this.container.setVisible(false)
-    this.selectionContainer.setVisible(true).removeAll(true)
-
-    const { width, height } = this.scale
-    this.selectionContainer.add(this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8))
-
-    this.selectionContainer.add(
-      this.add
-        .text(width / 2, 100, `SELECT ${slot.toUpperCase()}`, {
-          fontSize: '28px',
-          color: '#ffd700',
-        })
-        .setOrigin(0.5)
-    )
-
-    const ownedItems = this.profile.ownedItemIds
-      .map((id) => getItem(id))
-      .filter((item): item is ItemData => !!item && item.slot === slot)
-
-    // Add "Unequip" option
-    const options = [null, ...ownedItems]
-
-    options.forEach((item, i) => {
-      const x = width / 2
-      const y = 200 + i * 80
-      const name = item ? item.name : '--- UNEQUIP ---'
-      const desc = item ? `${item.description} (${this.getEffectString(item.effect)})` : ''
-
-      const bg = this.add.rectangle(x, y, 600, 60, 0x16213e).setStrokeStyle(1, 0x4e4e6a)
-      bg.setInteractive({ useHandCursor: true })
-      bg.on('pointerdown', () => {
-        this.profile.equipment[slot] = item ? item.id : null
-        saveProfile(this.profileSlot, this.profile)
-        this.hideItemSelection()
-      })
-      this.selectionContainer.add(bg)
-
-      this.selectionContainer.add(
-        this.add.text(x, y - 10, name, { fontSize: '20px', color: '#ffffff' }).setOrigin(0.5)
-      )
-      if (desc) {
-        this.selectionContainer.add(
-          this.add.text(x, y + 15, desc, { fontSize: '14px', color: '#888888' }).setOrigin(0.5)
-        )
-      }
-    })
-
-    const cancelBtn = this.add
-      .text(width / 2, height - 100, 'CANCEL', {
-        fontSize: '20px',
-        color: '#ff4444',
-        backgroundColor: '#222',
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.hideItemSelection())
-    this.selectionContainer.add(cancelBtn)
-  }
-
-  private hideItemSelection() {
-    this.selectionContainer.setVisible(false)
-    this.container.setVisible(true)
-    this.drawActiveTab()
-  }
 
   private allocatePoint(key: 'hpPoints' | 'powerPoints' | 'focusPoints') {
     if (this.profile.statPoints > 0) {
