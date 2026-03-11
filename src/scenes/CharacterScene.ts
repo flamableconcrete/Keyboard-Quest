@@ -2,77 +2,212 @@ import Phaser from 'phaser'
 import { ProfileData, ItemData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
+import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
+import { AvatarRenderer } from '../components/AvatarRenderer'
 
-export class InventoryScene extends Phaser.Scene {
+const MONO_FONT = 'monospace'
+
+export class CharacterScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
   private container!: Phaser.GameObjects.Container
   private selectionContainer!: Phaser.GameObjects.Container
 
+  private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
+  private selectedAvatarId: string = ''
+
   constructor() {
-    super('Inventory')
+    super('Character')
   }
 
   init(data: { profileSlot: number }) {
     this.profileSlot = data.profileSlot
     this.profile = loadProfile(this.profileSlot)!
+    this.selectedAvatarId = this.profile.avatarChoice || 'avatar_0'
   }
 
   create() {
     const { width, height } = this.scale
 
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
+    // Semi-transparent modal background
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
 
-    // Title
-    this.add.text(width / 2, 40, 'INVENTORY & EQUIPMENT', {
-      fontSize: '32px',
-      color: '#e94560',
-      fontStyle: 'bold',
-    }).setOrigin(0.5)
+    // Main modal panel
+    const panelWidth = 1000
+    const panelHeight = 600
+    const panelX = width / 2
+    const panelY = height / 2
+    this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x1a1a2e).setStrokeStyle(4, 0x4e4e6a)
 
-    // Back Button
+    // Block clicks behind the modal
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+      .setInteractive()
+      .setDepth(-1)
+
+    // Close Button (top right of modal)
     this.add
-      .text(60, 40, '← BACK', {
-        fontSize: '20px',
-        color: '#ffffff',
-        backgroundColor: '#4e4e6a',
-        padding: { x: 10, y: 5 },
+      .text(panelX + panelWidth / 2 - 20, panelY - panelHeight / 2 + 20, 'X', {
+        fontSize: '24px',
+        color: '#ff4444',
+        fontStyle: 'bold',
       })
+      .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.scene.start('OverlandMap', { profileSlot: this.profileSlot }))
+      .on('pointerdown', () => {
+        this.scene.resume('OverlandMap')
+        this.scene.stop()
+      })
 
     this.container = this.add.container(0, 0)
     this.selectionContainer = this.add.container(0, 0).setVisible(false)
 
-    this.drawMainInventory()
+    this.drawTabs(panelX - panelWidth / 2, panelY - panelHeight / 2)
+    this.drawActiveTab()
   }
 
-  private drawMainInventory() {
-    this.container.removeAll(true)
+  private drawTabs(startX: number, startY: number) {
+    // Clear old tabs logic might be needed if we redraw tabs, but for now we'll just clear the whole scene if we re-render tabs, or we can just make tabs once and update visually.
+    // Actually, drawTabs is called once. We should keep references to the tab backgrounds if we want to change their color.
+    // Let's store them.
+    this.children.getAll().filter(c => c.getData('isTab')).forEach(c => c.destroy())
 
-    // --- Equipment Slots ---
-    this.addSectionTitle(this.container, 100, 'EQUIPMENT')
+    const tabs = [
+      { id: 'inventory', icon: '🎒', y: startY + 60 },
+      { id: 'stats', icon: '📊', y: startY + 140 },
+      { id: 'avatar', icon: '👤', y: startY + 220 }
+    ] as const
+
+    tabs.forEach(tab => {
+      const isSelected = this.activeTab === tab.id
+      const bg = this.add.rectangle(startX + 40, tab.y, 60, 60, isSelected ? 0x4e4e6a : 0x2a2a4a)
+        .setStrokeStyle(2, 0x8888aa)
+        .setInteractive({ useHandCursor: true })
+        .setData('isTab', true)
+        .on('pointerdown', () => {
+          if (this.activeTab !== tab.id) {
+            this.activeTab = tab.id
+            this.drawTabs(startX, startY) // redraw tabs to update selection color
+            this.drawActiveTab()
+          }
+        })
+
+      const text = this.add.text(startX + 40, tab.y, tab.icon, { fontSize: '32px' }).setOrigin(0.5)
+        .setData('isTab', true)
+
+      this.add.existing(bg)
+      this.add.existing(text)
+    })
+  }
+
+  private drawActiveTab() {
+    this.container.removeAll(true)
+    this.selectionContainer.setVisible(false)
+
+    const { width, height } = this.scale
+    const contentX = width / 2 - 350
+    const contentY = height / 2 - 250
+
+    if (this.activeTab === 'inventory') {
+      this.drawInventoryTab(contentX, contentY)
+    } else if (this.activeTab === 'stats') {
+      this.drawStatsTab(contentX, contentY)
+    } else if (this.activeTab === 'avatar') {
+      this.drawAvatarTab(contentX, contentY)
+    }
+  }
+
+  private drawInventoryTab(startX: number, startY: number) {
+    this.addSectionTitle(this.container, startY, 'EQUIPMENT & ITEMS')
 
     const slots: (keyof ProfileData['equipment'])[] = ['weapon', 'armor', 'accessory']
     slots.forEach((slot, i) => {
-      const x = 200 + i * 250
-      const y = 200
+      const x = startX + 100 + i * 250
+      const y = startY + 100
       this.drawEquipmentSlot(this.container, x, y, slot)
     })
 
-    // --- Stats & Points ---
-    this.addSectionTitle(this.container, 320, 'CHARACTER STATS')
-    this.drawStats(this.container, 200, 380)
+    this.addSectionTitle(this.container, startY + 200, 'OWNED SPELLS')
+    this.drawSpells(this.container, startX + 50, startY + 250)
+  }
 
-    // --- Spells ---
-    this.addSectionTitle(this.container, 520, 'OWNED SPELLS')
-    this.drawSpells(this.container, 200, 580)
+  private drawStatsTab(startX: number, startY: number) {
+    this.addSectionTitle(this.container, startY, 'CHARACTER STATS')
+    this.drawStats(this.container, startX + 50, startY + 60)
+  }
+
+  private drawAvatarTab(startX: number, startY: number) {
+    this.addSectionTitle(this.container, startY, 'AVATAR')
+
+    const cols = 6
+    const cellSize = 72
+    const gridStartX = startX + 50 + cellSize / 2
+    const gridStartY = startY + 100
+
+    let highlightRect: Phaser.GameObjects.Rectangle | null = null
+
+    AVATAR_CONFIGS.forEach((config, index) => {
+      const col = index % cols
+      const row = Math.floor(index / cols)
+      const ax = gridStartX + col * cellSize
+      const ay = gridStartY + row * cellSize
+
+      // Dark frame
+      const frame = this.add.rectangle(ax, ay, 56, 56, 0x2a2a4a)
+      frame.setStrokeStyle(2, 0x4444aa)
+      this.container.add(frame)
+
+      // Avatar image
+      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
+      img.setInteractive({ useHandCursor: true })
+      this.container.add(img)
+
+      // Default selection highlight
+      if (config.id === this.selectedAvatarId) {
+        highlightRect = this.add.rectangle(ax, ay, 60, 60)
+        highlightRect.setFillStyle(0x000000, 0)
+        highlightRect.setStrokeStyle(3, 0xffd700)
+        this.container.add(highlightRect)
+      }
+
+      img.on('pointerdown', () => {
+        this.selectedAvatarId = config.id
+        this.profile.avatarChoice = this.selectedAvatarId
+        saveProfile(this.profileSlot, this.profile)
+
+        if (highlightRect) {
+          highlightRect.destroy()
+        }
+        highlightRect = this.add.rectangle(ax, ay, 60, 60)
+        highlightRect.setFillStyle(0x000000, 0)
+        highlightRect.setStrokeStyle(3, 0xffd700)
+        this.container.add(highlightRect)
+      })
+    })
+
+    // Randomize button
+    const confirmY = startY + 450
+    const randomizeBg = this.add.rectangle(startX + 200, confirmY, 150, 40, 0x2a2a4a).setStrokeStyle(2, 0x5555aa)
+      .setInteractive({ useHandCursor: true })
+    const randomizeText = this.add.text(startX + 200, confirmY, 'Randomize', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    randomizeBg.on('pointerdown', () => {
+      randomizeAvatarConfigs()
+      AvatarRenderer.generateAll(this)
+      this.selectedAvatarId = AVATAR_CONFIGS[0]?.id || 'avatar_0'
+      this.profile.avatarChoice = this.selectedAvatarId
+      saveProfile(this.profileSlot, this.profile)
+      this.drawActiveTab() // Redraw to show new avatars
+    })
+
+    this.container.add([randomizeBg, randomizeText])
   }
 
   private addSectionTitle(container: Phaser.GameObjects.Container, y: number, text: string) {
+    const { width } = this.scale
     container.add(
-      this.add.text(100, y, text, {
+      this.add.text(width / 2 - 300, y, text, {
         fontSize: '20px',
         color: '#ffd700',
         fontStyle: 'bold',
@@ -232,7 +367,7 @@ export class InventoryScene extends Phaser.Scene {
   private hideItemSelection() {
     this.selectionContainer.setVisible(false)
     this.container.setVisible(true)
-    this.drawMainInventory()
+    this.drawActiveTab()
   }
 
   private allocatePoint(key: 'hpPoints' | 'powerPoints' | 'focusPoints') {
@@ -240,7 +375,7 @@ export class InventoryScene extends Phaser.Scene {
       this.profile.statPoints--
       this.profile[key]++
       saveProfile(this.profileSlot, this.profile)
-      this.drawMainInventory()
+      this.drawActiveTab()
     }
   }
 
