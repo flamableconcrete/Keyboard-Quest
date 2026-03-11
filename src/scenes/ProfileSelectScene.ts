@@ -93,7 +93,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     // Ensure custom avatar is generated if it exists
     if (profile.avatarConfig && profile.avatarConfig.id) {
       if (!this.textures.exists(profile.avatarConfig.id)) {
-        AvatarRenderer.generateOne(this, profile.avatarConfig);
+        AvatarRenderer.generateOne(this, profile.avatarConfig, profile.equipment);
       }
       const avatarKey = profile.avatarConfig.id;
       this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72);
