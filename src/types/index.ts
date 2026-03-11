@@ -1,3 +1,5 @@
+import type { AvatarConfig } from '../data/avatars'
+
 export type StarRating = 1 | 2 | 3 | 4 | 5
 
 export interface LevelResult {
@@ -51,6 +53,8 @@ export interface ProfileData {
   gameMode: 'regular' | 'advanced'
   gold: number
   showFingerHints: boolean
+  avatarConfig?: AvatarConfig
+  savedOutfits?: AvatarConfig[]
 }
 
 export type LevelType =

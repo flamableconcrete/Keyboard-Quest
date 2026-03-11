@@ -3,6 +3,7 @@ import { BootScene } from './scenes/BootScene'
 import { PreloadScene } from './scenes/PreloadScene'
 import { MainMenuScene } from './scenes/MainMenuScene'
 import { ProfileSelectScene } from './scenes/ProfileSelectScene'
+import { AvatarCustomizerScene } from './scenes/AvatarCustomizerScene'
 import { OverlandMapScene } from './scenes/OverlandMapScene'
 import { LevelIntroScene } from './scenes/LevelIntroScene'
 import { LevelResultScene } from './scenes/LevelResultScene'
@@ -53,7 +54,7 @@ const game = new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   scene: [
-    BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene, 
+    BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, AvatarCustomizerScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene,
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,

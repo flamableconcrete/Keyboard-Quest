@@ -3,10 +3,13 @@ import { ProfileData } from '../types'
 const HOME_ROW: string[] = ['a', 's', 'd', 'f', 'j', 'k', 'l']
 const KEY = (slot: number) => `kq_profile_${slot}`
 
-export function createProfile(playerName: string, avatarChoice = 'knight'): ProfileData {
+import { AvatarConfig } from '../data/avatars'
+
+export function createProfile(playerName: string, avatarChoice = 'knight', avatarConfig?: AvatarConfig): ProfileData {
   return {
     playerName,
     avatarChoice,
+    avatarConfig,
     characterLevel: 1,
     xp: 0,
     statPoints: 0,

@@ -23,7 +23,7 @@ export interface AvatarConfig {
   shoeColor: number;
 }
 
-const SKIN_TONES: number[] = [
+export const SKIN_TONES: number[] = [
   0xfde0c4, // light peach
   0xf5c8a0, // warm beige
   0xe8b88a, // light tan
@@ -36,7 +36,7 @@ const SKIN_TONES: number[] = [
   0x3b1e08, // very dark brown
 ];
 
-const HAIR_STYLES: HairStyle[] = [
+export const HAIR_STYLES: HairStyle[] = [
   'short',
   'long',
   'mohawk',
@@ -45,7 +45,7 @@ const HAIR_STYLES: HairStyle[] = [
   'ponytail',
 ];
 
-const HAIR_COLORS: number[] = [
+export const HAIR_COLORS: number[] = [
   0x2c1b0e, // black
   0x4a3222, // dark brown
   0x7b4a2a, // brown
@@ -60,7 +60,7 @@ const HAIR_COLORS: number[] = [
   0xc0c0c0, // silver/gray
 ];
 
-const EYE_COLORS: number[] = [
+export const EYE_COLORS: number[] = [
   0x4a3222, // dark brown
   0x7b4a2a, // brown
   0x2e7d32, // green
@@ -71,7 +71,7 @@ const EYE_COLORS: number[] = [
   0xbf360c, // amber
 ];
 
-const ACCESSORIES: Accessory[] = [
+export const ACCESSORIES: Accessory[] = [
   'none',
   'helmet',
   'headband',
@@ -85,7 +85,7 @@ const ACCESSORIES: Accessory[] = [
 ];
 
 
-const SHIRT_COLORS: number[] = [
+export const SHIRT_COLORS: number[] = [
   0xff3b30, // red
   0xff9500, // orange
   0xffcc00, // yellow
@@ -99,7 +99,7 @@ const SHIRT_COLORS: number[] = [
   0x1c1c1e, // black
 ];
 
-const PANTS_COLORS: number[] = [
+export const PANTS_COLORS: number[] = [
   0x0a4a8f, // dark blue jeans
   0x2a7bcf, // light blue jeans
   0x222222, // black slacks
@@ -110,7 +110,7 @@ const PANTS_COLORS: number[] = [
   0x556b2f, // olive cargo
 ];
 
-const SHOE_COLORS: number[] = [
+export const SHOE_COLORS: number[] = [
   0x2c1b0e, // dark brown
   0x5a3d2b, // brown
   0x111111, // black
