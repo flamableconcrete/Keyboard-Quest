@@ -3,6 +3,7 @@ import { loadProfile, saveProfile } from '../utils/profile'
 import { calcCompanionLevel } from '../utils/scoring'
 import { PET_TEMPLATES, createCompanion } from '../data/companions'
 import { ProfileData, CompanionData } from '../types'
+import { generateAllCompanionTextures } from '../art/companionsArt'
 
 export class StableScene extends Phaser.Scene {
   private profileSlot!: number
@@ -17,6 +18,8 @@ export class StableScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+
+    generateAllCompanionTextures(this)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a1a)
 
@@ -89,8 +92,9 @@ export class StableScene extends Phaser.Scene {
     const level = calcCompanionLevel(pet.xp)
     const bg = this.add.rectangle(x, y, 260, 150, isActive ? 0x224422 : 0x223322)
       .setInteractive({ useHandCursor: true })
-    this.add.text(x, y - 50, pet.name, { fontSize: '14px', color: '#ffffff', wordWrap: { width: 240 } }).setOrigin(0.5)
-    this.add.text(x, y - 10, `Level ${level} · x${pet.autoStrikeCount} auto-strike`, { fontSize: '14px', color: '#aaffaa' }).setOrigin(0.5)
+    this.add.image(x - 90, y - 40, pet.id).setScale(2)
+    this.add.text(x, y - 50, pet.name, { fontSize: '14px', color: '#ffffff', wordWrap: { width: 180 } }).setOrigin(0.5)
+    this.add.text(x, y - 15, `Level ${level} · x${pet.autoStrikeCount} auto-strike`, { fontSize: '14px', color: '#aaffaa' }).setOrigin(0.5)
     this.add.text(x, y + 20, pet.backstory, { fontSize: '11px', color: '#888888', wordWrap: { width: 240 } }).setOrigin(0.5)
     const activeLabel = isActive ? '✓ Active' : '[ Set Active ]'
     this.add.text(x, y + 55, activeLabel, {
