@@ -146,15 +146,16 @@ export class AvatarCustomizerScene extends Phaser.Scene {
 
     const slotSpacing = 80
     const startX = centerX - (4 * slotSpacing) / 2
+    const profile = loadProfile(this.slot)
 
     for (let i = 0; i < 5; i++) {
       const sx = startX + i * slotSpacing
-      this.drawOneOutfitSlot(sx, y, i)
+      this.drawOneOutfitSlot(sx, y, i, profile)
     }
   }
 
-  private drawOneOutfitSlot(x: number, y: number, index: number) {
-    const profile = this.getProfile()
+  private drawOneOutfitSlot(x: number, y: number, index: number, profileParams?: any) {
+    const profile = this.getProfile() || profileParams
     const outfit = profile?.savedOutfits?.[index] ?? null
 
     // Frame
@@ -165,7 +166,7 @@ export class AvatarCustomizerScene extends Phaser.Scene {
     if (outfit) {
       const thumbKey = `outfit_thumb_${this.slot}_${index}_${Date.now()}`
       const thumbConfig = { ...outfit, id: thumbKey }
-      AvatarRenderer.generateOne(this, thumbConfig)
+      AvatarRenderer.generateOne(this, thumbConfig, profile?.equipment)
       const thumb = this.add.image(x, y, thumbKey).setDisplaySize(24, 48)
       this.outfitSlotObjects.push(thumb)
     } else {
@@ -327,7 +328,8 @@ export class AvatarCustomizerScene extends Phaser.Scene {
 
   private renderPreview() {
     this.config.id = `custom_${Date.now()}`
-    AvatarRenderer.generateOne(this, this.config)
+    const p = loadProfile(this.slot)
+    AvatarRenderer.generateOne(this, this.config, p?.equipment)
     this.previewImage.setTexture(this.config.id)
   }
 

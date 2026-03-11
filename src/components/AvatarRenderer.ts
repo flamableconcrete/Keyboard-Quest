@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { AVATAR_CONFIGS, type AvatarConfig } from '../data/avatars'
+import type { EquipmentData } from '../types'
 
 const GRID = 16
 const PIXEL = 3
@@ -14,7 +15,7 @@ export class AvatarRenderer {
     }
   }
 
-  static generateOne(scene: Phaser.Scene, config: AvatarConfig): void {
+  static generateOne(scene: Phaser.Scene, config: AvatarConfig, equipment?: EquipmentData | null): void {
     const rt = scene.make.renderTexture({ width: WIDTH, height: HEIGHT }, false)
     const gfx = scene.make.graphics({}, false)
 
@@ -24,6 +25,10 @@ AvatarRenderer.drawHead(gfx, config.skinTone)
     AvatarRenderer.drawHair(gfx, config.hairStyle, config.hairColor)
     AvatarRenderer.drawBody(gfx, config)
     AvatarRenderer.drawAccessory(gfx, config.accessory, config.hairColor)
+
+    if (equipment) {
+      AvatarRenderer.drawEquipment(gfx, equipment)
+    }
 
     rt.draw(gfx)
     rt.saveTexture(config.id)
@@ -276,6 +281,35 @@ AvatarRenderer.drawHead(gfx, config.skinTone)
         AvatarRenderer.rect(gfx, 13, 5, 1, 2, 0x2255cc)
         AvatarRenderer.rect(gfx, 14, 6, 1, 2, 0x2255cc)
         break
+    }
+  }
+
+  // ── Equipment ─────────────────────────────────────────────
+
+  private static drawEquipment(
+    gfx: Phaser.GameObjects.Graphics,
+    equipment: EquipmentData
+  ): void {
+    // If we have a weapon, draw a simple sword in the right hand (left side of screen)
+    if (equipment.weapon) {
+      // Hilt at col 1, row 20
+      AvatarRenderer.rect(gfx, 1, 20, 2, 1, 0x8b4513) // brown crossguard
+      AvatarRenderer.rect(gfx, 1, 21, 1, 2, 0x8b4513) // brown handle
+      AvatarRenderer.px(gfx, 1, 23, 0xffd700)         // gold pommel
+      // Blade going up to row 10
+      AvatarRenderer.rect(gfx, 1, 10, 1, 10, 0xcccccc) // silver blade
+      // Optional tip
+      AvatarRenderer.px(gfx, 1, 9, 0xeeeeee)
+    }
+
+    // If we have armor, draw a shield or chestplate overlay
+    if (equipment.armor) {
+      // Draw a simple shield on the left hand (right side of screen)
+      // Base
+      AvatarRenderer.rect(gfx, 13, 17, 3, 5, 0x666666) // dark gray rim
+      AvatarRenderer.rect(gfx, 14, 18, 1, 3, 0xaa2222) // red center
+      // Point
+      AvatarRenderer.rect(gfx, 14, 22, 1, 1, 0x666666) // point
     }
   }
 }
