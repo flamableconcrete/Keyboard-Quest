@@ -345,15 +345,17 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       })
     })
 
-    // Inventory
+    // Character
     const ip = specialPositions['inventory']
     this.add.ellipse(ip.x, ip.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const inventoryNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
+    const characterNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
       .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(ip.x, ip.y + 25, 'ITEMS', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
-    inventoryNode.on('pointerdown', () => {
+    this.add.text(ip.x, ip.y + 25, 'CHARACTER', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
+    characterNode.on('pointerdown', () => {
       this.glideAvatarTo(ip, 'inventory', () => {
-        this.scene.start('Inventory', { profileSlot: this.profileSlot })
+        // Pause overworld map and launch character scene to keep map visible behind it
+        this.scene.pause()
+        this.scene.launch('Character', { profileSlot: this.profileSlot })
       })
     })
 
