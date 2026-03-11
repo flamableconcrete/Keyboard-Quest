@@ -51,6 +51,7 @@ export interface ProfileData {
   worldMasteryRewards: string[]
   bossWeaknessKnown: string | null
   gameMode: 'regular' | 'advanced'
+  currentShopItemIds?: string[]
   gold: number
   showFingerHints: boolean
   avatarConfig?: AvatarConfig

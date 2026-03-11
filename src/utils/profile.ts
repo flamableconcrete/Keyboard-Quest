@@ -1,4 +1,5 @@
 import { ProfileData } from '../types'
+import { getInitialShopItems } from './shop'
 
 const HOME_ROW: string[] = ['a', 's', 'd', 'f', 'j', 'k', 'l']
 const KEY = (slot: number) => `kq_profile_${slot}`
@@ -33,6 +34,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight', avata
     worldMasteryRewards: [],
     bossWeaknessKnown: null,
     gameMode: 'regular' as const,
+    currentShopItemIds: getInitialShopItems([]),
     gold: 0,
     showFingerHints: true,
   }
@@ -50,6 +52,9 @@ export function loadProfile(slot: number): ProfileData | null {
     if (!data.gameMode) data.gameMode = 'regular'
     if (data.gold === undefined) data.gold = 0
     if (data.showFingerHints === undefined) data.showFingerHints = true
+    if (!data.currentShopItemIds) {
+      data.currentShopItemIds = getInitialShopItems(data.ownedItemIds || [])
+    }
     return data
   } catch {
     return null
