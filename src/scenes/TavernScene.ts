@@ -28,6 +28,10 @@ export class TavernScene extends Phaser.Scene {
       fontSize: '22px', color: '#cccccc'
     }).setOrigin(0.5)
 
+    this.add.text(width / 2, 115, 'Companions provide auto-strikes that automatically destroy enemies.', {
+      fontSize: '14px', color: '#88aaff', fontStyle: 'italic'
+    }).setOrigin(0.5)
+
     const companions = this.profile.companions
     if (companions.length === 0) {
       this.add.text(width / 2, 200, 'No companions yet. Complete Guild Recruitment levels to recruit some!', {
