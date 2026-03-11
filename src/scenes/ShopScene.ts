@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
-import { ITEMS } from '../data/items'
+import { ITEMS, getItem } from '../data/items'
 
 export class ShopScene extends Phaser.Scene {
   private profileSlot!: number
@@ -74,13 +74,35 @@ export class ShopScene extends Phaser.Scene {
 
     this.add.text(x - 180, y - 30, item.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5)
 
+    const equippedItemId = this.profile.equipment[item.slot]
+    const equippedItem = equippedItemId ? getItem(equippedItemId) : null
+
     let effectStr = ''
-    if (item.effect.power) effectStr += `+${item.effect.power} PWR `
-    if (item.effect.hp) effectStr += `+${item.effect.hp} HP `
-    if (item.effect.defeatAdditionalEnemiesChance) effectStr += `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave `
-    if (item.effect.absorbAttacksChance) effectStr += `${item.effect.absorbAttacksChance * 100}% Block `
-    if (item.effect.bonusGoldChance) effectStr += `${item.effect.bonusGoldChance * 100}% Bonus Gold `
-    if (item.effect.goldMultiplier) effectStr += `+${item.effect.goldMultiplier * 100}% Gold `
+
+    if (item.effect.power) {
+      const cur = equippedItem?.effect?.power || 0
+      effectStr += cur === item.effect.power ? `+${item.effect.power} PWR ` : `PWR: ${cur} -> ${item.effect.power} `
+    }
+    if (item.effect.hp) {
+      const cur = equippedItem?.effect?.hp || 0
+      effectStr += cur === item.effect.hp ? `+${item.effect.hp} HP ` : `HP: ${cur} -> ${item.effect.hp} `
+    }
+    if (item.effect.defeatAdditionalEnemiesChance) {
+      const cur = equippedItem?.effect?.defeatAdditionalEnemiesChance || 0
+      effectStr += cur === item.effect.defeatAdditionalEnemiesChance ? `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave ` : `Cleave: ${cur * 100}% -> ${item.effect.defeatAdditionalEnemiesChance * 100}% `
+    }
+    if (item.effect.absorbAttacksChance) {
+      const cur = equippedItem?.effect?.absorbAttacksChance || 0
+      effectStr += cur === item.effect.absorbAttacksChance ? `${item.effect.absorbAttacksChance * 100}% Block ` : `Block: ${cur * 100}% -> ${item.effect.absorbAttacksChance * 100}% `
+    }
+    if (item.effect.bonusGoldChance) {
+      const cur = equippedItem?.effect?.bonusGoldChance || 0
+      effectStr += cur === item.effect.bonusGoldChance ? `${item.effect.bonusGoldChance * 100}% Bonus Gold ` : `Bonus Gold: ${cur * 100}% -> ${item.effect.bonusGoldChance * 100}% `
+    }
+    if (item.effect.goldMultiplier) {
+      const cur = equippedItem?.effect?.goldMultiplier || 0
+      effectStr += cur === item.effect.goldMultiplier ? `+${item.effect.goldMultiplier * 100}% Gold ` : `Gold: +${cur * 100}% -> +${item.effect.goldMultiplier * 100}% `
+    }
 
     this.add.text(x - 180, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
     this.add.text(x - 180, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 360 } }).setOrigin(0, 0)
