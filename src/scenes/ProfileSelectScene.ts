@@ -1,8 +1,7 @@
 // src/scenes/ProfileSelectScene.ts
 import Phaser from 'phaser'
-import { getAllProfiles, loadProfile, saveProfile, deleteProfile, exportProfile, importProfile, createProfile } from '../utils/profile'
+import { getAllProfiles, loadProfile, saveProfile, deleteProfile, exportProfile, importProfile } from '../utils/profile'
 import { ProfileData } from '../types'
-import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
@@ -10,7 +9,6 @@ const MONO_FONT = '"Courier New", Courier, monospace'
 export class ProfileSelectScene extends Phaser.Scene {
   private typingBuffer = ''
   private profiles: (ProfileData | null)[] = []
-  private selectedAvatarId: string = 'avatar_0'
 
   constructor() { super('ProfileSelect') }
 
@@ -42,7 +40,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     this.children.removeAll(true)
     const { width, height } = this.scale
 
-    const title = this.add.text(width / 2, 50, 'Select Your Hero', {
+    const title = this.add.text(width / 2, 50, 'Choose Your Hero', {
       fontSize: '40px', color: '#ffd700', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
@@ -91,8 +89,18 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     // Avatar
     const avatarX = width / 2 - panelW / 2 + 50
-    const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
-    this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72)
+
+    // Ensure custom avatar is generated if it exists
+    if (profile.avatarConfig && profile.avatarConfig.id) {
+      if (!this.textures.exists(profile.avatarConfig.id)) {
+        AvatarRenderer.generateOne(this, profile.avatarConfig);
+      }
+      const avatarKey = profile.avatarConfig.id;
+      this.add.image(avatarX, y, avatarKey).setScale(2.5);
+    } else {
+      const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
+      this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72)
+    }
 
     // Player name
     const textStartX = avatarX + 45
@@ -138,6 +146,19 @@ export class ProfileSelectScene extends Phaser.Scene {
     exp.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
       ptr.event.stopPropagation()
       this.handleExport(profile)
+    })
+
+
+    // Edit Hero button
+    const editY = y + 10;
+    const edit = this.add.text(width / 2 + 100, editY, '[Edit Hero]', {
+      fontSize: '16px', color: '#ccaa88', fontFamily: MONO_FONT
+    }).setInteractive({ useHandCursor: true })
+    edit.on('pointerover', () => edit.setColor('#ffeecc'))
+    edit.on('pointerout', () => edit.setColor('#ccaa88'))
+    edit.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      ptr.event.stopPropagation()
+      this.scene.start('AvatarCustomizer', { slot, playerName: profile.playerName, isEditingExisting: true })
     })
 
     // Delete button
@@ -227,95 +248,15 @@ export class ProfileSelectScene extends Phaser.Scene {
     })
   }
 
-  private showAvatarGallery(slot: number, playerName: string, keepSelected: boolean = false) {
+
+  private showAvatarGallery(slot: number, playerName: string, ) {
     this.children.removeAll(true)
-    if (!keepSelected || !AVATAR_CONFIGS.some(c => c.id === this.selectedAvatarId)) {
-      this.selectedAvatarId = AVATAR_CONFIGS[0]?.id || 'avatar_0'
-    }
-    const { width, height } = this.scale
 
-    // Title
-    this.add.text(width / 2, 30, 'Choose Your Avatar', {
-      fontSize: '32px', color: '#ffd700', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    // Player name
-    this.add.text(width / 2, 65, playerName, {
-      fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    // Avatar grid
-    const cols = 6
-    const cellSize = 72
-    const gridWidth = cols * cellSize
-    const startX = width / 2 - gridWidth / 2 + cellSize / 2
-    const startY = 120
-
-    let highlightRect: Phaser.GameObjects.Rectangle | null = null
-
-    AVATAR_CONFIGS.forEach((config, index) => {
-      const col = index % cols
-      const row = Math.floor(index / cols)
-      const ax = startX + col * cellSize
-      const ay = startY + row * cellSize
-
-      // Dark frame
-      const frame = this.add.rectangle(ax, ay, 56, 56, 0x2a2a4a)
-      frame.setStrokeStyle(2, 0x4444aa)
-
-      // Avatar image
-      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
-      img.setInteractive({ useHandCursor: true })
-
-      // Default selection highlight for first avatar
-      if (config.id === this.selectedAvatarId) {
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-      }
-
-      img.on('pointerdown', () => {
-        this.selectedAvatarId = config.id
-        if (highlightRect) {
-          highlightRect.destroy()
-        }
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-      })
-    })
-
-    // Randomize button
-    const confirmY = height - 60
-    this.drawPixelPanel(width / 2 + 250, confirmY, 150, 40, 0x2a2a4a, 0x5555aa)
-    const randomizeText = this.add.text(width / 2 + 250, confirmY, 'Randomize', {
-      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-    randomizeText.on('pointerdown', () => {
-      randomizeAvatarConfigs()
-      AvatarRenderer.generateAll(this)
-      this.showAvatarGallery(slot, playerName, true)
-    })
-
-    // CONFIRM button
-    this.drawPixelPanel(width / 2, confirmY, 200, 50, 0x2a6a2a, 0x44aa44)
-    const confirmText = this.add.text(width / 2, confirmY, 'CONFIRM', {
-      fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-    confirmText.on('pointerdown', () => {
-      const profile = createProfile(playerName, this.selectedAvatarId)
-      saveProfile(slot, profile)
-      this.startGame(slot, profile)
-    })
-
-    // Back button
-    const backText = this.add.text(40, height - 60, '< Back', {
-      fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
-    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
-    backText.on('pointerdown', () => {
-      this.startNaming(slot)
-    })
+    // We'll replace this with an AvatarCustomizer in a dedicated scene
+    // For now, let's start the AvatarCustomizerScene
+    this.scene.start('AvatarCustomizer', { slot, playerName })
   }
+
 
   private startGame(slot: number, profile: ProfileData) {
     // Guard against navigating with a deleted/missing profile
