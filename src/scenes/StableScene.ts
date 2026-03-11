@@ -31,6 +31,10 @@ export class StableScene extends Phaser.Scene {
       fontSize: '22px', color: '#cccccc'
     }).setOrigin(0.5)
 
+    this.add.text(width / 2, 115, 'Pets provide auto-strikes that automatically destroy enemies.', {
+      fontSize: '14px', color: '#88aaff', fontStyle: 'italic'
+    }).setOrigin(0.5)
+
     const pets = this.profile.pets
     if (pets.length === 0) {
       this.add.text(width / 2, 300, 'No animal companions yet. Buy some below!', {
