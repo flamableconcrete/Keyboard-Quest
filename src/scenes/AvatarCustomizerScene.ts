@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { createProfile, saveProfile, loadProfile } from '../utils/profile'
 import { ProfileData } from '../types'
-import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS } from '../data/avatars'
+import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
@@ -13,15 +13,18 @@ export class AvatarCustomizerScene extends Phaser.Scene {
   private previewImage!: Phaser.GameObjects.Image
   private isEditingExisting: boolean = false
   private existingProfile!: ProfileData
+  private returnTo: string = 'ProfileSelect'
+  private outfitSlotObjects: Phaser.GameObjects.GameObject[] = []
 
   constructor() {
     super('AvatarCustomizer')
   }
 
-  init(data: { slot: number; playerName: string; isEditingExisting?: boolean }) {
+  init(data: { slot: number; playerName: string; isEditingExisting?: boolean; returnTo?: string }) {
     this.slot = data.slot
     this.playerName = data.playerName
     this.isEditingExisting = data.isEditingExisting || false
+    this.returnTo = data.returnTo || 'ProfileSelect'
 
     if (this.isEditingExisting) {
       const p = loadProfile(this.slot)
@@ -68,18 +71,14 @@ export class AvatarCustomizerScene extends Phaser.Scene {
       fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
-    // Layout
     // Center: Big Avatar
     const avatarX = width / 2
-    const avatarY = height / 2 + 30
-
+    const avatarY = height / 2 - 10
 
     this.previewImage = this.add.image(avatarX, avatarY, '').setScale(3)
-
     this.renderPreview()
 
-    // Selectors Layout
-    // Left and Right Columns
+    // Selectors: Left and Right Columns
     const leftX = width / 2 - 350
     const rightX = width / 2 + 350
     const startY = 150
@@ -95,86 +94,164 @@ export class AvatarCustomizerScene extends Phaser.Scene {
     this.createSelector(rightX, startY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', (val: number) => this.toHexColor(val))
     this.createSelector(rightX, startY + spacing * 3, 'Accessory', ACCESSORIES, 'accessory', (val: string) => val)
 
-    // Outfits System
-    const outfitsY = height - 120
-    this.add.text(width / 2, outfitsY - 40, 'Saved Outfits (Click to Save/Load)', {
-      fontSize: '18px', color: '#aaaaaa', fontFamily: MONO_FONT
+    // Saved Outfits
+    const outfitsY = height - 155
+    this.add.text(width / 2, outfitsY - 30, 'Saved Outfits', {
+      fontSize: '16px', color: '#aaaaaa', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
-    for (let i = 0; i < 5; i++) {
-      this.createOutfitSlot(width / 2 - 200 + i * 100, outfitsY, i)
-    }
+    this.drawOutfitSlots(width / 2, outfitsY)
+
+    // Randomize Button
+    const btnY = height - 55
+    const randomizeBox = this.add.rectangle(width / 2 - 140, btnY, 160, 44, 0x2a2a4a).setStrokeStyle(2, 0x5555aa).setInteractive({ useHandCursor: true })
+    this.add.text(width / 2 - 140, btnY, 'RANDOMIZE', {
+      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+
+    randomizeBox.on('pointerdown', () => {
+      this.config = randomizeOneConfig()
+      this.updateAllDisplays()
+    })
 
     // Confirm Button
-    const confirmY = height - 50
-    const confirmBox = this.add.rectangle(width / 2, confirmY, 200, 50, 0x2a6a2a).setInteractive({ useHandCursor: true })
-    this.add.text(width / 2, confirmY, 'CONFIRM', {
+    const confirmBox = this.add.rectangle(width / 2 + 140, btnY, 160, 44, 0x2a6a2a).setInteractive({ useHandCursor: true })
+    this.add.text(width / 2 + 140, btnY, 'CONFIRM', {
       fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
     confirmBox.on('pointerdown', () => this.handleConfirm())
 
     // Back button
-    const backText = this.add.text(40, height - 60, '< Back', {
+    const backText = this.add.text(40, height - 55, '< Back', {
       fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
     }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
     backText.on('pointerdown', () => {
-      if (this.isEditingExisting) {
-        this.scene.start('ProfileSelect')
+      if (this.returnTo === 'Settings') {
+        this.scene.start('Settings', { profileSlot: this.slot })
       } else {
-        this.scene.start('ProfileSelect') // The startNaming step isn't directly exposed, going to ProfileSelect is safe
+        this.scene.start('ProfileSelect')
       }
     })
   }
 
-  private createOutfitSlot(x: number, y: number, index: number) {
-    const bg = this.add.rectangle(x, y, 60, 60, 0x2a2a4a).setStrokeStyle(2, 0x4444aa).setInteractive({ useHandCursor: true })
-    this.add.text(x, y, `Slot ${index + 1}`, { fontSize: '14px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+  private getProfile(): ProfileData | null {
+    return this.isEditingExisting ? this.existingProfile : loadProfile(this.slot)
+  }
 
-    bg.on('pointerdown', () => {
-      const profile = this.isEditingExisting ? this.existingProfile : loadProfile(this.slot)
-      profile?.savedOutfits || []
+  private drawOutfitSlots(centerX: number, y: number) {
+    // Clear old slot objects
+    this.outfitSlotObjects.forEach(o => o.destroy())
+    this.outfitSlotObjects = []
 
-      // If slot has outfit, load it. If we click again? Let's implement Load on Left Click, Save on Shift+Click?
-      // Better UI: Click to Load if it exists. Right click or Long press to save?
-      // For simplicity: If there's an outfit, let's load it. But we need a way to save.
-      // Let's make the box split in two? Or simply: click to Load. A "Save to Slot" button above?
-      // Or just a single button that cycles "Load / Overwrite" - actually, let's add two small texts "L" and "S"
-    })
+    const slotSpacing = 80
+    const startX = centerX - (4 * slotSpacing) / 2
 
-    // Sub-buttons for Load and Save
-    const loadBtn = this.add.rectangle(x - 15, y + 40, 30, 20, 0x228822).setInteractive({ useHandCursor: true })
-    this.add.text(x - 15, y + 40, 'L', { fontSize: '12px' }).setOrigin(0.5)
-    loadBtn.on('pointerdown', () => {
-      const p = this.isEditingExisting ? this.existingProfile : loadProfile(this.slot)
-      if (p && p.savedOutfits && p.savedOutfits[index]) {
-        this.config = JSON.parse(JSON.stringify(p.savedOutfits[index]))
-        this.config.id = `custom_${Date.now()}`
-        this.updateAllDisplays()
-      }
-    })
+    for (let i = 0; i < 5; i++) {
+      const sx = startX + i * slotSpacing
+      this.drawOneOutfitSlot(sx, y, i)
+    }
+  }
 
-    const saveBtn = this.add.rectangle(x + 15, y + 40, 30, 20, 0x882222).setInteractive({ useHandCursor: true })
-    this.add.text(x + 15, y + 40, 'S', { fontSize: '12px' }).setOrigin(0.5)
-    saveBtn.on('pointerdown', () => {
-      let p = this.isEditingExisting ? this.existingProfile : loadProfile(this.slot)
-      if (!p) {
-        // If profile doesn't exist yet, we can't really save.
-        // But let's create a temporary one if needed, or just warn
-        if (!this.isEditingExisting) {
-          p = createProfile(this.playerName, this.config.id, this.config)
-          saveProfile(this.slot, p)
-        }
-      }
-      if (p) {
-        if (!p.savedOutfits) p.savedOutfits = []
-        p.savedOutfits[index] = JSON.parse(JSON.stringify(this.config))
+  private drawOneOutfitSlot(x: number, y: number, index: number) {
+    const profile = this.getProfile()
+    const outfit = profile?.savedOutfits?.[index] ?? null
+
+    // Frame
+    const frame = this.add.rectangle(x, y, 48, 48, 0x111122).setStrokeStyle(2, outfit ? 0x4444aa : 0x333344)
+    this.outfitSlotObjects.push(frame)
+
+    // Thumbnail or empty label
+    if (outfit) {
+      const thumbKey = `outfit_thumb_${this.slot}_${index}_${Date.now()}`
+      const thumbConfig = { ...outfit, id: thumbKey }
+      AvatarRenderer.generateOne(this, thumbConfig)
+      const thumb = this.add.image(x, y, thumbKey).setDisplaySize(24, 48)
+      this.outfitSlotObjects.push(thumb)
+    } else {
+      const empty = this.add.text(x, y, '--', { fontSize: '14px', color: '#444444', fontFamily: MONO_FONT }).setOrigin(0.5)
+      this.outfitSlotObjects.push(empty)
+    }
+
+    // Slot number
+    const label = this.add.text(x, y - 32, `${index + 1}`, { fontSize: '12px', color: '#666666', fontFamily: MONO_FONT }).setOrigin(0.5)
+    this.outfitSlotObjects.push(label)
+
+    // Icon buttons row below frame
+    const iconY = y + 34
+    const iconSpacing = 20
+
+    // Save button
+    const saveBtn = this.add.text(x - iconSpacing, iconY, '\u2913', { fontSize: '16px', color: '#44aa44', fontFamily: MONO_FONT })
+      .setOrigin(0.5).setInteractive({ useHandCursor: true })
+    saveBtn.on('pointerover', () => saveBtn.setColor('#88ff88'))
+    saveBtn.on('pointerout', () => saveBtn.setColor('#44aa44'))
+    saveBtn.on('pointerdown', () => this.saveOutfit(index, x, y))
+    this.outfitSlotObjects.push(saveBtn)
+
+    // Load button (only if outfit exists)
+    if (outfit) {
+      const loadBtn = this.add.text(x, iconY, '\u2912', { fontSize: '16px', color: '#4488cc', fontFamily: MONO_FONT })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true })
+      loadBtn.on('pointerover', () => loadBtn.setColor('#88ccff'))
+      loadBtn.on('pointerout', () => loadBtn.setColor('#4488cc'))
+      loadBtn.on('pointerdown', () => this.loadOutfit(index))
+      this.outfitSlotObjects.push(loadBtn)
+
+      // Clear button
+      const clearBtn = this.add.text(x + iconSpacing, iconY, '\u2715', { fontSize: '14px', color: '#aa4444', fontFamily: MONO_FONT })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true })
+      clearBtn.on('pointerover', () => clearBtn.setColor('#ff8888'))
+      clearBtn.on('pointerout', () => clearBtn.setColor('#aa4444'))
+      clearBtn.on('pointerdown', () => this.clearOutfit(index))
+      this.outfitSlotObjects.push(clearBtn)
+    }
+  }
+
+  private saveOutfit(index: number, slotX: number, slotY: number) {
+    let p = this.getProfile()
+    if (!p) {
+      if (!this.isEditingExisting) {
+        p = createProfile(this.playerName, this.config.id, this.config)
         saveProfile(this.slot, p)
-        // feedback flash
-        const flash = this.add.rectangle(x, y, 60, 60, 0xffffff, 0.5)
-        this.tweens.add({ targets: flash, alpha: 0, duration: 300, onComplete: () => flash.destroy() })
+      } else {
+        return
       }
-    })
+    }
+    if (!p.savedOutfits) p.savedOutfits = []
+    p.savedOutfits[index] = JSON.parse(JSON.stringify(this.config))
+    saveProfile(this.slot, p)
+    if (this.isEditingExisting) this.existingProfile = p
+
+    // Flash feedback
+    const flash = this.add.rectangle(slotX, slotY, 48, 48, 0x44ff44, 0.5)
+    this.tweens.add({ targets: flash, alpha: 0, duration: 300, onComplete: () => flash.destroy() })
+
+    // Redraw outfit slots to show new thumbnail
+    const { width } = this.scale
+    this.drawOutfitSlots(width / 2, slotY)
+  }
+
+  private loadOutfit(index: number) {
+    const p = this.getProfile()
+    if (p?.savedOutfits?.[index]) {
+      this.config = JSON.parse(JSON.stringify(p.savedOutfits[index]))
+      this.config.id = `custom_${Date.now()}`
+      this.updateAllDisplays()
+    }
+  }
+
+  private clearOutfit(index: number) {
+    const p = this.getProfile()
+    if (p?.savedOutfits) {
+      delete p.savedOutfits[index]
+      saveProfile(this.slot, p)
+      if (this.isEditingExisting) this.existingProfile = p
+
+      // Redraw outfit slots
+      const { width, height } = this.scale
+      this.drawOutfitSlots(width / 2, height - 155)
+    }
   }
 
   private updateAllDisplays() {
@@ -184,12 +261,14 @@ export class AvatarCustomizerScene extends Phaser.Scene {
         c.updateDisplayCallback()
       }
     })
+    // Redraw outfit slots in case config changed
+    const { width, height } = this.scale
+    this.drawOutfitSlots(width / 2, height - 155)
   }
 
   private toHexColor(num: number): string {
     return '#' + num.toString(16).padStart(6, '0')
   }
-
 
   private createSelector(
     x: number,

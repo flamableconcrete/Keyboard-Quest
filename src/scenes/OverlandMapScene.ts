@@ -13,6 +13,7 @@ import { WORLD4_MAP } from '../data/maps/world4'
 import { WORLD5_MAP } from '../data/maps/world5'
 import type { WorldMapData } from '../data/maps/types'
 import { COMMON_FRAMES } from '../data/maps/common'
+import { AvatarRenderer } from '../components/AvatarRenderer'
 
 interface NodePosition { x: number; y: number }
 
@@ -123,7 +124,13 @@ export class OverlandMapScene extends Phaser.Scene {
     this.avatarShadow = this.add.ellipse(startPos.x, startPos.y + 2, 16, 6, 0x000000, 0.25)
       .setDepth(999)
 
-    const avatarTexture = this.profile.avatarChoice || 'avatar_0'
+    // Regenerate custom avatar texture if needed
+    if (this.profile.avatarConfig && !this.textures.exists(this.profile.avatarConfig.id)) {
+      AvatarRenderer.generateOne(this, this.profile.avatarConfig)
+    }
+    const avatarTexture = (this.profile.avatarConfig?.id && this.textures.exists(this.profile.avatarConfig.id))
+      ? this.profile.avatarConfig.id
+      : (this.profile.avatarChoice || 'avatar_0')
     this.avatarBasePos = { x: startPos.x, y: startPos.y }
 this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
     // Scale down the pixel art avatar slightly to fit the map nodes better

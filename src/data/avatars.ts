@@ -160,6 +160,20 @@ const accessoryIndex = (i * 7 + accessoryOffset) % ACCESSORIES.length;
 
 export const AVATAR_CONFIGS: AvatarConfig[] = generateAvatarConfigs();
 
+export function randomizeOneConfig(): AvatarConfig {
+  return {
+    id: `custom_${Date.now()}`,
+    skinTone: SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)],
+    hairStyle: HAIR_STYLES[Math.floor(Math.random() * HAIR_STYLES.length)],
+    hairColor: HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)],
+    eyeColor: EYE_COLORS[Math.floor(Math.random() * EYE_COLORS.length)],
+    accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)],
+    shirtColor: SHIRT_COLORS[Math.floor(Math.random() * SHIRT_COLORS.length)],
+    pantsColor: PANTS_COLORS[Math.floor(Math.random() * PANTS_COLORS.length)],
+    shoeColor: SHOE_COLORS[Math.floor(Math.random() * SHOE_COLORS.length)],
+  }
+}
+
 export function randomizeAvatarConfigs(): void {
   AVATAR_CONFIGS.length = 0;
   const ts = Date.now();

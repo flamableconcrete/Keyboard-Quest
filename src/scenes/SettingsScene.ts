@@ -1,14 +1,10 @@
 // src/scenes/SettingsScene.ts
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
-import { AvatarRenderer } from '../components/AvatarRenderer'
-
-const MONO_FONT = '"Courier New", Courier, monospace'
+import { ALL_LEVELS } from '../data/levels'
 
 export class SettingsScene extends Phaser.Scene {
   private profileSlot!: number
-  private selectedAvatarId: string = ''
 
   constructor() { super('Settings') }
 
@@ -45,7 +41,12 @@ export class SettingsScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     changeAvatarBtn.on('pointerdown', () => {
-      this.showAvatarGallery(profile.avatarChoice)
+      this.scene.start('AvatarCustomizer', {
+        slot: this.profileSlot,
+        playerName: profile.playerName,
+        isEditingExisting: true,
+        returnTo: 'Settings'
+      })
     })
 
     // Game Mode label
@@ -124,131 +125,62 @@ export class SettingsScene extends Phaser.Scene {
     onBtn.on('pointerdown', () => setHints(true))
     offBtn.on('pointerdown', () => setHints(false))
 
+    // Debug: Unlock All Levels toggle
+    const allLevelIds = ALL_LEVELS.map(l => l.id)
+    const allUnlocked = allLevelIds.every(id => profile.unlockedLevelIds.includes(id))
+
+    const unlockBtn = this.add.text(width / 2, 610, allUnlocked ? '[ Lock Levels ]' : '[ Unlock All Levels ]', {
+      fontSize: '20px',
+      color: allUnlocked ? '#ff6666' : '#66ff66',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    this.add.text(width / 2, 648, 'DEBUG', {
+      fontSize: '12px', color: '#666666',
+    }).setOrigin(0.5)
+
+    unlockBtn.on('pointerdown', () => {
+      const p = loadProfile(this.profileSlot)!
+      const debugIds = p.debugUnlockedLevelIds ?? []
+      if (allUnlocked) {
+        // Remove only debug-added entries, keep legitimately earned ones
+        p.unlockedLevelIds = p.unlockedLevelIds.filter(id => !debugIds.includes(id))
+        for (const id of debugIds) {
+          delete p.levelResults[id]
+        }
+        p.debugUnlockedLevelIds = undefined
+      } else {
+        // Track which levels and results we're adding for debug
+        const newDebugIds: string[] = []
+        for (const level of ALL_LEVELS) {
+          if (!p.unlockedLevelIds.includes(level.id)) {
+            p.unlockedLevelIds.push(level.id)
+            newDebugIds.push(level.id)
+          }
+          if (!p.levelResults[level.id]) {
+            p.levelResults[level.id] = {
+              accuracyStars: 5,
+              speedStars: 5,
+              completedAt: Date.now(),
+            }
+            if (!newDebugIds.includes(level.id)) {
+              newDebugIds.push(level.id)
+            }
+          }
+        }
+        p.debugUnlockedLevelIds = newDebugIds
+      }
+      saveProfile(this.profileSlot, p)
+      this.renderSettings()
+    })
+
     // Back button
     const back = this.add.text(60, 40, '← BACK', {
       fontSize: '22px', color: '#aaaaff'
     }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
     back.on('pointerdown', () => {
       this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
-    })
-  }
-
-  private showAvatarGallery(currentAvatar: string, keepSelected: boolean = false) {
-    this.children.removeAll(true)
-    this.selectedAvatarId = currentAvatar
-    if (!keepSelected || !AVATAR_CONFIGS.some(c => c.id === this.selectedAvatarId)) {
-      this.selectedAvatarId = AVATAR_CONFIGS.some(c => c.id === currentAvatar) ? currentAvatar : (AVATAR_CONFIGS[0]?.id || 'avatar_0')
-    }
-    const { width, height } = this.scale
-
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
-
-    // Title
-    this.add.text(width / 2, 60, 'Choose Your Avatar', {
-      fontSize: '32px', color: '#ffd700', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    // Avatar grid
-    const cols = 6
-    const cellSize = 72
-    const gridWidth = cols * cellSize
-    const startX = width / 2 - gridWidth / 2 + cellSize / 2
-    const startY = 140
-
-    let highlightRect: Phaser.GameObjects.Rectangle | null = null
-
-    AVATAR_CONFIGS.forEach((config, index) => {
-      const col = index % cols
-      const row = Math.floor(index / cols)
-      const ax = startX + col * cellSize
-      const ay = startY + row * cellSize
-
-      // Dark frame
-      const frame = this.add.rectangle(ax, ay, 56, 56, 0x2a2a4a)
-      frame.setStrokeStyle(2, 0x4444aa)
-
-      // Avatar image
-      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
-      img.setInteractive({ useHandCursor: true })
-
-      // Default selection highlight
-      if (config.id === this.selectedAvatarId) {
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-      }
-
-      img.on('pointerdown', () => {
-        this.selectedAvatarId = config.id
-        if (highlightRect) {
-          highlightRect.destroy()
-        }
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-      })
-    })
-
-    // Buttons
-    const confirmY = height - 80
-
-    // Randomize button
-    const randomizeBg = this.add.rectangle(width / 2 + 200, confirmY, 150, 40, 0x2a2a4a)
-    randomizeBg.setStrokeStyle(2, 0x5555aa)
-    randomizeBg.setInteractive({ useHandCursor: true })
-
-    this.add.text(width / 2 + 200, confirmY, 'Randomize', {
-      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    randomizeBg.on('pointerdown', () => {
-      randomizeAvatarConfigs()
-      AvatarRenderer.generateAll(this)
-      this.showAvatarGallery(this.selectedAvatarId, true)
-    })
-
-    // Customize button
-    const customizeBg = this.add.rectangle(width / 2 - 200, confirmY, 150, 40, 0x2a6a2a)
-    customizeBg.setStrokeStyle(2, 0x44aa44)
-    customizeBg.setInteractive({ useHandCursor: true })
-
-    this.add.text(width / 2 - 200, confirmY, 'Customize', {
-      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    customizeBg.on('pointerdown', () => {
-      const p = loadProfile(this.profileSlot)!
-      this.scene.start('AvatarCustomizer', {
-        slot: this.profileSlot,
-        playerName: p.playerName,
-        isEditingExisting: true
-      })
-    })
-
-    // CONFIRM button
-    // Simple rect for background instead of drawPixelPanel since it might not exist here
-    const confirmBg = this.add.rectangle(width / 2, confirmY, 200, 50, 0x2a6a2a)
-    confirmBg.setStrokeStyle(2, 0x44aa44)
-    confirmBg.setInteractive({ useHandCursor: true })
-
-    this.add.text(width / 2, confirmY, 'CONFIRM', {
-      fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
-    }).setOrigin(0.5)
-
-    confirmBg.on('pointerdown', () => {
-      const p = loadProfile(this.profileSlot)!
-      p.avatarChoice = this.selectedAvatarId
-      saveProfile(this.profileSlot, p)
-      this.renderSettings()
-    })
-
-    // Back button
-    const backText = this.add.text(60, 40, '← Back', {
-      fontSize: '22px', color: '#aaaaff', fontFamily: MONO_FONT
-    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
-    backText.on('pointerdown', () => {
-      this.renderSettings()
     })
   }
 

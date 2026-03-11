@@ -55,6 +55,7 @@ export interface ProfileData {
   showFingerHints: boolean
   avatarConfig?: AvatarConfig
   savedOutfits?: AvatarConfig[]
+  debugUnlockedLevelIds?: string[]
 }
 
 export type LevelType =

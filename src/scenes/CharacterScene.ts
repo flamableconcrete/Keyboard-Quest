@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { ProfileData, ItemData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
-import { AVATAR_CONFIGS, randomizeAvatarConfigs } from '../data/avatars'
+import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
 const MONO_FONT = 'monospace'
@@ -14,7 +14,9 @@ export class CharacterScene extends Phaser.Scene {
   private selectionContainer!: Phaser.GameObjects.Container
 
   private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
-  private selectedAvatarId: string = ''
+  private avatarConfig!: AvatarConfig
+  private avatarPreviewImage!: Phaser.GameObjects.Image
+  private avatarDirty = false
 
   constructor() {
     super('Character')
@@ -23,7 +25,23 @@ export class CharacterScene extends Phaser.Scene {
   init(data: { profileSlot: number }) {
     this.profileSlot = data.profileSlot
     this.profile = loadProfile(this.profileSlot)!
-    this.selectedAvatarId = this.profile.avatarChoice || 'avatar_0'
+
+    // Initialize avatar config once from profile
+    if (this.profile.avatarConfig) {
+      this.avatarConfig = JSON.parse(JSON.stringify(this.profile.avatarConfig))
+    } else {
+      this.avatarConfig = {
+        id: `custom_${Date.now()}`,
+        skinTone: SKIN_TONES[0],
+        hairStyle: HAIR_STYLES[0],
+        hairColor: HAIR_COLORS[0],
+        eyeColor: EYE_COLORS[0],
+        accessory: ACCESSORIES[0],
+        shirtColor: SHIRT_COLORS[0],
+        pantsColor: PANTS_COLORS[0],
+        shoeColor: SHOE_COLORS[0],
+      }
+    }
   }
 
   create() {
@@ -54,7 +72,13 @@ export class CharacterScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
-        this.scene.resume('OverlandMap')
+        if (this.avatarDirty) {
+          // Restart OverlandMap so it picks up the new avatar
+          this.scene.stop('OverlandMap')
+          this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+        } else {
+          this.scene.resume('OverlandMap')
+        }
         this.scene.stop()
       })
 
@@ -136,91 +160,229 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawAvatarTab(startX: number, startY: number) {
-    this.addSectionTitle(this.container, startY, 'AVATAR')
+    this.addSectionTitle(this.container, startY, 'EDIT HERO')
 
-    const cols = 6
-    const cellSize = 72
-    const gridStartX = startX + 50 + cellSize / 2
-    const gridStartY = startY + 100
+    const { width } = this.scale
 
-    let highlightRect: Phaser.GameObjects.Rectangle | null = null
+    // Avatar preview in center
+    const avatarX = width / 2 + 40
+    const avatarY = startY + 220
+    this.renderTabPreview()
+    this.avatarPreviewImage = this.add.image(avatarX, avatarY, this.avatarConfig.id).setScale(2)
+    this.container.add(this.avatarPreviewImage)
 
-    AVATAR_CONFIGS.forEach((config, index) => {
-      const col = index % cols
-      const row = Math.floor(index / cols)
-      const ax = gridStartX + col * cellSize
-      const ay = gridStartY + row * cellSize
+    // Selector columns flanking the avatar
+    const leftX = startX + 140
+    const rightX = width / 2 + 280
+    const selectorY = startY + 60
+    const spacing = 42
 
-      // Dark frame
-      const frame = this.add.rectangle(ax, ay, 56, 56, 0x2a2a4a)
-      frame.setStrokeStyle(2, 0x4444aa)
-      this.container.add(frame)
+    const toHex = (num: number) => '#' + num.toString(16).padStart(6, '0')
 
-      // Avatar image
-      const img = this.add.image(ax, ay, config.id).setDisplaySize(36, 72)
-      img.setInteractive({ useHandCursor: true })
-      this.container.add(img)
+    // Left column
+    this.createTabSelector(leftX, selectorY, 'Skin', SKIN_TONES, 'skinTone', toHex)
+    this.createTabSelector(leftX, selectorY + spacing, 'Hair Style', HAIR_STYLES, 'hairStyle', (v: string) => v)
+    this.createTabSelector(leftX, selectorY + spacing * 2, 'Hair Color', HAIR_COLORS, 'hairColor', toHex)
+    this.createTabSelector(leftX, selectorY + spacing * 3, 'Eyes', EYE_COLORS, 'eyeColor', toHex)
 
-      // Default selection highlight
-      if (config.id === this.selectedAvatarId) {
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-        this.container.add(highlightRect)
-      }
+    // Right column
+    this.createTabSelector(rightX, selectorY, 'Shirt', SHIRT_COLORS, 'shirtColor', toHex)
+    this.createTabSelector(rightX, selectorY + spacing, 'Pants', PANTS_COLORS, 'pantsColor', toHex)
+    this.createTabSelector(rightX, selectorY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', toHex)
+    this.createTabSelector(rightX, selectorY + spacing * 3, 'Accessory', ACCESSORIES, 'accessory', (v: string) => v)
 
-      img.on('pointerdown', () => {
-        this.selectedAvatarId = config.id
-        this.profile.avatarChoice = this.selectedAvatarId
-        saveProfile(this.profileSlot, this.profile)
+    // Saved Outfits row
+    const outfitsY = startY + 365
+    const outfitsLabel = this.add.text(avatarX, outfitsY - 25, 'Saved Outfits', {
+      fontSize: '13px', color: '#aaaaaa', fontFamily: MONO_FONT
+    }).setOrigin(0.5)
+    this.container.add(outfitsLabel)
 
-        if (highlightRect) {
-          highlightRect.destroy()
-        }
-        highlightRect = this.add.rectangle(ax, ay, 60, 60)
-        highlightRect.setFillStyle(0x000000, 0)
-        highlightRect.setStrokeStyle(3, 0xffd700)
-        this.container.add(highlightRect)
-      })
-    })
+    this.drawTabOutfitSlots(avatarX, outfitsY)
 
-    // Buttons row
-    const confirmY = startY + 450
+    // Buttons
+    const btnY = startY + 460
 
     // Randomize button
-    const randomizeBg = this.add.rectangle(startX + 150, confirmY, 150, 40, 0x2a2a4a).setStrokeStyle(2, 0x5555aa)
+    const randomizeBg = this.add.rectangle(avatarX - 100, btnY, 130, 34, 0x2a2a4a).setStrokeStyle(2, 0x5555aa)
       .setInteractive({ useHandCursor: true })
-    const randomizeText = this.add.text(startX + 150, confirmY, 'Randomize', {
-      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    const randomizeText = this.add.text(avatarX - 100, btnY, 'Randomize', {
+      fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
+    this.container.add([randomizeBg, randomizeText])
 
     randomizeBg.on('pointerdown', () => {
-      randomizeAvatarConfigs()
-      AvatarRenderer.generateAll(this)
-      this.selectedAvatarId = AVATAR_CONFIGS[0]?.id || 'avatar_0'
-      this.profile.avatarChoice = this.selectedAvatarId
-      saveProfile(this.profileSlot, this.profile)
-      this.drawActiveTab() // Redraw to show new avatars
+      this.avatarConfig = randomizeOneConfig()
+      this.drawActiveTab()
     })
 
-    // Customize button
-    const customizeBg = this.add.rectangle(startX + 400, confirmY, 150, 40, 0x2a6a2a).setStrokeStyle(2, 0x44aa44)
+    // Save button
+    const saveBg = this.add.rectangle(avatarX + 100, btnY, 130, 34, 0x2a6a2a).setStrokeStyle(2, 0x44aa44)
       .setInteractive({ useHandCursor: true })
-    const customizeText = this.add.text(startX + 400, confirmY, 'Customize', {
-      fontSize: '20px', color: '#ffffff', fontFamily: MONO_FONT
+    const saveText = this.add.text(avatarX + 100, btnY, 'Save', {
+      fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
+    this.container.add([saveBg, saveText])
 
-    customizeBg.on('pointerdown', () => {
-      this.scene.resume('OverlandMap')
-      this.scene.stop()
-      this.scene.get('OverlandMap').scene.start('AvatarCustomizer', {
-        slot: this.profileSlot,
-        playerName: this.profile.playerName,
-        isEditingExisting: true
+    saveBg.on('pointerdown', () => {
+      this.renderTabPreview()
+      this.profile.avatarConfig = JSON.parse(JSON.stringify(this.avatarConfig))
+      this.profile.avatarChoice = this.avatarConfig.id
+      saveProfile(this.profileSlot, this.profile)
+      this.avatarDirty = true
+
+      saveBg.setFillStyle(0x44ff44)
+      const savedLabel = this.add.text(avatarX + 100, btnY, 'Saved!', {
+        fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT
+      }).setOrigin(0.5)
+      this.container.add(savedLabel)
+      this.time.delayedCall(500, () => {
+        saveBg.setFillStyle(0x2a6a2a)
+        savedLabel.destroy()
       })
     })
+  }
 
-    this.container.add([randomizeBg, randomizeText, customizeBg, customizeText])
+  private drawTabOutfitSlots(centerX: number, y: number) {
+    const slotSpacing = 65
+    const startX = centerX - (4 * slotSpacing) / 2
+
+    for (let i = 0; i < 5; i++) {
+      const sx = startX + i * slotSpacing
+      this.drawOneTabOutfitSlot(sx, y, i)
+    }
+  }
+
+  private drawOneTabOutfitSlot(x: number, y: number, index: number) {
+    const outfit = this.profile.savedOutfits?.[index] ?? null
+
+    // Frame
+    const frame = this.add.rectangle(x, y, 40, 40, 0x111122).setStrokeStyle(1, outfit ? 0x4444aa : 0x333344)
+    this.container.add(frame)
+
+    // Thumbnail or empty
+    if (outfit) {
+      const thumbKey = `tab_outfit_${this.profileSlot}_${index}_${Date.now()}`
+      const thumbConfig = { ...outfit, id: thumbKey }
+      AvatarRenderer.generateOne(this, thumbConfig)
+      const thumb = this.add.image(x, y, thumbKey).setDisplaySize(20, 40)
+      this.container.add(thumb)
+    } else {
+      const empty = this.add.text(x, y, '--', { fontSize: '11px', color: '#444444', fontFamily: MONO_FONT }).setOrigin(0.5)
+      this.container.add(empty)
+    }
+
+    // Icon buttons below frame
+    const iconY = y + 28
+    const iconSpacing = 16
+
+    // Save icon
+    const saveBtn = this.add.text(x - iconSpacing, iconY, '\u2913', { fontSize: '13px', color: '#44aa44', fontFamily: MONO_FONT })
+      .setOrigin(0.5).setInteractive({ useHandCursor: true })
+    saveBtn.on('pointerover', () => saveBtn.setColor('#88ff88'))
+    saveBtn.on('pointerout', () => saveBtn.setColor('#44aa44'))
+    saveBtn.on('pointerdown', () => {
+      if (!this.profile.savedOutfits) this.profile.savedOutfits = []
+      this.profile.savedOutfits[index] = JSON.parse(JSON.stringify(this.avatarConfig))
+      saveProfile(this.profileSlot, this.profile)
+      // Flash + redraw
+      const flash = this.add.rectangle(x, y, 40, 40, 0x44ff44, 0.5)
+      this.container.add(flash)
+      this.tweens.add({ targets: flash, alpha: 0, duration: 300, onComplete: () => { flash.destroy(); this.drawActiveTab() } })
+    })
+    this.container.add(saveBtn)
+
+    // Load icon (only if outfit exists)
+    if (outfit) {
+      const loadBtn = this.add.text(x, iconY, '\u2912', { fontSize: '13px', color: '#4488cc', fontFamily: MONO_FONT })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true })
+      loadBtn.on('pointerover', () => loadBtn.setColor('#88ccff'))
+      loadBtn.on('pointerout', () => loadBtn.setColor('#4488cc'))
+      loadBtn.on('pointerdown', () => {
+        this.avatarConfig = JSON.parse(JSON.stringify(outfit))
+        this.avatarConfig.id = `custom_${Date.now()}`
+        this.drawActiveTab()
+      })
+      this.container.add(loadBtn)
+
+      // Clear icon
+      const clearBtn = this.add.text(x + iconSpacing, iconY, '\u2715', { fontSize: '11px', color: '#aa4444', fontFamily: MONO_FONT })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true })
+      clearBtn.on('pointerover', () => clearBtn.setColor('#ff8888'))
+      clearBtn.on('pointerout', () => clearBtn.setColor('#aa4444'))
+      clearBtn.on('pointerdown', () => {
+        if (this.profile.savedOutfits) {
+          delete this.profile.savedOutfits[index]
+          saveProfile(this.profileSlot, this.profile)
+          this.drawActiveTab()
+        }
+      })
+      this.container.add(clearBtn)
+    }
+  }
+
+  private createTabSelector(
+    x: number,
+    y: number,
+    label: string,
+    options: any[],
+    key: keyof AvatarConfig,
+    formatVal: (val: any) => string
+  ) {
+    this.container.add(
+      this.add.text(x, y - 16, label, { fontSize: '13px', color: '#aaaaaa', fontFamily: MONO_FONT }).setOrigin(0.5)
+    )
+
+    this.container.add(
+      this.add.rectangle(x, y + 5, 160, 24, 0x111122).setStrokeStyle(1, 0x333366)
+    )
+
+    const isColor = typeof this.avatarConfig[key] === 'number'
+    let colorSwatch: Phaser.GameObjects.Rectangle | null = null
+    let valText: Phaser.GameObjects.Text
+
+    if (isColor) {
+      colorSwatch = this.add.rectangle(x - 40, y + 5, 16, 16, this.avatarConfig[key] as number)
+      valText = this.add.text(x + 10, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+      this.container.add(colorSwatch)
+    } else {
+      valText = this.add.text(x, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+    }
+    this.container.add(valText)
+
+    const leftBtn = this.add.text(x - 68, y + 5, '<', { fontSize: '20px', color: '#ffd700', fontFamily: MONO_FONT })
+      .setOrigin(0.5).setInteractive({ useHandCursor: true })
+    const rightBtn = this.add.text(x + 68, y + 5, '>', { fontSize: '20px', color: '#ffd700', fontFamily: MONO_FONT })
+      .setOrigin(0.5).setInteractive({ useHandCursor: true })
+    this.container.add([leftBtn, rightBtn])
+
+    const update = () => {
+      valText.setText(formatVal(this.avatarConfig[key]))
+      if (colorSwatch && typeof this.avatarConfig[key] === 'number') {
+        colorSwatch.setFillStyle(this.avatarConfig[key] as number)
+      }
+      this.renderTabPreview()
+      this.avatarPreviewImage.setTexture(this.avatarConfig.id)
+    }
+
+    leftBtn.on('pointerdown', () => {
+      let idx = options.indexOf(this.avatarConfig[key] as any)
+      idx = (idx - 1 + options.length) % options.length
+      ;(this.avatarConfig as any)[key] = options[idx]
+      update()
+    })
+
+    rightBtn.on('pointerdown', () => {
+      let idx = options.indexOf(this.avatarConfig[key] as any)
+      idx = (idx + 1) % options.length
+      ;(this.avatarConfig as any)[key] = options[idx]
+      update()
+    })
+  }
+
+  private renderTabPreview() {
+    this.avatarConfig.id = `custom_${Date.now()}`
+    AvatarRenderer.generateOne(this, this.avatarConfig)
   }
 
   private addSectionTitle(container: Phaser.GameObjects.Container, y: number, text: string) {
