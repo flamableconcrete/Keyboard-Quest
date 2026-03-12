@@ -10,6 +10,7 @@ import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
+import { TypingHands } from '../../components/TypingHands'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -58,6 +59,10 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private timerText!: Phaser.GameObjects.Text
+  private counterText!: Phaser.GameObjects.Text
+
+  // Finger hints
+  private typingHands?: TypingHands
 
   // Dust
   private dustParticles: Array<{ img: Phaser.GameObjects.Image; speedY: number; speedX: number }> = []
@@ -97,8 +102,9 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       .setDisplaySize(width, height).setDepth(0)
 
     // ── Floor tiles ───────────────────────────────────────────────
-    const floorY = height - 40
-    this.heroBaseY = floorY - 50
+    // Floor at ~62% height (matching GoblinWhacker's pathY) so finger hints fit below
+    const floorY = height * 0.62
+    this.heroBaseY = floorY
     const tileW = 160
     const tilesNeeded = Math.ceil(width / tileW) + 2
     for (let i = 0; i < tilesNeeded; i++) {
@@ -107,13 +113,17 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       this.floorTiles.push(tile)
     }
 
-    // ── Hero ──────────────────────────────────────────────────────
+    // ── Hero (just left of center) ───────────────────────────────
+    const heroX = width * 0.35
     const profile = loadProfile(this.profileSlot)
     const avatarKey = this.textures.exists(profile?.avatarChoice || '')
       ? profile!.avatarChoice : 'avatar_0'
-    this.hero = this.add.image(200, this.heroBaseY, avatarKey)
+    this.hero = this.add.image(heroX, this.heroBaseY, avatarKey)
       .setScale(1.5).setDepth(5)
-    new CompanionAndPetRenderer(this, 200, this.heroBaseY, this.profileSlot)
+    // Companion/pet to the LEFT of the hero
+    // CompanionAndPetRenderer places pet at anchor+70, companion at anchor+145
+    // So anchor = heroX-215 puts pet at heroX-145, companion at heroX-70
+    new CompanionAndPetRenderer(this, heroX - 215, this.heroBaseY, this.profileSlot)
 
     // ── HUD: Hearts ───────────────────────────────────────────────
     this.buildHeartHUD()
@@ -130,12 +140,23 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 3, fill: true }
     }).setOrigin(0.5, 0).setDepth(10)
 
-    // ── Typing Engine ─────────────────────────────────────────────
+    // ── HUD: Obstacle Counter ────────────────────────────────────
+    this.counterText = this.add.text(width - 20, 50, '', {
+      fontSize: '18px', color: '#ffaaaa', fontFamily: 'monospace',
+      shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 3, fill: true }
+    }).setOrigin(1, 0).setDepth(11)
+
+    // ── Typing Engine (below floor) ──────────────────────────────
     this.engine = new TypingEngine({
       scene: this, x: width / 2, y: height - 80, fontSize: 40,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
     })
+
+    // ── Finger Hints (below floor, like GoblinWhacker) ───────────
+    if (profile?.showFingerHints) {
+      this.typingHands = new TypingHands(this, width / 2, height - 100)
+    }
 
     // ── Word Pool ─────────────────────────────────────────────────
     const difficulty = Math.ceil(this.level.world / 2)
@@ -144,6 +165,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       this.level.world === 1 ? 5 : undefined
     )
     this.wordQueue = [...this.words]
+    this.updateCounterText()
 
     // ── Timer ─────────────────────────────────────────────────────
     if (this.level.timeLimit) {
@@ -242,6 +264,10 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     this.timerText.setColor(urgent ? '#ff4444' : '#ffcc44')
   }
 
+  private updateCounterText() {
+    this.counterText.setText(`Obstacles: ${this.wordsCompleted} / ${this.words.length}`)
+  }
+
   // ── Dust ─────────────────────────────────────────────────────────
   private spawnDustParticles() {
     const { width, height } = this.scale
@@ -277,7 +303,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       : type === 'boulder' ? 'obstacle_boulder'
       : 'obstacle_door'
 
-    const floorTopY = this.scale.height - 40
+    const floorTopY = this.heroBaseY + 40  // top of floor tiles
     let spriteY: number
     if (type === 'door') {
       spriteY = floorTopY - 60
@@ -300,7 +326,8 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     const obstacle: Obstacle = { type, word, sprite, label, x: startX }
     this.currentObstacle = obstacle
 
-    const targetX = 320
+    const heroX = this.hero.x
+    const targetX = heroX + 120
     const dist = startX - targetX
     const duration = (dist / this.scrollSpeed) * 1000
 
@@ -325,6 +352,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     if (!this.currentObstacle) return
     const obs = this.currentObstacle
     this.wordsCompleted++
+    this.updateCounterText()
 
     this.playClearAnimation(obs, () => {
       obs.sprite.destroy()
@@ -401,6 +429,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       obs.label.destroy()
       this.currentObstacle = null
       this.wordsCompleted++
+      this.updateCounterText()
 
       if (this.playerHp <= 0) {
         this.endLevel(false)
@@ -447,6 +476,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     this.stopWalking()
     this.timerEvent?.remove()
     this.engine.destroy()
+    this.typingHands?.fadeOut()
 
     if (!passed) {
       const { width, height } = this.scale
