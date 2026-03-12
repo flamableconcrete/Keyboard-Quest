@@ -230,11 +230,14 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         : unlocked && !gated ? 0xffffff
         : 0x444444
 
+      // 2.5x larger for world bosses
+      const baseScale = level.isBoss ? 3.75 : 1.5
+
       // Base oval
-      this.add.ellipse(pos.x, pos.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
+      this.add.ellipse(pos.x, pos.y + (16 * (baseScale / 1.5)), 64 * (baseScale / 1.5), 24 * (baseScale / 1.5), 0x8b6b3a).setDepth(998)
 
       const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
-      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(1.5)
+      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(baseScale)
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
@@ -243,8 +246,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerover', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1.5 * 1.15,
-            scaleY: 1.5 * 1.15,
+            scaleX: baseScale * 1.15,
+            scaleY: baseScale * 1.15,
             duration: 150,
             ease: 'Back.easeOut',
           })
@@ -252,7 +255,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           this.glowRect?.destroy()
           this.glowRect = this.add.rectangle(
             pos.x, pos.y,
-            (nodeSprite.width * 1.5) + 12, (nodeSprite.height * 1.5) + 12,
+            (nodeSprite.width * baseScale) + 12, (nodeSprite.height * baseScale) + 12,
             0xffffff, 0.2
           ).setDepth(nodeSprite.depth - 1)
           this.showTooltip(level, pos)
@@ -261,8 +264,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerout', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1.5,
-            scaleY: 1.5,
+            scaleX: baseScale,
+            scaleY: baseScale,
             duration: 150,
             ease: 'Sine.easeIn',
           })

@@ -101,7 +101,7 @@ export class LevelResultScene extends Phaser.Scene {
     this.unlockNextLevels(level)
 
     // Letter unlock if mini-boss
-    if (level.miniBossUnlocksLetter && !this.profile.unlockedLetters.includes(level.miniBossUnlocksLetter)) {
+    if (level.isMiniBoss && level.miniBossUnlocksLetter && !this.profile.unlockedLetters.includes(level.miniBossUnlocksLetter)) {
       this.profile.unlockedLetters.push(level.miniBossUnlocksLetter)
     }
 
@@ -169,7 +169,7 @@ export class LevelResultScene extends Phaser.Scene {
     }
 
     // Letter unlock banner
-    if (level.miniBossUnlocksLetter) {
+    if (level.isMiniBoss && level.miniBossUnlocksLetter) {
       this.add.text(width / 2, yPos, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
         fontSize: '26px', color: '#aaaaff'
       }).setOrigin(0.5)
@@ -184,7 +184,7 @@ export class LevelResultScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     const doContinue = () => {
-      if (this.resultData.level.miniBossUnlocksLetter && passed) {
+      if (this.resultData.level.isMiniBoss && this.resultData.level.miniBossUnlocksLetter && passed) {
         this.scene.start('Cutscene', {
           letter: this.resultData.level.miniBossUnlocksLetter,
           title: this.resultData.level.rewards.title ?? 'A new letter awakens!',
@@ -237,6 +237,15 @@ export class LevelResultScene extends Phaser.Scene {
       const next = worldLevels[idx + 1]
       if (!this.profile.unlockedLevelIds.includes(next.id)) {
         this.profile.unlockedLevelIds.push(next.id)
+      }
+    } else if (completedLevel.isBoss) {
+      // If this is the last level (a boss), unlock the first level of the next world
+      const nextWorldLevels = getLevelsForWorld(completedLevel.world + 1)
+      if (nextWorldLevels && nextWorldLevels.length > 0) {
+        const nextWorldFirstLevel = nextWorldLevels[0]
+        if (!this.profile.unlockedLevelIds.includes(nextWorldFirstLevel.id)) {
+          this.profile.unlockedLevelIds.push(nextWorldFirstLevel.id)
+        }
       }
     }
   }
