@@ -189,11 +189,11 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     this.spawnDustParticles()
 
     // ── Scroll speed ──────────────────────────────────────────────
-    this.scrollSpeed = 300
+    this.scrollSpeed = 600
 
     // ── Start: walk then spawn first obstacle ─────────────────────
     this.startWalking()
-    this.time.delayedCall(600, () => this.spawnNextObstacle())
+    this.time.delayedCall(300, () => this.spawnNextObstacle())
   }
 
   // ── Walking ──────────────────────────────────────────────────────
@@ -326,6 +326,9 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     const obstacle: Obstacle = { type, word, sprite, label, x: startX }
     this.currentObstacle = obstacle
 
+    // Let the player start typing immediately while obstacle scrolls in
+    this.engine.setWord(word)
+
     const heroX = this.hero.x
     const targetX = heroX + 120
     const dist = startX - targetX
@@ -341,8 +344,10 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       onUpdate: () => { label.setX(sprite.x) },
       onComplete: () => {
         obstacle.x = targetX
-        this.stopWalking()
-        this.engine.setWord(word)
+        // If word was already typed while scrolling, don't stop
+        if (this.currentObstacle === obstacle) {
+          this.stopWalking()
+        }
       }
     })
   }
@@ -359,7 +364,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       obs.label.destroy()
       this.currentObstacle = null
       this.startWalking()
-      this.time.delayedCall(400, () => this.spawnNextObstacle())
+      this.time.delayedCall(150, () => this.spawnNextObstacle())
     })
   }
 
@@ -435,7 +440,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
         this.endLevel(false)
       } else {
         this.startWalking()
-        this.time.delayedCall(600, () => this.spawnNextObstacle())
+        this.time.delayedCall(150, () => this.spawnNextObstacle())
       }
     }
   }
