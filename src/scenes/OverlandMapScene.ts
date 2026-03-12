@@ -214,8 +214,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       const r = this.profile.levelResults[id]
       return sum + (r ? r.accuracyStars + r.speedStars : 0)
     }, 0)
-    const avg = total / levelIds.length
-    return avg >= minCombinedStars
+    return total >= minCombinedStars
   }
 
   private drawNodes(levels: LevelConfig[], nodePositions: NodePosition[]) {
@@ -320,7 +319,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           repeat: -1,
         })
         const gate = level.bossGate!
-        this.add.text(pos.x, pos.y + 24, `Need avg ${gate.minCombinedStars}★`, {
+        this.add.text(pos.x, pos.y + 24, `Need ${gate.minCombinedStars}★ total`, {
           fontSize: '10px', color: '#ff8888'
         }).setOrigin(0.5).setDepth(2000)
       }
