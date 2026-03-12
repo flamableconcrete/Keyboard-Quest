@@ -1,6 +1,7 @@
 // src/scenes/LevelIntroScene.ts
 import Phaser from 'phaser'
 import { LevelConfig, LevelType } from '../types'
+import { getSpeedThresholds } from '../utils/scoring'
 
 const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
   GoblinWhacker:      '⚔️ Wave Defence',
@@ -46,6 +47,14 @@ export class LevelIntroScene extends Phaser.Scene {
 
     this.add.text(width / 2, height * 0.42, this.level.storyBeat, {
       fontSize: '20px', color: '#cccccc', wordWrap: { width: 800 }, align: 'center'
+    }).setOrigin(0.5)
+
+    const thresholds = getSpeedThresholds(this.level.world)
+
+    // Create a container or just text for the thresholds
+    const targetsText = `🎯 Target Speeds: ⭐⭐⭐ ${thresholds.star3} WPM | ⭐⭐⭐⭐ ${thresholds.star4} WPM | ⭐⭐⭐⭐⭐ ${thresholds.star5} WPM`
+    this.add.text(width / 2, height * 0.55, targetsText, {
+      fontSize: '18px', color: '#ffffaa', align: 'center'
     }).setOrigin(0.5)
 
     const prompt = this.add.text(width / 2, height * 0.72, 'Press SPACE or click to begin', {
