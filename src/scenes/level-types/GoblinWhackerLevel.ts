@@ -10,6 +10,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 interface Goblin {
   word: string
@@ -86,8 +87,15 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
     // Hero sprite
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(80, this.pathY, avatarKey).setScale(1.5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(160, this.pathY + 10, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
     // HUD - HP hearts
     this.hpHearts = []

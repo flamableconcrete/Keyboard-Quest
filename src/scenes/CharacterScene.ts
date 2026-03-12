@@ -264,7 +264,7 @@ export class CharacterScene extends Phaser.Scene {
     if (outfit) {
       const thumbKey = `tab_outfit_${this.profileSlot}_${index}_${Date.now()}`
       const thumbConfig = { ...outfit, id: thumbKey }
-      AvatarRenderer.generateOne(this, thumbConfig)
+      AvatarRenderer.generateOne(this, thumbConfig, this.profile.equipment)
       const thumb = this.add.image(x, y, thumbKey).setDisplaySize(20, 40)
       this.container.add(thumb)
     } else {
@@ -382,7 +382,7 @@ export class CharacterScene extends Phaser.Scene {
 
   private renderTabPreview() {
     this.avatarConfig.id = `custom_${Date.now()}`
-    AvatarRenderer.generateOne(this, this.avatarConfig)
+    AvatarRenderer.generateOne(this, this.avatarConfig, this.profile.equipment)
   }
 
   private addSectionTitle(container: Phaser.GameObjects.Container, y: number, text: string) {
@@ -519,6 +519,19 @@ export class CharacterScene extends Phaser.Scene {
         this.profile.equipment[slot] = item ? item.id : null
         saveProfile(this.profileSlot, this.profile)
         this.hideItemSelection()
+
+        // Re-generate avatar preview when equipment changes
+        if (this.avatarConfig) {
+          this.renderTabPreview()
+          this.avatarPreviewImage.setTexture(this.avatarConfig.id)
+        }
+
+        // Invalidate global map avatar texture so it updates next time OverlandMapScene loads
+        if (this.profile.avatarConfig && this.profile.avatarConfig.id) {
+          if (this.textures.exists(this.profile.avatarConfig.id)) {
+            this.textures.remove(this.profile.avatarConfig.id)
+          }
+        }
       })
       this.selectionContainer.add(bg)
 

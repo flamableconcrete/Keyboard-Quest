@@ -126,7 +126,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     // Regenerate custom avatar texture if needed
     if (this.profile.avatarConfig && !this.textures.exists(this.profile.avatarConfig.id)) {
-      AvatarRenderer.generateOne(this, this.profile.avatarConfig)
+      AvatarRenderer.generateOne(this, this.profile.avatarConfig, this.profile.equipment)
     }
     const avatarTexture = (this.profile.avatarConfig?.id && this.textures.exists(this.profile.avatarConfig.id))
       ? this.profile.avatarConfig.id

@@ -5,6 +5,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 export class MonsterManualLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -30,8 +31,15 @@ export class MonsterManualLevel extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a3a)
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
     // HUD
     this.add.text(width / 2, 40, this.level.name, {

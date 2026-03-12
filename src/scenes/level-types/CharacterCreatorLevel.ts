@@ -1,3 +1,4 @@
+
 // src/scenes/level-types/CharacterCreatorLevel.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
