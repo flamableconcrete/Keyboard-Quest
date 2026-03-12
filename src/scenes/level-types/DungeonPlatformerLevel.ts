@@ -34,7 +34,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
 
   // Hero
   private hero!: Phaser.GameObjects.Image
-  private companionRenderer!: CompanionAndPetRenderer
   private heroBaseY = 0
   private isAdvanced = false
 
@@ -114,7 +113,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       ? profile!.avatarChoice : 'avatar_0'
     this.hero = this.add.image(200, this.heroBaseY, avatarKey)
       .setScale(1.5).setDepth(5)
-    this.companionRenderer = new CompanionAndPetRenderer(this, 200, this.heroBaseY, this.profileSlot)
+    new CompanionAndPetRenderer(this, 200, this.heroBaseY, this.profileSlot)
 
     // ── HUD: Hearts ───────────────────────────────────────────────
     this.buildHeartHUD()

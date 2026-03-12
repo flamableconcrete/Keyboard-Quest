@@ -9,6 +9,7 @@ const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
   UndeadSiege:        '🧟 Undead Siege',
   SlimeSplitting:     '🟢 Slime Splitting',
   DungeonTrapDisarm:  '🪤 Trap Disarm',
+  DungeonPlatformer:  '🏰 Dungeon Run',
   DungeonEscape:      '🏃 Dungeon Escape',
   PotionBrewingLab:   '⚗️ Potion Brewing',
   MagicRuneTyping:    '🔮 Magic Runes',
