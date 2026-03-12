@@ -16,7 +16,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_BASE,
     wordCount: 32,
     timeLimit: 110,
-    storyBeat: 'Deep in the Shrouded Wilds, shadow goblins hunt in packs.',
+    dialogue: [
+      { speaker: "enemy", text: "Deep in the Shrouded Wilds, shadow goblins hunt in packs." },
+      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+    ],
     rewards: { xp: 320 },
     bossGate: null,
   },
@@ -28,7 +31,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_BASE,
     wordCount: 35,
     timeLimit: 130,
-    storyBeat: 'The dead rise from the murky mere with terrible purpose.',
+    dialogue: [
+      { speaker: "enemy", text: "The dead rise from the murky mere with terrible purpose." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 340 },
     bossGate: null,
   },
@@ -40,7 +46,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_BASE,
     wordCount: 28,
     timeLimit: 140,
-    storyBeat: 'Hidden traps litter the ancient dwarven pass through the wilds.',
+    dialogue: [
+      { speaker: "enemy", text: "Hidden traps litter the ancient dwarven pass through the wilds." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 360 },
     bossGate: null,
   },
@@ -52,7 +61,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_BASE,
     wordCount: 55,
     timeLimit: 200,
-    storyBeat: 'Brutus the Bridge Troll, Keeper of B, guards the only crossing!',
+    dialogue: [
+      { speaker: "enemy", text: "Brutus the Bridge Troll, Keeper of B, guards the only crossing!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 800, title: 'Seeker of B' },
     bossGate: { minCombinedStars: 16, levelIds: ['w4_l1', 'w4_l2', 'w4_l3'] },
     isMiniBoss: true,
@@ -68,7 +80,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB1,
     wordCount: 30,
     timeLimit: 140,
-    storyBeat: 'Witch runes pulse among the wych elm roots.',
+    dialogue: [
+      { speaker: "enemy", text: "Witch runes pulse among the wych elm roots." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 380 },
     bossGate: null,
   },
@@ -80,7 +95,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB1,
     wordCount: 35,
     timeLimit: 130,
-    storyBeat: 'Barrow wights emerge from the ancient downs at dusk.',
+    dialogue: [
+      { speaker: "enemy", text: "Barrow wights emerge from the ancient downs at dusk." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 360 },
     bossGate: null,
   },
@@ -92,7 +110,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB1,
     wordCount: 58,
     timeLimit: 210,
-    storyBeat: 'Wraith-Witch Wynna, Keeper of W, materialises within the keep!',
+    dialogue: [
+      { speaker: "enemy", text: "Wraith-Witch Wynna, Keeper of W, materialises within the keep!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 880, title: 'Seeker of W' },
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l4', 'w4_l5'] },
     isMiniBoss: true,
@@ -108,7 +129,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB2,
     wordCount: 35,
     timeLimit: 130,
-    storyBeat: 'Yew-sap slimes multiply in the crossing pools.',
+    dialogue: [
+      { speaker: "enemy", text: "Yew-sap slimes multiply in the crossing pools." },
+      { speaker: "hero", text: "Ugh, more slimes. Let\'s clean this up." }
+    ],
     rewards: { xp: 380 },
     bossGate: null,
   },
@@ -120,7 +144,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB2,
     wordCount: 20,
     timeLimit: null,
-    storyBeat: 'A jester challenges you to a word duel in the valley below.',
+    dialogue: [
+      { speaker: "enemy", text: "A jester challenges you to a word duel in the valley below." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 300 },
     bossGate: null,
   },
@@ -132,7 +159,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB2,
     wordCount: 60,
     timeLimit: 220,
-    storyBeat: 'Yax the Yeti-Lord, Keeper of Y, roars from the heights!',
+    dialogue: [
+      { speaker: "enemy", text: "Yax the Yeti-Lord, Keeper of Y, roars from the heights!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 960, title: 'Seeker of Y' },
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l6', 'w4_l7'] },
     isMiniBoss: true,
@@ -148,7 +178,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB3,
     wordCount: 36,
     timeLimit: 140,
-    storyBeat: 'Vault-guardians of the ancient veldt ruins challenge all who approach.',
+    dialogue: [
+      { speaker: "enemy", text: "Vault-guardians of the ancient veldt ruins challenge all who approach." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 400 },
     bossGate: null,
   },
@@ -160,7 +193,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB3,
     wordCount: 30,
     timeLimit: 120,
-    storyBeat: 'A shadow warden traps you in the hollow — escape!',
+    dialogue: [
+      { speaker: "enemy", text: "A shadow warden traps you in the hollow — escape!" },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 380 },
     bossGate: null,
   },
@@ -172,7 +208,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB3,
     wordCount: 62,
     timeLimit: 225,
-    storyBeat: 'The Vault-Keeper, Guardian of V, will not yield the final seal!',
+    dialogue: [
+      { speaker: "enemy", text: "The Vault-Keeper, Guardian of V, will not yield the final seal!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 1040, title: 'Seeker of V' },
     bossGate: { minCombinedStars: 20, levelIds: ['w4_l8', 'w4_l9'] },
     isMiniBoss: true,
@@ -188,7 +227,10 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_AFTER_MB4,
     wordCount: 70,
     timeLimit: 280,
-    storyBeat: 'In the heart of the Shrouded Wilds stands the Dice Lich — his power drawn from letters lost to chance.',
+    dialogue: [
+      { speaker: "enemy", text: "In the heart of the Shrouded Wilds stands the Dice Lich — his power drawn from letters lost to chance." },
+      { speaker: "hero", text: "Return to the earth, restless dead!" }
+    ],
     rewards: { xp: 2000, title: 'Lich Vanquisher' },
     bossGate: { minCombinedStars: 24, levelIds: ['w4_mb1', 'w4_mb2', 'w4_mb3', 'w4_mb4'] },
     isBoss: true,

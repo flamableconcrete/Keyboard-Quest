@@ -16,7 +16,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_BASE,
     wordCount: 20,
     timeLimit: 90,
-    storyBeat: 'The Shadowed Fen is home to restless skeletons who guard an ancient ford.',
+    dialogue: [
+      { speaker: "enemy", text: "The Shadowed Fen is home to restless skeletons who guard an ancient ford." },
+      { speaker: "hero", text: "Return to the earth, restless dead!" }
+    ],
     rewards: { xp: 160 },
     bossGate: null,
   },
@@ -28,7 +31,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_BASE,
     wordCount: 20,
     timeLimit: 100,
-    storyBeat: 'Ogre champions challenge all who pass through Dorn Flats.',
+    dialogue: [
+      { speaker: "enemy", text: "Ogre champions challenge all who pass through Dorn Flats." },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 180 },
     bossGate: null,
   },
@@ -40,7 +46,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_BASE,
     wordCount: 25,
     timeLimit: 110,
-    storyBeat: 'Undead march along the red-mossed road. Hold the line!',
+    dialogue: [
+      { speaker: "enemy", text: "Undead march along the red-mossed road. Hold the line!" },
+      { speaker: "hero", text: "Return to the earth, restless dead!" }
+    ],
     rewards: { xp: 200 },
     bossGate: null,
   },
@@ -52,7 +61,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_BASE,
     wordCount: 35,
     timeLimit: 140,
-    storyBeat: 'Thornback the Troll, Keeper of T, bars your path!',
+    dialogue: [
+      { speaker: "enemy", text: "Thornback the Troll, Keeper of T, bars your path!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 380, title: 'Seeker of T' },
     bossGate: { minCombinedStars: 8, levelIds: ['w2_l1', 'w2_l2', 'w2_l3'] },
     isMiniBoss: true,
@@ -68,7 +80,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB1,
     wordCount: 25,
     timeLimit: 90,
-    storyBeat: 'With T restored, the forest paths open wider.',
+    dialogue: [
+      { speaker: "enemy", text: "With T restored, the forest paths open wider." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 200 },
     bossGate: null,
   },
@@ -80,7 +95,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB1,
     wordCount: 25,
     timeLimit: 100,
-    storyBeat: 'Slimes multiply in the damp fen.',
+    dialogue: [
+      { speaker: "enemy", text: "Slimes multiply in the damp fen." },
+      { speaker: "hero", text: "Ugh, more slimes. Let\'s clean this up." }
+    ],
     rewards: { xp: 220 },
     bossGate: null,
   },
@@ -92,7 +110,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB1,
     wordCount: 20,
     timeLimit: 120,
-    storyBeat: 'Ancient dwarven traps line the Stone Shelf passage.',
+    dialogue: [
+      { speaker: "enemy", text: "Ancient dwarven traps line the Stone Shelf passage." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 240 },
     bossGate: null,
   },
@@ -104,7 +125,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB1,
     wordCount: 38,
     timeLimit: 150,
-    storyBeat: 'Irontongue the Iron Witch, Keeper of I, seals the keep!',
+    dialogue: [
+      { speaker: "enemy", text: "Irontongue the Iron Witch, Keeper of I, seals the keep!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 420, title: 'Seeker of I' },
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l4', 'w2_l5', 'w2_l6'] },
     isMiniBoss: true,
@@ -120,7 +144,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB2,
     wordCount: 20,
     timeLimit: 110,
-    storyBeat: 'Strange runes appear on the thistle-lined path.',
+    dialogue: [
+      { speaker: "enemy", text: "Strange runes appear on the thistle-lined path." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 240 },
     bossGate: null,
   },
@@ -132,7 +159,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB2,
     wordCount: 15,
     timeLimit: null,
-    storyBeat: 'The heroes of Heronshire offer their swords.',
+    dialogue: [
+      { speaker: "enemy", text: "The heroes of Heronshire offer their swords." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 200, companionId: 'archer' },
     bossGate: null,
   },
@@ -144,7 +174,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB2,
     wordCount: 40,
     timeLimit: 160,
-    storyBeat: 'Hexus the Hollow Horned One, Keeper of H, guards the ridge!',
+    dialogue: [
+      { speaker: "enemy", text: "Hexus the Hollow Horned One, Keeper of H, guards the ridge!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 460, title: 'Seeker of H' },
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l7', 'w2_l8'] },
     isMiniBoss: true,
@@ -160,7 +193,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB3,
     wordCount: 20,
     timeLimit: 120,
-    storyBeat: 'An alchemist offers potions in exchange for correctly typed ingredients.',
+    dialogue: [
+      { speaker: "enemy", text: "An alchemist offers potions in exchange for correctly typed ingredients." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 260, item: 'iron_helm' },
     bossGate: null,
   },
@@ -172,7 +208,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB3,
     wordCount: 18,
     timeLimit: null,
-    storyBeat: 'A scholar catalogues the creatures of the fen.',
+    dialogue: [
+      { speaker: "enemy", text: "A scholar catalogues the creatures of the fen." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 220 },
     bossGate: null,
   },
@@ -184,7 +223,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB3,
     wordCount: 42,
     timeLimit: 165,
-    storyBeat: 'Crackthorn the Crone, Keeper of C, cackles in the hollow!',
+    dialogue: [
+      { speaker: "enemy", text: "Crackthorn the Crone, Keeper of C, cackles in the hollow!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 500, title: 'Seeker of C' },
     bossGate: { minCombinedStars: 12, levelIds: ['w2_l9', 'w2_l10'] },
     isMiniBoss: true,
@@ -200,7 +242,10 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_AFTER_MB4,
     wordCount: 50,
     timeLimit: 200,
-    storyBeat: 'Five heads, five tongues — the Hydra speaks only in riddles of letters!',
+    dialogue: [
+      { speaker: "enemy", text: "Five heads, five tongues — the Hydra speaks only in riddles of letters!" },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 1000, title: 'Slayer of the Hydra' },
     bossGate: { minCombinedStars: 16, levelIds: ['w2_mb1', 'w2_mb2', 'w2_mb3', 'w2_mb4'] },
     isBoss: true,

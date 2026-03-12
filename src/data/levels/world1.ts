@@ -16,7 +16,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_LETTERS_BASE,
     wordCount: 10,
     timeLimit: 60,
-    storyBeat: 'The last working quill chooses you. Drive back the goblins of Oakhaven Outskirts to begin your quest!',
+    dialogue: [
+      { speaker: "enemy", text: "The last working quill chooses you. Drive back the goblins of Oakhaven Outskirts to begin your quest!" },
+      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+    ],
     rewards: { xp: 50 },
     bossGate: null,
   },
@@ -28,7 +31,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_LETTERS_BASE,
     wordCount: 15,
     timeLimit: 60,
-    storyBeat: 'Goblins have raided the village of Riverbend Village! Drive them off!',
+    dialogue: [
+      { speaker: "enemy", text: "Goblins have raided the village of Riverbend Village! Drive them off!" },
+      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+    ],
     rewards: { xp: 100 },
     bossGate: null,
   },
@@ -40,7 +46,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_LETTERS_BASE,
     wordCount: 20,
     timeLimit: 75,
-    storyBeat: 'More goblins! These ones carry stolen words on their backs.',
+    dialogue: [
+      { speaker: "enemy", text: "More goblins! These ones carry stolen words on their backs." },
+      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+    ],
     rewards: { xp: 120 },
     bossGate: null,
   },
@@ -52,7 +61,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_LETTERS_BASE,
     wordCount: 30,
     timeLimit: 120,
-    storyBeat: 'Knuckle the Ogre, Keeper of E, stands in your way!',
+    dialogue: [
+      { speaker: "enemy", text: "Knuckle the Ogre, Keeper of E, stands in your way!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 300, title: 'Seeker of E' },
     bossGate: { minCombinedStars: 6, levelIds: ['w1_l2', 'w1_l3'] },
     isMiniBoss: true,
@@ -68,7 +80,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB1,
     wordCount: 20,
     timeLimit: 90,
-    storyBeat: 'The letter E has been restored! New words flood back into the world.',
+    dialogue: [
+      { speaker: "enemy", text: "The letter E has been restored! New words flood back into the world." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 150 },
     bossGate: null,
   },
@@ -80,7 +95,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB1,
     wordCount: 18,
     timeLimit: 60,
-    storyBeat: 'Navigate the crumbling ruins — jump pits, dodge boulders, and unlock ancient doors!',
+    dialogue: [
+      { speaker: "enemy", text: "Navigate the crumbling ruins — jump pits, dodge boulders, and unlock ancient doors!" },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 160 },
     bossGate: null,
   },
@@ -92,7 +110,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB1,
     wordCount: 35,
     timeLimit: 150,
-    storyBeat: 'Nessa the Snake Dancer, Keeper of N, coils to strike!',
+    dialogue: [
+      { speaker: "enemy", text: "Nessa the Snake Dancer, Keeper of N, coils to strike!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 350, title: 'Seeker of N' },
     bossGate: { minCombinedStars: 7, levelIds: ['w1_l4', 'w1_l5'] },
     isMiniBoss: true,
@@ -108,7 +129,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB2,
     wordCount: 20,
     timeLimit: 60,
-    storyBeat: 'A goblin cook challenges you to an EXPLODING CHEESE contest!',
+    dialogue: [
+      { speaker: "enemy", text: "A goblin cook challenges you to an EXPLODING CHEESE contest!" },
+      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+    ],
     rewards: { xp: 130 },
     bossGate: null,
   },
@@ -120,7 +144,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB2,
     wordCount: 25,
     timeLimit: 90,
-    storyBeat: 'Undead scouts guard the mountain pass. Type them down!',
+    dialogue: [
+      { speaker: "enemy", text: "Undead scouts guard the mountain pass. Type them down!" },
+      { speaker: "hero", text: "Return to the earth, restless dead!" }
+    ],
     rewards: { xp: 180 },
     bossGate: null,
   },
@@ -132,7 +159,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB2,
     wordCount: 40,
     timeLimit: 150,
-    storyBeat: 'Rend the Red, Keeper of R, strikes from the shadows!',
+    dialogue: [
+      { speaker: "enemy", text: "Rend the Red, Keeper of R, strikes from the shadows!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 400, title: 'Seeker of R' },
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l7'] },
     isMiniBoss: true,
@@ -148,7 +178,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB3,
     wordCount: 10,
     timeLimit: null,
-    storyBeat: 'Study the Monster Manual — learn the weaknesses of Grizzlefang before you face him.',
+    dialogue: [
+      { speaker: "enemy", text: "Study the Monster Manual — learn the weaknesses of Grizzlefang before you face him." },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 100 },
     bossGate: null,
   },
@@ -160,7 +193,10 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     unlockedLetters: W1_AFTER_MB3,
     wordCount: 60,
     timeLimit: 300,
-    storyBeat: 'Grizzlefang the Keyboard Ogre — armor forged from broken keys. Shatter it!',
+    dialogue: [
+      { speaker: "enemy", text: "Grizzlefang the Keyboard Ogre — armor forged from broken keys. Shatter it!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 600, item: 'iron_gauntlet', title: 'Hero of the Heartland' },
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l8'] },
     isBoss: true,

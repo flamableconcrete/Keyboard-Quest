@@ -85,7 +85,8 @@ export interface LevelConfig {
   unlockedLetters: string[]
   wordCount: number
   timeLimit: number | null  // null = no time limit
-  storyBeat: string
+  storyBeat?: string
+  dialogue?: { speaker: 'hero' | 'enemy', text: string }[]
   rewards: {
     xp: number
     item?: string

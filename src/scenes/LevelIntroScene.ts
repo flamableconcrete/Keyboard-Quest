@@ -129,47 +129,7 @@ export class LevelIntroScene extends Phaser.Scene {
       }
     }
 
-    // Story Beat Dialogue Bubble
-    const bubbleWidth = 600
-    const bubbleHeight = 120
-    const bubbleX = width / 2
-    const bubbleY = height * 0.45
-
-    const graphics = this.add.graphics({ x: bubbleX, y: bubbleY })
-    graphics.fillStyle(0xffffff, 1)
-    graphics.lineStyle(4, 0x000000, 1)
-    // Draw bubble rectangle relative to its position
-    graphics.fillRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
-    graphics.strokeRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
-    // Draw bubble tail pointing to avatar
-    graphics.fillTriangle(
-      -100, bubbleHeight / 2,
-      -60, bubbleHeight / 2,
-      -180, bubbleHeight / 2 + 40
-    )
-    graphics.strokeTriangle(
-      -100, bubbleHeight / 2,
-      -60, bubbleHeight / 2,
-      -180, bubbleHeight / 2 + 40
-    )
-
-    // Fill the bottom line of the tail so it connects seamlessly to the bubble
-    graphics.lineStyle(4, 0xffffff, 1)
-    graphics.beginPath()
-    graphics.moveTo(-98, bubbleHeight / 2)
-    graphics.lineTo(-62, bubbleHeight / 2)
-    graphics.strokePath()
-
-    const bubbleText = this.add.text(bubbleX, bubbleY, this.level.storyBeat, {
-      fontSize: '20px', color: '#000000', wordWrap: { width: bubbleWidth - 40 }, align: 'center', fontStyle: 'bold'
-    }).setOrigin(0.5)
-
-    // Hide bubble initially
-    graphics.setAlpha(0)
-    graphics.setScale(0)
-    bubbleText.setAlpha(0)
-    bubbleText.setScale(0)
-
+    // Sequence Dialogue Bubbles
     const prompt = this.add.text(width / 2, height * 0.85, 'Press SPACE or click to begin', {
       fontSize: '22px', color: '#aaaaaa'
     }).setOrigin(0.5)
@@ -194,15 +154,70 @@ export class LevelIntroScene extends Phaser.Scene {
       })
     }
 
-    this.tweens.add({
-      targets: [graphics, bubbleText],
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 400,
-      ease: 'Back.easeOut',
-      delay: 1000,
-      onComplete: () => {
+    const drawBubble = (speaker: 'hero' | 'enemy', text: string, delay: number, onComplete?: () => void) => {
+      const bubbleWidth = 400
+      const bubbleHeight = 100
+      const isHero = speaker === 'hero'
+
+      const bubbleX = isHero ? (width / 2 - 150) : (width / 2 + 150)
+      const bubbleY = height * 0.45
+
+      const graphics = this.add.graphics({ x: bubbleX, y: bubbleY })
+      graphics.fillStyle(0xffffff, 1)
+      graphics.lineStyle(4, 0x000000, 1)
+      graphics.fillRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
+      graphics.strokeRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
+
+      // Draw tail pointing to the speaker
+      if (isHero) {
+        graphics.fillTriangle(-60, bubbleHeight / 2, -20, bubbleHeight / 2, -80, bubbleHeight / 2 + 40)
+        graphics.strokeTriangle(-60, bubbleHeight / 2, -20, bubbleHeight / 2, -80, bubbleHeight / 2 + 40)
+        graphics.lineStyle(4, 0xffffff, 1)
+        graphics.beginPath()
+        graphics.moveTo(-58, bubbleHeight / 2)
+        graphics.lineTo(-22, bubbleHeight / 2)
+        graphics.strokePath()
+      } else {
+        graphics.fillTriangle(20, bubbleHeight / 2, 60, bubbleHeight / 2, 80, bubbleHeight / 2 + 40)
+        graphics.strokeTriangle(20, bubbleHeight / 2, 60, bubbleHeight / 2, 80, bubbleHeight / 2 + 40)
+        graphics.lineStyle(4, 0xffffff, 1)
+        graphics.beginPath()
+        graphics.moveTo(22, bubbleHeight / 2)
+        graphics.lineTo(58, bubbleHeight / 2)
+        graphics.strokePath()
+      }
+
+      const bubbleText = this.add.text(bubbleX, bubbleY, text, {
+        fontSize: '18px', color: '#000000', wordWrap: { width: bubbleWidth - 40 }, align: 'center', fontStyle: 'bold'
+      }).setOrigin(0.5)
+
+      graphics.setAlpha(0)
+      graphics.setScale(0)
+      bubbleText.setAlpha(0)
+      bubbleText.setScale(0)
+
+      this.tweens.add({
+        targets: [graphics, bubbleText],
+        alpha: 1,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 400,
+        ease: 'Back.easeOut',
+        delay: delay,
+        onComplete: onComplete
+      })
+
+      return [graphics, bubbleText]
+    }
+
+    const dialogues = this.level.dialogue || (this.level.storyBeat ? [{speaker: 'enemy' as 'enemy', text: this.level.storyBeat}] : [])
+
+    let currentDelay = 1000
+
+    for (let i = 0; i < dialogues.length; i++) {
+      const isLast = i === dialogues.length - 1
+
+      drawBubble(dialogues[i].speaker as 'hero' | 'enemy', dialogues[i].text, currentDelay, isLast ? () => {
         // Show and pulse the prompt
         this.tweens.add({
           targets: prompt,
@@ -213,11 +228,12 @@ export class LevelIntroScene extends Phaser.Scene {
           ease: 'Sine.easeInOut',
         })
 
-        // Enable input only after animation finishes
+        // Enable input only after all animations finish
         this.input.keyboard?.once('keydown-SPACE', this.enter, this)
         this.input.once('pointerdown', this.enter, this)
-      }
-    })
+      } : undefined)
+      currentDelay += 2000 // Wait 2 seconds between speech bubbles
+    }
   }
 
   private enter() {

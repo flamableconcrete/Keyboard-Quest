@@ -16,7 +16,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_BASE,
     wordCount: 36,
     timeLimit: 120,
-    storyBeat: 'Soldiers of the Typemancer guard the base of the tower.',
+    dialogue: [
+      { speaker: "enemy", text: "Soldiers of the Typemancer guard the base of the tower." },
+      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+    ],
     rewards: { xp: 460 },
     bossGate: null,
   },
@@ -28,7 +31,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_BASE,
     wordCount: 32,
     timeLimit: 150,
-    storyBeat: 'The maze shifts as you type — words unlock passages.',
+    dialogue: [
+      { speaker: "enemy", text: "The maze shifts as you type — words unlock passages." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 480 },
     bossGate: null,
   },
@@ -40,7 +46,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_BASE,
     wordCount: 24,
     timeLimit: null,
-    storyBeat: "Ancient scrolls hold the history of the Typemancer's rise.",
+    dialogue: [
+      { speaker: "enemy", text: "Ancient scrolls hold the history of the Typemancer\'s rise." },
+      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+    ],
     rewards: { xp: 440 },
     bossGate: null,
   },
@@ -52,7 +61,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_BASE,
     wordCount: 65,
     timeLimit: 240,
-    storyBeat: 'Quixel the Quillmaster, Keeper of Q, scratches rare words into the walls!',
+    dialogue: [
+      { speaker: "enemy", text: "Quixel the Quillmaster, Keeper of Q, scratches rare words into the walls!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 1100, title: 'Seeker of Q' },
     bossGate: { minCombinedStars: 20, levelIds: ['w5_l1', 'w5_l2', 'w5_l3'] },
     isMiniBoss: true,
@@ -68,7 +80,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB1,
     wordCount: 32,
     timeLimit: 150,
-    storyBeat: 'Enchanted forges ring with the sound of rare letters being hammered into shape.',
+    dialogue: [
+      { speaker: "enemy", text: "Enchanted forges ring with the sound of rare letters being hammered into shape." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 500 },
     bossGate: null,
   },
@@ -80,7 +95,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB1,
     wordCount: 40,
     timeLimit: 140,
-    storyBeat: 'Bone warriors march across the xeric flats beneath the tower.',
+    dialogue: [
+      { speaker: "enemy", text: "Bone warriors march across the xeric flats beneath the tower." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 480 },
     bossGate: null,
   },
@@ -92,7 +110,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB1,
     wordCount: 68,
     timeLimit: 250,
-    storyBeat: 'Xeron the Hexed Exile, Keeper of X, casts words as weapons!',
+    dialogue: [
+      { speaker: "enemy", text: "Xeron the Hexed Exile, Keeper of X, casts words as weapons!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 1200, title: 'Seeker of X' },
     bossGate: { minCombinedStars: 22, levelIds: ['w5_l4', 'w5_l5'] },
     isMiniBoss: true,
@@ -108,7 +129,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB2,
     wordCount: 22,
     timeLimit: null,
-    storyBeat: 'A court jester challenges you with the zaniest words in the realm.',
+    dialogue: [
+      { speaker: "enemy", text: "A court jester challenges you with the zaniest words in the realm." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 440 },
     bossGate: null,
   },
@@ -120,7 +144,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB2,
     wordCount: 22,
     timeLimit: null,
-    storyBeat: 'The imprisoned faeries of Zephyr Court beg you to free them with words.',
+    dialogue: [
+      { speaker: "enemy", text: "The imprisoned faeries of Zephyr Court beg you to free them with words." },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 460 },
     bossGate: null,
   },
@@ -132,7 +159,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB2,
     wordCount: 70,
     timeLimit: 260,
-    storyBeat: 'Zindark the Zealot, Keeper of Z, stands between you and the final ascent!',
+    dialogue: [
+      { speaker: "enemy", text: "Zindark the Zealot, Keeper of Z, stands between you and the final ascent!" },
+      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+    ],
     rewards: { xp: 1300, title: 'Seeker of Z' },
     bossGate: { minCombinedStars: 22, levelIds: ['w5_l6', 'w5_l7'] },
     isMiniBoss: true,
@@ -148,7 +178,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB3,
     wordCount: 38,
     timeLimit: 150,
-    storyBeat: 'The tower trembles as you climb — type to keep your footing!',
+    dialogue: [
+      { speaker: "enemy", text: "The tower trembles as you climb — type to keep your footing!" },
+      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+    ],
     rewards: { xp: 520 },
     bossGate: null,
   },
@@ -160,7 +193,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB3,
     wordCount: 72,
     timeLimit: 265,
-    storyBeat: "The Typemancer's jester blocks the throne room with jokes and jabs!",
+    dialogue: [
+      { speaker: "enemy", text: "The Typemancer\'s jester blocks the throne room with jokes and jabs!" },
+      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+    ],
     rewards: { xp: 1400, title: "Jester's Bane" },
     bossGate: { minCombinedStars: 24, levelIds: ['w5_l8'] },
     isMiniBoss: true,
@@ -176,7 +212,10 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     unlockedLetters: W5_AFTER_MB4,
     wordCount: 80,
     timeLimit: 360,
-    storyBeat: 'The Typemancer floats above his throne, weaving letters into destruction. Face him — and type your destiny!',
+    dialogue: [
+      { speaker: "enemy", text: "The Typemancer floats above his throne, weaving letters into destruction. Face him — and type your destiny!" },
+      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+    ],
     rewards: { xp: 5000, title: 'Keyboard Champion' },
     bossGate: { minCombinedStars: 28, levelIds: ['w5_mb1', 'w5_mb2', 'w5_mb3', 'w5_mb4'] },
     isBoss: true,
