@@ -142,24 +142,27 @@ export class CharacterScene extends Phaser.Scene {
   private drawInventoryTab(startX: number, startY: number) {
     this.addSectionTitle(this.container, startY, 'EQUIPMENT & ITEMS')
 
-    // Avatar paper doll preview in center-left
-    const avatarX = startX + 250
+    // Slots on left
+    const slotsX = startX + 100
+    // Avatar paper doll preview in center
+    const avatarX = startX + 350
     const avatarY = startY + 150
+
     this.renderTabPreview()
     this.avatarPreviewImage = this.add.image(avatarX, avatarY, this.avatarConfig.id).setScale(2)
     this.container.add(this.avatarPreviewImage)
 
-    // Weapon on left
-    this.drawPaperDollSlot(this.container, avatarX - 180, avatarY - 20, 'weapon')
+    // Weapon
+    this.drawPaperDollSlot(this.container, slotsX, avatarY - 90, 'weapon')
 
-    // Armor on right
-    this.drawPaperDollSlot(this.container, avatarX + 180, avatarY - 20, 'armor')
+    // Armor
+    this.drawPaperDollSlot(this.container, slotsX, avatarY + 10, 'armor')
 
-    // Accessory below
-    this.drawPaperDollSlot(this.container, avatarX, avatarY + 120, 'accessory')
+    // Accessory
+    this.drawPaperDollSlot(this.container, slotsX, avatarY + 110, 'accessory')
 
     if (this.activeSlotSelection) {
-      this.drawItemSelectionList(startX + 600, startY + 50, this.activeSlotSelection)
+      this.drawItemSelectionList(startX + 640, startY + 50, this.activeSlotSelection)
     }
 
     this.addSectionTitle(this.container, startY + 340, 'OWNED SPELLS')
