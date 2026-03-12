@@ -36,6 +36,19 @@ export const SKIN_TONES: number[] = [
   0x3b1e08, // very dark brown
 ];
 
+export const SKIN_TONE_NAMES: Record<number, string> = {
+  0xfde0c4: 'Light Peach',
+  0xf5c8a0: 'Warm Beige',
+  0xe8b88a: 'Light Tan',
+  0xd4a574: 'Medium Tan',
+  0xc08c5a: 'Olive',
+  0xa0724a: 'Brown',
+  0x8b5e3c: 'Medium Brown',
+  0x6b4226: 'Dark Brown',
+  0x4a2d12: 'Deep Brown',
+  0x3b1e08: 'Very Dark Brown',
+};
+
 export const HAIR_STYLES: HairStyle[] = [
   'short',
   'long',
@@ -60,6 +73,21 @@ export const HAIR_COLORS: number[] = [
   0xc0c0c0, // silver/gray
 ];
 
+export const HAIR_COLOR_NAMES: Record<number, string> = {
+  0x2c1b0e: 'Black',
+  0x4a3222: 'Dark Brown',
+  0x7b4a2a: 'Brown',
+  0xa0522d: 'Auburn',
+  0xc8842a: 'Copper',
+  0xe8c44a: 'Blonde',
+  0xf5e6b8: 'Platinum Blonde',
+  0xd43030: 'Red',
+  0x4a4a8a: 'Dark Blue',
+  0x6b3a6b: 'Purple',
+  0x2e7d32: 'Forest Green',
+  0xc0c0c0: 'Silver/Gray',
+};
+
 export const EYE_COLORS: number[] = [
   0x4a3222, // dark brown
   0x7b4a2a, // brown
@@ -70,6 +98,17 @@ export const EYE_COLORS: number[] = [
   0x6a5acd, // slate blue
   0xbf360c, // amber
 ];
+
+export const EYE_COLOR_NAMES: Record<number, string> = {
+  0x4a3222: 'Dark Brown',
+  0x7b4a2a: 'Brown',
+  0x2e7d32: 'Green',
+  0x1b5e20: 'Dark Green',
+  0x1565c0: 'Blue',
+  0x0d47a1: 'Dark Blue',
+  0x6a5acd: 'Slate Blue',
+  0xbf360c: 'Amber',
+};
 
 export const ACCESSORIES: Accessory[] = [
   'none',
@@ -83,7 +122,6 @@ export const ACCESSORIES: Accessory[] = [
   'horns',
   'bandana',
 ];
-
 
 export const SHIRT_COLORS: number[] = [
   0xff3b30, // red
@@ -99,6 +137,20 @@ export const SHIRT_COLORS: number[] = [
   0x1c1c1e, // black
 ];
 
+export const SHIRT_COLOR_NAMES: Record<number, string> = {
+  0xff3b30: 'Red',
+  0xff9500: 'Orange',
+  0xffcc00: 'Yellow',
+  0x4cd964: 'Green',
+  0x5ac8fa: 'Light Blue',
+  0x007aff: 'Blue',
+  0x5856d6: 'Purple',
+  0xff2d55: 'Pink',
+  0xffffff: 'White',
+  0x8e8e93: 'Gray',
+  0x1c1c1e: 'Black',
+};
+
 export const PANTS_COLORS: number[] = [
   0x0a4a8f, // dark blue jeans
   0x2a7bcf, // light blue jeans
@@ -110,6 +162,17 @@ export const PANTS_COLORS: number[] = [
   0x556b2f, // olive cargo
 ];
 
+export const PANTS_COLOR_NAMES: Record<number, string> = {
+  0x0a4a8f: 'Dark Blue Jeans',
+  0x2a7bcf: 'Light Blue Jeans',
+  0x222222: 'Black Slacks',
+  0x444444: 'Dark Gray Slacks',
+  0x8b7355: 'Brown Khakis',
+  0xc1a073: 'Light Khakis',
+  0x3c3c3c: 'Dark Shorts',
+  0x556b2f: 'Olive Cargo',
+};
+
 export const SHOE_COLORS: number[] = [
   0x2c1b0e, // dark brown
   0x5a3d2b, // brown
@@ -118,6 +181,15 @@ export const SHOE_COLORS: number[] = [
   0x888888, // gray
   0x8b0000, // dark red
 ];
+
+export const SHOE_COLOR_NAMES: Record<number, string> = {
+  0x2c1b0e: 'Dark Brown',
+  0x5a3d2b: 'Brown',
+  0x111111: 'Black',
+  0xeeeeee: 'White',
+  0x888888: 'Gray',
+  0x8b0000: 'Dark Red',
+};
 
 function generateAvatarConfigs(): AvatarConfig[] {
   const configs: AvatarConfig[] = [];

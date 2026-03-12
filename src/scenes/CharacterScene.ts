@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { ProfileData, ItemData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem, getItemColor } from '../data/items'
+import { generateAllItemTextures } from '../art/itemsArt'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
@@ -30,22 +31,14 @@ export class CharacterScene extends Phaser.Scene {
     if (this.profile.avatarConfig) {
       this.avatarConfig = JSON.parse(JSON.stringify(this.profile.avatarConfig))
     } else {
-      this.avatarConfig = {
-        id: `custom_${Date.now()}`,
-        skinTone: SKIN_TONES[0],
-        hairStyle: HAIR_STYLES[0],
-        hairColor: HAIR_COLORS[0],
-        eyeColor: EYE_COLORS[0],
-        accessory: ACCESSORIES[0],
-        shirtColor: SHIRT_COLORS[0],
-        pantsColor: PANTS_COLORS[0],
-        shoeColor: SHOE_COLORS[0],
-      }
+      this.avatarConfig = randomizeOneConfig()
     }
   }
 
   create() {
     const { width, height } = this.scale
+
+    generateAllItemTextures(this)
 
     // Semi-transparent modal background
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
@@ -455,17 +448,22 @@ export class CharacterScene extends Phaser.Scene {
 
     const itemName = item ? item.name : 'EMPTY'
     const itemColor = item ? getItemColor(item.rarity) : '#444444'
+
+    const textOffsetX = item ? 15 : 0;
+
     container.add(
       this.add
-        .text(x, y, itemName, { fontSize: '14px', color: itemColor, fontStyle: 'bold' })
+        .text(x + textOffsetX, y, itemName, { fontSize: '14px', color: itemColor, fontStyle: 'bold' })
         .setOrigin(0.5)
     )
 
     if (item) {
+      container.add(this.add.image(x - 45, y + 5, item.id).setScale(0.8))
+
       const effectText = this.getEffectString(item.effect)
       container.add(
         this.add
-          .text(x, y + 20, effectText, { fontSize: '11px', color: '#00ff00' })
+          .text(x + textOffsetX, y + 20, effectText, { fontSize: '11px', color: '#00ff00' })
           .setOrigin(0.5)
       )
     }
@@ -483,6 +481,12 @@ export class CharacterScene extends Phaser.Scene {
     const ownedItems = this.profile.ownedItemIds
       .map((id) => getItem(id))
       .filter((item): item is ItemData => !!item && item.slot === slot)
+      .sort((a, b) => {
+        if (a.goldCost !== b.goldCost) return a.goldCost - b.goldCost;
+        const ap = a.effect.power || a.effect.hp || a.effect.focusBonus || a.effect.goldMultiplier || 0;
+        const bp = b.effect.power || b.effect.hp || b.effect.focusBonus || b.effect.goldMultiplier || 0;
+        return ap - bp;
+      })
 
     if (ownedItems.length === 0) {
       this.container.add(
@@ -508,13 +512,15 @@ export class CharacterScene extends Phaser.Scene {
       })
       this.container.add(bg)
 
+      this.container.add(this.add.image(x - 110, itemY, item.id).setScale(0.8))
+
       this.container.add(
-        this.add.text(x, itemY - 10, item.name, { fontSize: '16px', color: isEquipped ? '#44aa44' : '#ffffff' }).setOrigin(0.5)
+        this.add.text(x + 10, itemY - 10, item.name, { fontSize: '16px', color: isEquipped ? '#44aa44' : '#ffffff' }).setOrigin(0.5)
       )
 
       const effectText = this.getEffectString(item.effect)
       this.container.add(
-        this.add.text(x, itemY + 10, effectText, { fontSize: '12px', color: '#00ff00' }).setOrigin(0.5)
+        this.add.text(x + 10, itemY + 10, effectText, { fontSize: '12px', color: '#00ff00' }).setOrigin(0.5)
       )
     })
   }
@@ -586,6 +592,9 @@ export class CharacterScene extends Phaser.Scene {
     if (effect.power) parts.push(`+${effect.power} PWR`)
     if (effect.focusBonus) parts.push(`+${effect.focusBonus} FOCUS`)
     if (effect.goldMultiplier) parts.push(`+${(effect.goldMultiplier * 100).toFixed(0)}% Gold`)
+    if (effect.defeatAdditionalEnemiesChance) parts.push(`${(effect.defeatAdditionalEnemiesChance * 100).toFixed(0)}% Double Kill`)
+    if (effect.absorbAttacksChance) parts.push(`${(effect.absorbAttacksChance * 100).toFixed(0)}% Block`)
+    if (effect.bonusGoldChance) parts.push(`${(effect.bonusGoldChance * 100).toFixed(0)}% Bonus Gold`)
     return parts.join(', ')
   }
 }

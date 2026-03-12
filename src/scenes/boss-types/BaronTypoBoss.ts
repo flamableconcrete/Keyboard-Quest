@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class BaronTypoBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -20,7 +21,6 @@ export class BaronTypoBoss extends Phaser.Scene {
   private wordQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Rectangle
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   
@@ -59,11 +59,7 @@ export class BaronTypoBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -83,26 +79,20 @@ export class BaronTypoBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Baron is purple and sophisticated-looking placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 300, 0x800080)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 - 220, `Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#cc88ff'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
-      fontSize: '40px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 12, y: 6 },
-      fontStyle: 'bold'
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 160,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -174,12 +164,10 @@ export class BaronTypoBoss extends Phaser.Scene {
     const correctWord = this.wordQueue[0]
     const scrambledWord = this.scrambleWord(correctWord)
     
-    this.bossLabel.setText(scrambledWord)
-    
-    // In Phase 1, show the correct word in the engine to help.
-    // In Phase 2 & 3, show underscores in the engine to force looking at the boss.
+    // In Phase 1, show the scrambled word as the display to help.
+    // In Phase 2 & 3, show underscores to force looking at the boss.
     if (this.phase === 1) {
-      this.engine.setWord(correctWord)
+      this.engine.setWord(correctWord, scrambledWord)
     } else {
       // Show underscores in the engine
       const underscores = '_'.repeat(correctWord.length)
@@ -247,7 +235,6 @@ export class BaronTypoBoss extends Phaser.Scene {
 
     if (passed) {
       this.bossSprite.destroy()
-      this.bossLabel.destroy()
       this.bossHpText.setText('FOILED!')
     }
 

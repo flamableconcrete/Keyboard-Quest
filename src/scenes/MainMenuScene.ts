@@ -8,6 +8,15 @@ export class MainMenuScene extends Phaser.Scene {
     AudioHelper.playBGM(this, 'bgm_menu');
     const { width, height } = this.scale
 
+    const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
+      fontSize: '20px', color: '#aaaaaa'
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    musicBtn.on('pointerdown', () => {
+       const enabled = !AudioHelper.isMusicEnabled();
+       AudioHelper.setMusicEnabled(enabled, this);
+       musicBtn.setText(enabled ? '🎵 Music: ON' : '🎵 Music: OFF');
+    })
+
     // Title
     this.add.text(width / 2, height * 0.25, 'KEYBOARD QUEST', {
       fontSize: '64px',

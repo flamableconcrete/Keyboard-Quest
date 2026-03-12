@@ -9,6 +9,7 @@ import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class GrizzlefangBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -21,7 +22,6 @@ export class GrizzlefangBoss extends Phaser.Scene {
   private wordQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Image
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   
@@ -75,11 +75,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -99,7 +95,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Grizzlefang is big and orange/brown)
-    this.bossSprite = this.add.image(width / 2, height / 2 - 50, 'ogre').setScale(3)
+    this.bossSprite = this.add.image(width / 2, height * 0.28, 'ogre').setScale(3)
     
     this.bossMaxHp = this.weaknessActive
       ? Math.max(1, Math.floor(this.level.wordCount * 0.8))
@@ -110,20 +106,15 @@ export class GrizzlefangBoss extends Phaser.Scene {
         fontSize: '18px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width / 2, height / 2 - 220, `Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Grizzlefang HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ff8800'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 - 100, '', {
-      fontSize: '32px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 160,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -185,7 +176,6 @@ export class GrizzlefangBoss extends Phaser.Scene {
       return
     }
     const word = this.wordQueue[0]
-    this.bossLabel.setText(word)
     this.engine.setWord(word)
   }
 
@@ -264,7 +254,6 @@ export class GrizzlefangBoss extends Phaser.Scene {
 
     if (passed) {
       this.bossSprite.destroy()
-      this.bossLabel.destroy()
       this.bossHpText.setText('DEFEATED!')
     }
 

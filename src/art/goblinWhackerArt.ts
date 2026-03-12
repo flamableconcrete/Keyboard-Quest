@@ -5,7 +5,7 @@ import Phaser from 'phaser'
  * Call once in create() before building game objects.
  */
 export function generateGoblinWhackerTextures(scene: Phaser.Scene) {
-  if (scene.textures.exists('goblin')) return // already generated
+  if (scene.textures.exists('ogre')) return // already generated
 
   generateGoblinTexture(scene)
   generateGoblinDeathTexture(scene)

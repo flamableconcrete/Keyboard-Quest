@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class AncientDragonBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -19,7 +20,6 @@ export class AncientDragonBoss extends Phaser.Scene {
   private sentenceQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Rectangle
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   
@@ -56,11 +56,7 @@ export class AncientDragonBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -80,24 +76,19 @@ export class AncientDragonBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Ancient Dragon is big and purple)
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 350, 350, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 350, 350, 0x4b0082)
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 - 240, `Ancient Dragon HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Ancient Dragon HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#a020f0'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
-      fontSize: '32px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 160,
       fontSize: 36, // Slightly smaller since sentences are longer
       onWordComplete: this.onSentenceComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -168,7 +159,6 @@ export class AncientDragonBoss extends Phaser.Scene {
       return
     }
     const sentence = this.sentenceQueue[0]
-    this.bossLabel.setText(sentence)
     this.engine.setWord(sentence)
   }
 
@@ -236,7 +226,6 @@ export class AncientDragonBoss extends Phaser.Scene {
 
     if (passed) {
       this.bossSprite.destroy()
-      this.bossLabel.destroy()
       this.bossHpText.setText('DEFEATED!')
     }
 

@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 interface WebLine {
   index: number;
@@ -77,11 +78,7 @@ export class SpiderBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -108,7 +105,7 @@ export class SpiderBoss extends Phaser.Scene {
     this.add.circle(centerX - 15, centerY - 10, 5, 0xff0000) // Eye
     this.add.circle(centerX + 15, centerY - 10, 5, 0xff0000) // Eye
     
-    this.bossHpText = this.add.text(centerX, centerY - 80, `Spider HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#8800ff'
     }).setOrigin(0.5)
 
@@ -230,7 +227,7 @@ export class SpiderBoss extends Phaser.Scene {
     const ly = height / 2 + Math.sin(line.angle) * radius
 
     line.textObject = this.add.text(lx, ly, letter, {
-      fontSize: '42px', color: '#ffffff', backgroundColor: '#00000088', padding: { x: 5, y: 5 }
+      fontSize: '48px', color: '#ffffff', backgroundColor: '#00000088', padding: { x: 5, y: 5 }, fontStyle: 'bold'
     }).setOrigin(0.5)
 
     this.activeLetterQueue.push(line)

@@ -87,6 +87,7 @@ export class TypingEngine {
         this.clearWord()
         this.config.onWordComplete(word, elapsed)
         if (override) override(word, elapsed)
+        this.scene.events.emit('word_completed_attack')
       }
     } else {
       this.config.onWrongKey()

@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class FlashWordBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -21,7 +22,6 @@ export class FlashWordBoss extends Phaser.Scene {
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  private bossLabel!: Phaser.GameObjects.Text
   
   private bossHp = 0
   private bossMaxHp = 0
@@ -29,6 +29,7 @@ export class FlashWordBoss extends Phaser.Scene {
   private hpText!: Phaser.GameObjects.Text
   
   private finished = false
+  private wordIsHidden = false
   private visibilityTimer?: Phaser.Time.TimerEvent
 
   constructor() { super('FlashWordBoss') }
@@ -51,11 +52,7 @@ export class FlashWordBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
 
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -66,23 +63,18 @@ export class FlashWordBoss extends Phaser.Scene {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 250, 250, 0x9b30ff)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 250, 250, 0x9b30ff)
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 - 200, `Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#cc33ff'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
-      fontSize: '32px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
 
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 160,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -111,14 +103,14 @@ export class FlashWordBoss extends Phaser.Scene {
       return
     }
     this.currentWord = this.wordQueue.shift()!
-    this.bossLabel.setText(this.currentWord)
+    this.wordIsHidden = false
     this.engine.setWord(this.currentWord)
     
     const visibilityTime = [3000, 2000, 1000][this.phase - 1]
     this.visibilityTimer?.remove()
     this.visibilityTimer = this.time.delayedCall(visibilityTime, () => {
       const hidden = "_".repeat(this.currentWord.length)
-      this.bossLabel.setText(hidden)
+      this.wordIsHidden = true
       this.engine.setDisplayWord(hidden)
     })
   }
@@ -143,7 +135,7 @@ export class FlashWordBoss extends Phaser.Scene {
   private onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
     // Damage player if word is hidden
-    if (this.bossLabel.text.includes('_')) {
+    if (this.wordIsHidden) {
         const pProfile = loadProfile(this.profileSlot)
     const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
     const absorbChance = armorItem?.effect?.absorbAttacksChance || 0

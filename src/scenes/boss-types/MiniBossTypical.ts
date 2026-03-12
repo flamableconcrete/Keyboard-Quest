@@ -11,6 +11,7 @@ import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class MiniBossTypical extends Phaser.Scene {
   private level!: LevelConfig
@@ -19,7 +20,6 @@ export class MiniBossTypical extends Phaser.Scene {
   private engine!: TypingEngine
   private wordQueue: string[] = []
   private bossSprite!: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private bossHp = 0
   private bossMaxHp = 0
@@ -69,11 +69,7 @@ export class MiniBossTypical extends Phaser.Scene {
     // Prominent Avatar on the left
     this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(2.5).setDepth(5)
 
-    const pProfile = loadProfile(this.profileSlot)
-    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-    if (activeCompanion) {
-        this.add.image(width * 0.25 + 100, height / 2, activeCompanion).setScale(1.5).setDepth(4)
-    }
+    new CompanionAndPetRenderer(this, width * 0.25, height / 2 - 50, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -112,30 +108,25 @@ export class MiniBossTypical extends Phaser.Scene {
 
     if (isOgre) {
       generateGoblinWhackerTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, height / 2 - 50, 'ogre').setScale(4)
+      this.bossSprite = this.add.image(width * 0.75, height * 0.28, 'ogre').setScale(3)
     } else {
       generateGenericBossTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, height / 2 - 50, 'generic_boss').setScale(4)
+      this.bossSprite = this.add.image(width * 0.75, height * 0.28, 'generic_boss').setScale(3)
     }
     if (this.weaknessActive) {
       this.add.text(width * 0.75, 55, '⚡ Weakness Known! Boss HP -20%', {
         fontSize: '16px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width * 0.75, height / 2 - 200, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width * 0.75, height / 2 - 160, '', {
-      fontSize: '28px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 8, y: 4 }
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 120,
+      y: height - 160,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -188,7 +179,6 @@ export class MiniBossTypical extends Phaser.Scene {
       return
     }
     const word = this.wordQueue[0]
-    this.bossLabel.setText(word)
     this.engine.setWord(word)
     if (this.typingHands && word[0]) {
       this.typingHands.highlightFinger(word[0])
@@ -249,6 +239,13 @@ export class MiniBossTypical extends Phaser.Scene {
       })
     }
 
+    // If HP has reached 0 (possible when weapon power bonus causes >1 damage),
+    // defeat the boss immediately regardless of remaining words.
+    if (this.bossHp <= 0) {
+      this.endLevel(true)
+      return
+    }
+
     this.loadNextWord()
   }
 
@@ -275,7 +272,6 @@ export class MiniBossTypical extends Phaser.Scene {
 
     if (passed) {
       this.bossSprite.destroy()
-      this.bossLabel.destroy()
       this.bossHpText.setText('DEFEATED!')
     }
 

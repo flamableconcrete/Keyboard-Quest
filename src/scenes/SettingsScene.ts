@@ -2,9 +2,11 @@
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ALL_LEVELS } from '../data/levels'
+import { AudioHelper } from '../utils/AudioHelper'
 
 export class SettingsScene extends Phaser.Scene {
   private profileSlot!: number
+  private activeTab: 'Profile' | 'Gameplay' | 'Audio' | 'Debug' = 'Profile'
 
   constructor() { super('Settings') }
 
@@ -29,11 +31,51 @@ export class SettingsScene extends Phaser.Scene {
       fontSize: '40px', color: '#ffd700'
     }).setOrigin(0.5)
 
-    // Avatar Section
-    const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
-    this.add.image(width / 2, 130, avatarKey).setDisplaySize(48, 96)
+    // Back button
+    const back = this.add.text(60, 40, '← BACK', {
+      fontSize: '22px', color: '#aaaaff'
+    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+    back.on('pointerdown', () => {
+      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+    })
 
-    const changeAvatarBtn = this.add.text(width / 2, 180, '[ Change Avatar ]', {
+    // Render Tabs
+    const tabs = ['Profile', 'Gameplay', 'Audio', 'Debug'] as const
+    const tabWidth = 140
+    const startX = width / 2 - (tabs.length * tabWidth) / 2 + tabWidth / 2
+
+    tabs.forEach((tab, index) => {
+      const isSelected = this.activeTab === tab
+      const tabText = this.add.text(startX + index * tabWidth, 130, tab, {
+        fontSize: '22px',
+        color: isSelected ? '#ffffff' : '#888888',
+        backgroundColor: isSelected ? '#444466' : '#222244',
+        padding: { x: 12, y: 8 }
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+      
+      tabText.on('pointerdown', () => {
+        this.activeTab = tab
+        this.renderSettings()
+      })
+    })
+
+    // Render active section
+    if (this.activeTab === 'Profile') {
+      this.renderProfileSection(width, profile)
+    } else if (this.activeTab === 'Gameplay') {
+      this.renderGameplaySection(width, profile)
+    } else if (this.activeTab === 'Audio') {
+      this.renderAudioSection(width)
+    } else if (this.activeTab === 'Debug') {
+      this.renderDebugSection(width, profile)
+    }
+  }
+
+  private renderProfileSection(width: number, profile: any) {
+    const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
+    this.add.image(width / 2, 250, avatarKey).setDisplaySize(48, 96)
+
+    const changeAvatarBtn = this.add.text(width / 2, 330, '[ Change Avatar ]', {
       fontSize: '20px',
       color: '#88cc88',
       backgroundColor: '#222244',
@@ -48,14 +90,16 @@ export class SettingsScene extends Phaser.Scene {
         returnTo: 'Settings'
       })
     })
+  }
 
+  private renderGameplaySection(width: number, profile: any) {
     // Game Mode label
-    this.add.text(width / 2, 240, 'Game Mode', {
+    this.add.text(width / 2, 220, 'Game Mode', {
       fontSize: '26px', color: '#ffffff'
     }).setOrigin(0.5)
 
     // Regular button
-    const regularBtn = this.add.text(width / 2 - 120, 290, '[ Regular ]', {
+    const regularBtn = this.add.text(width / 2 - 120, 270, '[ Regular ]', {
       fontSize: '24px',
       color: profile.gameMode === 'regular' ? '#ffd700' : '#888888',
       backgroundColor: '#222244',
@@ -63,7 +107,7 @@ export class SettingsScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     // Advanced button
-    const advancedBtn = this.add.text(width / 2 + 120, 290, '[ Advanced ]', {
+    const advancedBtn = this.add.text(width / 2 + 120, 270, '[ Advanced ]', {
       fontSize: '24px',
       color: profile.gameMode === 'advanced' ? '#ffd700' : '#888888',
       backgroundColor: '#222244',
@@ -71,7 +115,7 @@ export class SettingsScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     // Description text
-    const descText = this.add.text(width / 2, 350, this.getModeDescription(profile.gameMode), {
+    const descText = this.add.text(width / 2, 320, this.getModeDescription(profile.gameMode), {
       fontSize: '18px', color: '#aaaaaa', wordWrap: { width: 700 }, align: 'center',
     }).setOrigin(0.5)
 
@@ -88,12 +132,12 @@ export class SettingsScene extends Phaser.Scene {
     advancedBtn.on('pointerdown', () => setMode('advanced'))
 
     // Finger Hints label
-    this.add.text(width / 2, 420, 'Finger Hints', {
+    this.add.text(width / 2, 400, 'Finger Hints', {
       fontSize: '26px', color: '#ffffff'
     }).setOrigin(0.5)
 
     // ON button
-    const onBtn = this.add.text(width / 2 - 80, 480, '[ ON ]', {
+    const onBtn = this.add.text(width / 2 - 80, 450, '[ ON ]', {
       fontSize: '24px',
       color: profile.showFingerHints ? '#ffd700' : '#888888',
       backgroundColor: '#222244',
@@ -101,7 +145,7 @@ export class SettingsScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     // OFF button
-    const offBtn = this.add.text(width / 2 + 80, 480, '[ OFF ]', {
+    const offBtn = this.add.text(width / 2 + 80, 450, '[ OFF ]', {
       fontSize: '24px',
       color: !profile.showFingerHints ? '#ffd700' : '#888888',
       backgroundColor: '#222244',
@@ -109,7 +153,7 @@ export class SettingsScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     // Finger hints description
-    const hintsDesc = this.add.text(width / 2, 540, this.getHintsDescription(profile.showFingerHints), {
+    const hintsDesc = this.add.text(width / 2, 500, this.getHintsDescription(profile.showFingerHints), {
       fontSize: '18px', color: '#aaaaaa', wordWrap: { width: 700 }, align: 'center',
     }).setOrigin(0.5)
 
@@ -124,21 +168,76 @@ export class SettingsScene extends Phaser.Scene {
 
     onBtn.on('pointerdown', () => setHints(true))
     offBtn.on('pointerdown', () => setHints(false))
+  }
 
-    // Debug: Unlock All Levels toggle
+  private renderAudioSection(width: number) {
+    // Background Music label
+    this.add.text(width / 2, 220, 'Background Music', {
+      fontSize: '26px', color: '#ffffff'
+    }).setOrigin(0.5)
+
+    // ON button
+    const musicOnBtn = this.add.text(width / 2 - 80, 270, '[ ON ]', {
+      fontSize: '24px',
+      color: AudioHelper.isMusicEnabled() ? '#ffd700' : '#888888',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    // OFF button
+    const musicOffBtn = this.add.text(width / 2 + 80, 270, '[ OFF ]', {
+      fontSize: '24px',
+      color: !AudioHelper.isMusicEnabled() ? '#ffd700' : '#888888',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    const setMusic = (on: boolean) => {
+      AudioHelper.setMusicEnabled(on, this)
+      musicOnBtn.setColor(on ? '#ffd700' : '#888888')
+      musicOffBtn.setColor(!on ? '#ffd700' : '#888888')
+    }
+
+    musicOnBtn.on('pointerdown', () => setMusic(true))
+    musicOffBtn.on('pointerdown', () => setMusic(false))
+  }
+
+  private renderDebugSection(width: number, profile: any) {
     const allLevelIds = ALL_LEVELS.map(l => l.id)
     const allUnlocked = allLevelIds.every(id => profile.unlockedLevelIds.includes(id))
 
-    const unlockBtn = this.add.text(width / 2, 610, allUnlocked ? '[ Lock Levels ]' : '[ Unlock All Levels ]', {
+    this.add.text(width / 2, 220, 'DEBUG', {
+      fontSize: '12px', color: '#666666',
+    }).setOrigin(0.5)
+
+    const unlockBtn = this.add.text(width / 2, 260, allUnlocked ? '[ Lock Levels ]' : '[ Unlock All Levels ]', {
       fontSize: '20px',
       color: allUnlocked ? '#ff6666' : '#66ff66',
       backgroundColor: '#222244',
       padding: { x: 16, y: 8 },
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
-    this.add.text(width / 2, 648, 'DEBUG', {
-      fontSize: '12px', color: '#666666',
-    }).setOrigin(0.5)
+    const giveGoldBtn = this.add.text(width / 2, 310, '[ +1000 Gold ]', {
+      fontSize: '20px',
+      color: '#ffd700',
+      backgroundColor: '#222244',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    giveGoldBtn.on('pointerdown', () => {
+      const p = loadProfile(this.profileSlot)!
+      p.gold += 1000
+      saveProfile(this.profileSlot, p)
+      
+      const popText = this.add.text(width / 2 + 120, 310, '+1000!', { fontSize: '18px', color: '#ffff00', fontStyle: 'bold' }).setOrigin(0, 0.5)
+      this.tweens.add({
+        targets: popText,
+        y: 260,
+        alpha: 0,
+        duration: 1000,
+        onComplete: () => popText.destroy()
+      })
+    })
 
     unlockBtn.on('pointerdown', () => {
       const p = loadProfile(this.profileSlot)!
@@ -174,14 +273,6 @@ export class SettingsScene extends Phaser.Scene {
       saveProfile(this.profileSlot, p)
       this.renderSettings()
     })
-
-    // Back button
-    const back = this.add.text(60, 40, '← BACK', {
-      fontSize: '22px', color: '#aaaaff'
-    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
-    back.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
-    })
   }
 
   private getModeDescription(mode: 'regular' | 'advanced'): string {
@@ -198,3 +289,4 @@ export class SettingsScene extends Phaser.Scene {
     return 'Finger hints are hidden. For experienced typists.'
   }
 }
+

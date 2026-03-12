@@ -44,8 +44,8 @@ export class StableScene extends Phaser.Scene {
       pets.forEach((pet, i) => {
         const col = i % 3
         const row = Math.floor(i / 3)
-        const cx = 200 + col * 300
-        const cy = 160 + row * 180
+        const cx = 340 + col * 300
+        const cy = 230 + row * 180
         this.renderPetCard(cx, cy, pet, pet.id === this.profile.activePetId)
       })
     }
@@ -62,18 +62,21 @@ export class StableScene extends Phaser.Scene {
       t => !this.profile.pets.find(p => p.id === t.id)
     )
     available.slice(0, 3).forEach((t, i) => {
-      const cx = 200 + i * 300
+      const cx = 340 + i * 300
       const cy = height - 140
       const canAfford = (this.profile.gold ?? 0) >= t.goldCost
-      const card = this.add.rectangle(cx, cy, 260, 90, canAfford ? 0x333366 : 0x2a2a2a)
+      const card = this.add.rectangle(cx, cy, 280, 90, canAfford ? 0x333366 : 0x2a2a2a)
         .setInteractive({ useHandCursor: true })
-      this.add.text(cx, cy - 25, t.name, { fontSize: '14px', color: '#ffffff' }).setOrigin(0.5)
-      this.add.text(cx, cy, `Cost: ${t.goldCost} Gold`, {
+      
+      this.add.image(cx - 90, cy, t.id).setScale(1.5)
+      
+      this.add.text(cx - 30, cy - 35, t.name, { fontSize: '14px', color: '#ffffff', wordWrap: { width: 160 } }).setOrigin(0, 0)
+      this.add.text(cx - 30, cy + 5, `Cost: ${t.goldCost} Gold`, {
         fontSize: '13px', color: canAfford ? '#ffd700' : '#886600'
-      }).setOrigin(0.5)
-      this.add.text(cx, cy + 22, canAfford ? '[ Buy ]' : '[ Not enough gold ]', {
+      }).setOrigin(0, 0)
+      this.add.text(cx - 30, cy + 25, canAfford ? '[ Buy ]' : '[ Not enough gold ]', {
         fontSize: '13px', color: canAfford ? '#aaaaff' : '#666666'
-      }).setOrigin(0.5)
+      }).setOrigin(0, 0)
       card.on('pointerdown', () => {
         if (!this.profile.pets.find(p => p.id === t.id) && (this.profile.gold ?? 0) >= t.goldCost) {
           this.profile.gold -= t.goldCost
@@ -94,16 +97,20 @@ export class StableScene extends Phaser.Scene {
 
   private renderPetCard(x: number, y: number, pet: CompanionData, isActive: boolean) {
     const level = calcCompanionLevel(pet.xp)
-    const bg = this.add.rectangle(x, y, 260, 150, isActive ? 0x224422 : 0x223322)
+    const bg = this.add.rectangle(x, y, 280, 150, isActive ? 0x224422 : 0x223322)
       .setInteractive({ useHandCursor: true })
-    this.add.image(x - 90, y - 40, pet.id).setScale(2)
-    this.add.text(x, y - 50, pet.name, { fontSize: '14px', color: '#ffffff', wordWrap: { width: 180 } }).setOrigin(0.5)
-    this.add.text(x, y - 15, `Level ${level} · x${pet.autoStrikeCount} auto-strike`, { fontSize: '14px', color: '#aaffaa' }).setOrigin(0.5)
-    this.add.text(x, y + 20, pet.backstory, { fontSize: '11px', color: '#888888', wordWrap: { width: 240 } }).setOrigin(0.5)
+      
+    this.add.image(x - 90, y - 10, pet.id).setScale(2)
+    
+    this.add.text(x - 30, y - 65, pet.name, { fontSize: '15px', color: '#ffffff', wordWrap: { width: 160 } }).setOrigin(0, 0)
+    this.add.text(x - 30, y - 25, `Lv ${level} · x${pet.autoStrikeCount} strike`, { fontSize: '13px', color: '#aaffaa' }).setOrigin(0, 0)
+    this.add.text(x - 30, y - 5, pet.backstory, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 160 } }).setOrigin(0, 0)
+    
     const activeLabel = isActive ? '✓ Active' : '[ Set Active ]'
-    this.add.text(x, y + 55, activeLabel, {
+    this.add.text(x + 50, y + 55, activeLabel, {
       fontSize: '14px', color: isActive ? '#44ff44' : '#aaaaff'
     }).setOrigin(0.5)
+    
     bg.on('pointerdown', () => {
       this.profile.activePetId = pet.id
       saveProfile(this.profileSlot, this.profile)

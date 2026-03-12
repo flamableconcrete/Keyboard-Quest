@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class DiceLichBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -23,7 +24,6 @@ export class DiceLichBoss extends Phaser.Scene {
   private diceSprite!: Phaser.GameObjects.Rectangle
   private diceText!: Phaser.GameObjects.Text
   private curseLabel!: Phaser.GameObjects.Text
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   
@@ -60,11 +60,7 @@ export class DiceLichBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { 
@@ -84,7 +80,7 @@ export class DiceLichBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Indigo)
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 100, 200, 250, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 250, 0x4b0082)
     
     // Dice (White)
     this.diceSprite = this.add.rectangle(width / 2 + 200, height / 2 - 100, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
@@ -98,20 +94,15 @@ export class DiceLichBoss extends Phaser.Scene {
 
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 - 250, `Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`, { 
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`, { 
       fontSize: '24px', color: '#00ff88' 
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 + 50, '', { 
-      fontSize: '40px', color: '#ffffff', 
-      backgroundColor: '#000000', padding: { x: 12, y: 6 } 
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this, 
       x: width / 2, 
-      y: height - 100, 
+      y: height - 160, 
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -200,7 +191,7 @@ export class DiceLichBoss extends Phaser.Scene {
       this.wordQueue[0] = word
     }
 
-    this.bossLabel.setText(word)
+    this.engine.setWord(word)
     
     if (val === 3) { // Scrambled: show underscores
       const underscores = '_'.repeat(word.length)
@@ -280,7 +271,6 @@ export class DiceLichBoss extends Phaser.Scene {
         if (this.wordQueue.length > 0) {
             this.currentCurse = 0 // Reset curse so next word doesn't double-trigger
             const nextWord = this.wordQueue[0]
-            this.bossLabel.setText(nextWord)
             this.engine.setWord(nextWord)
             return // Skip loadNextWord (which rolls)
         }
@@ -321,8 +311,7 @@ export class DiceLichBoss extends Phaser.Scene {
       this.diceSprite.destroy()
       this.diceText.destroy()
       this.curseLabel.destroy()
-      this.bossLabel.setText('BANISHED!')
-      this.bossHpText.setText('DEFEATED!')
+      this.bossHpText.setText('BANISHED!')
     }
 
     const elapsed = Date.now() - this.engine.sessionStartTime

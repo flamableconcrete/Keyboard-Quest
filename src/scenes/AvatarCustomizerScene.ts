@@ -1,8 +1,9 @@
 import Phaser from 'phaser'
 import { createProfile, saveProfile, loadProfile } from '../utils/profile'
 import { ProfileData } from '../types'
-import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
+import { AvatarConfig, SKIN_TONES, SKIN_TONE_NAMES, HAIR_STYLES, HAIR_COLORS, HAIR_COLOR_NAMES, EYE_COLORS, EYE_COLOR_NAMES, ACCESSORIES, SHIRT_COLORS, SHIRT_COLOR_NAMES, PANTS_COLORS, PANTS_COLOR_NAMES, SHOE_COLORS, SHOE_COLOR_NAMES, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
+import { AudioHelper } from '../utils/AudioHelper'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
 
@@ -44,23 +45,22 @@ export class AvatarCustomizerScene extends Phaser.Scene {
   }
 
   private createDefaultConfig(): AvatarConfig {
-    return {
-      id: `custom_${Date.now()}`,
-      skinTone: SKIN_TONES[0],
-      hairStyle: HAIR_STYLES[0],
-      hairColor: HAIR_COLORS[0],
-      eyeColor: EYE_COLORS[0],
-      accessory: ACCESSORIES[0],
-      shirtColor: SHIRT_COLORS[0],
-      pantsColor: PANTS_COLORS[0],
-      shoeColor: SHOE_COLORS[0]
-    }
+    return randomizeOneConfig()
   }
 
   create() {
     const { width, height } = this.scale
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
+
+    const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
+      fontSize: '20px', color: '#aaaaaa'
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    musicBtn.on('pointerdown', () => {
+       const enabled = !AudioHelper.isMusicEnabled();
+       AudioHelper.setMusicEnabled(enabled, this);
+       musicBtn.setText(enabled ? '🎵 Music: ON' : '🎵 Music: OFF');
+    })
 
     const titleText = this.isEditingExisting ? 'Edit Hero' : 'Choose Your Hero'
     this.add.text(width / 2, 50, titleText, {
@@ -84,15 +84,15 @@ export class AvatarCustomizerScene extends Phaser.Scene {
     const startY = 150
     const spacing = 50
 
-    this.createSelector(leftX, startY, 'Skin Tone', SKIN_TONES, 'skinTone', (val: number) => this.toHexColor(val))
-    this.createSelector(leftX, startY + spacing, 'Hair Style', HAIR_STYLES, 'hairStyle', (val: string) => val)
-    this.createSelector(leftX, startY + spacing * 2, 'Hair Color', HAIR_COLORS, 'hairColor', (val: number) => this.toHexColor(val))
-    this.createSelector(leftX, startY + spacing * 3, 'Eye Color', EYE_COLORS, 'eyeColor', (val: number) => this.toHexColor(val))
+    this.createSelector(leftX, startY, 'Skin Tone', SKIN_TONES, 'skinTone', (val: number) => SKIN_TONE_NAMES[val] || this.toHexColor(val))
+    this.createSelector(leftX, startY + spacing, 'Hair Style', HAIR_STYLES, 'hairStyle', (val: string) => val.charAt(0).toUpperCase() + val.slice(1))
+    this.createSelector(leftX, startY + spacing * 2, 'Hair Color', HAIR_COLORS, 'hairColor', (val: number) => HAIR_COLOR_NAMES[val] || this.toHexColor(val))
+    this.createSelector(leftX, startY + spacing * 3, 'Eye Color', EYE_COLORS, 'eyeColor', (val: number) => EYE_COLOR_NAMES[val] || this.toHexColor(val))
 
-    this.createSelector(rightX, startY, 'Shirt', SHIRT_COLORS, 'shirtColor', (val: number) => this.toHexColor(val))
-    this.createSelector(rightX, startY + spacing, 'Pants', PANTS_COLORS, 'pantsColor', (val: number) => this.toHexColor(val))
-    this.createSelector(rightX, startY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', (val: number) => this.toHexColor(val))
-    this.createSelector(rightX, startY + spacing * 3, 'Accessory', ACCESSORIES, 'accessory', (val: string) => val)
+    this.createSelector(rightX, startY, 'Shirt', SHIRT_COLORS, 'shirtColor', (val: number) => SHIRT_COLOR_NAMES[val] || this.toHexColor(val))
+    this.createSelector(rightX, startY + spacing, 'Pants', PANTS_COLORS, 'pantsColor', (val: number) => PANTS_COLOR_NAMES[val] || this.toHexColor(val))
+    this.createSelector(rightX, startY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', (val: number) => SHOE_COLOR_NAMES[val] || this.toHexColor(val))
+    this.createSelector(rightX, startY + spacing * 3, 'Accessory', ACCESSORIES, 'accessory', (val: string) => val.charAt(0).toUpperCase() + val.slice(1))
 
     // Saved Outfits
     const outfitsY = height - 155

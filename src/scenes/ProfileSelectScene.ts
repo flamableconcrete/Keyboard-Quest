@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import { getAllProfiles, loadProfile, saveProfile, deleteProfile, exportProfile, importProfile } from '../utils/profile'
 import { ProfileData } from '../types'
 import { AvatarRenderer } from '../components/AvatarRenderer'
+import { AudioHelper } from '../utils/AudioHelper'
 
 const MONO_FONT = '"Courier New", Courier, monospace'
 
@@ -39,6 +40,15 @@ export class ProfileSelectScene extends Phaser.Scene {
   private render() {
     this.children.removeAll(true)
     const { width, height } = this.scale
+
+    const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
+      fontSize: '20px', color: '#aaaaaa', fontFamily: MONO_FONT
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    musicBtn.on('pointerdown', () => {
+       const enabled = !AudioHelper.isMusicEnabled();
+       AudioHelper.setMusicEnabled(enabled, this);
+       musicBtn.setText(enabled ? '🎵 Music: ON' : '🎵 Music: OFF');
+    })
 
     const title = this.add.text(width / 2, 50, 'Choose Your Hero', {
       fontSize: '40px', color: '#ffd700', fontFamily: MONO_FONT
@@ -224,6 +234,15 @@ export class ProfileSelectScene extends Phaser.Scene {
       fontSize: '32px', color: '#ffd700', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
+    const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
+      fontSize: '20px', color: '#aaaaaa', fontFamily: MONO_FONT
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
+    musicBtn.on('pointerdown', () => {
+       const enabled = !AudioHelper.isMusicEnabled();
+       AudioHelper.setMusicEnabled(enabled, this);
+       musicBtn.setText(enabled ? '🎵 Music: ON' : '🎵 Music: OFF');
+    })
+
     // Pixel panel background for the input area
     this.drawPixelPanel(width / 2, height * 0.5, 500, 80, 0x2a2a4a, 0x5555aa)
 
@@ -231,13 +250,41 @@ export class ProfileSelectScene extends Phaser.Scene {
       fontSize: '48px', color: '#ffffff', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
-    this.add.text(width / 2, height * 0.65, 'Press ENTER to confirm', {
+    const hintText = this.add.text(width / 2, height * 0.65, 'Press ENTER to confirm', {
       fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
     }).setOrigin(0.5)
+
+    // Pulse the input field if the user clicks without typing a name
+    const pulseInput = () => {
+      if (this.typingBuffer.length === 0) {
+        this.tweens.add({
+          targets: nameDisplay,
+          scaleX: 1.15,
+          scaleY: 1.15,
+          duration: 80,
+          ease: 'Quad.easeOut',
+          yoyo: true,
+          repeat: 2,
+        })
+        hintText.setColor('#ff8888')
+        this.tweens.add({
+          targets: hintText,
+          alpha: 0.4,
+          duration: 300,
+          ease: 'Sine.easeInOut',
+          yoyo: true,
+          repeat: 1,
+          onComplete: () => hintText.setColor('#888888'),
+        })
+      }
+    }
+
+    this.input.on('pointerdown', pulseInput)
 
     this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Enter' && this.typingBuffer.length > 0) {
         this.input.keyboard?.removeAllListeners()
+        this.input.off('pointerdown', pulseInput)
         this.showAvatarGallery(slot, this.typingBuffer)
       } else if (event.key === 'Backspace') {
         this.typingBuffer = this.typingBuffer.slice(0, -1)

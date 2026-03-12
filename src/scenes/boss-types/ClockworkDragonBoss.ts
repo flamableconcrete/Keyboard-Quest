@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 interface Gear {
   container: Phaser.GameObjects.Container
@@ -73,11 +74,7 @@ export class ClockworkDragonBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -106,7 +103,7 @@ export class ClockworkDragonBoss extends Phaser.Scene {
       .setOrigin(0.5, 0)
 
     this.bossHpText = this.add
-      .text(width / 2, 100, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
+      .text(width / 2, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
         color: '#ffcc00',
       })
@@ -206,10 +203,11 @@ export class ClockworkDragonBoss extends Phaser.Scene {
     container.add(sprite)
 
     const label = this.add.text(0, 0, word, {
-      fontSize: '20px',
-      color: '#ffffff',
+      fontSize: '32px',
+      color: '#ffff00',
       backgroundColor: '#000000',
-      padding: { x: 4, y: 2 }
+      padding: { x: 6, y: 3 },
+      fontStyle: 'bold'
     }).setOrigin(0.5)
     container.add(label)
 

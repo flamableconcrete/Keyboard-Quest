@@ -4,7 +4,33 @@ export class AudioHelper {
     static currentBGMKey: string | null = null;
     static currentBGM: Phaser.Sound.BaseSound | null = null;
 
+    static isMusicEnabled(): boolean {
+        const stored = localStorage.getItem('kq_music_enabled');
+        return stored === null ? true : stored === 'true';
+    }
+
+    static setMusicEnabled(enabled: boolean, scene?: Phaser.Scene) {
+        localStorage.setItem('kq_music_enabled', enabled.toString());
+        if (!enabled) {
+            if (this.currentBGM) {
+                this.currentBGM.stop();
+            }
+        } else if (scene && this.currentBGMKey) {
+            const key = this.currentBGMKey;
+            this.currentBGMKey = null; // force replay
+            this.playBGM(scene, key);
+        }
+    }
+
     static playBGM(scene: Phaser.Scene, key: string, volume: number = 0.5) {
+        if (!this.isMusicEnabled()) {
+            if (this.currentBGM) {
+                this.currentBGM.stop();
+            }
+            this.currentBGMKey = key;
+            return;
+        }
+
         // Only change music if it's different
         if (this.currentBGMKey === key && this.currentBGM && this.currentBGM.isPlaying) {
             return;

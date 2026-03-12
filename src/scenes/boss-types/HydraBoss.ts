@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 interface Head {
   sprite: Phaser.GameObjects.Rectangle
@@ -69,11 +70,7 @@ export class HydraBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -102,14 +99,14 @@ export class HydraBoss extends Phaser.Scene {
       .setOrigin(0.5, 0)
 
     this.bossHpText = this.add
-      .text(width / 2, 100, `Heads Defeated: ${this.totalDefeated}/${this.targetDefeated}`, {
+      .text(width / 2, height / 2 + 150, `Heads Defeated: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
         color: '#00ff00',
       })
       .setOrigin(0.5)
 
     this.headCountText = this.add
-      .text(width / 2, 130, `Active Heads: ${this.headCount}`, {
+      .text(width / 2, height / 2 + 180, `Active Heads: ${this.headCount}`, {
         fontSize: '18px',
         color: '#aaaaaa',
       })
@@ -117,8 +114,8 @@ export class HydraBoss extends Phaser.Scene {
 
     // Regrow Timer Bar
     const barWidth = 200
-    this.add.rectangle(width / 2, 160, barWidth, 10, 0x333333).setOrigin(0.5)
-    this.regrowBar = this.add.rectangle(width / 2 - barWidth / 2, 160, barWidth, 10, 0x00ff00).setOrigin(0, 0.5)
+    this.add.rectangle(width / 2, height / 2 + 210, barWidth, 10, 0x333333).setOrigin(0.5)
+    this.regrowBar = this.add.rectangle(width / 2 - barWidth / 2, height / 2 + 210, barWidth, 10, 0x00ff00).setOrigin(0, 0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
@@ -175,10 +172,11 @@ export class HydraBoss extends Phaser.Scene {
     const sprite = this.add.rectangle(x, y, 80, 120, this.headColors[Phaser.Math.Between(0, this.headColors.length - 1)])
     const label = this.add
       .text(x, y - 80, word, {
-        fontSize: '24px',
-        color: '#ffffff',
+        fontSize: '36px',
+        color: '#ffff00',
         backgroundColor: '#000000',
-        padding: { x: 4, y: 2 },
+        padding: { x: 6, y: 3 },
+        fontStyle: 'bold'
       })
       .setOrigin(0.5)
 

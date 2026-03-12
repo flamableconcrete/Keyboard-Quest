@@ -170,17 +170,20 @@ export class LevelResultScene extends Phaser.Scene {
 
     // Letter unlock banner
     if (level.miniBossUnlocksLetter) {
-      this.add.text(width / 2, 500, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
+      this.add.text(width / 2, yPos, `The letter "${level.miniBossUnlocksLetter.toUpperCase()}" has been restored!`, {
         fontSize: '26px', color: '#aaaaff'
       }).setOrigin(0.5)
+      yPos += 40
     }
 
 
-    // Continue button
-    const cont = this.add.text(width / 2, 640, '[ Continue ]', {
+    // Continue button — positioned below all dynamic content with a minimum gap
+    const contY = Math.max(yPos + 40, height * 0.8)
+    const cont = this.add.text(width / 2, contY, '[ Continue ]  (Space)', {
       fontSize: '32px', color: '#ffffff'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-    cont.on('pointerdown', () => {
+
+    const doContinue = () => {
       if (this.resultData.level.miniBossUnlocksLetter && passed) {
         this.scene.start('Cutscene', {
           letter: this.resultData.level.miniBossUnlocksLetter,
@@ -192,7 +195,11 @@ export class LevelResultScene extends Phaser.Scene {
       } else {
         this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
       }
-    })
+    }
+
+    cont.on('pointerdown', doContinue)
+
+    this.input.keyboard!.once('keydown-SPACE', doContinue)
   }
 
   private showFailScreen() {
@@ -203,12 +210,17 @@ export class LevelResultScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.5, 'Try again?', {
       fontSize: '28px', color: '#aaaaaa'
     }).setOrigin(0.5)
-    const retry = this.add.text(width / 2, height * 0.65, '[ Retry ]', {
+    const retry = this.add.text(width / 2, height * 0.65, '[ Retry ]  (Space)', {
       fontSize: '32px', color: '#ffd700'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-    retry.on('pointerdown', () => {
+
+    const doRetry = () => {
       this.scene.start('LevelIntro', { level: this.resultData.level, profileSlot: this.resultData.profileSlot })
-    })
+    }
+
+    retry.on('pointerdown', doRetry)
+    this.input.keyboard!.once('keydown-SPACE', doRetry)
+
     const map = this.add.text(width / 2, height * 0.75, '[ Map ]', {
       fontSize: '28px', color: '#aaaaaa'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })

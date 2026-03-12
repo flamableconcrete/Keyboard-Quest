@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 interface Slime {
   word: string
@@ -57,11 +58,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -72,7 +69,7 @@ export class SlimeKingBoss extends Phaser.Scene {
       fontSize: '28px', color: '#ff8800'
     }).setOrigin(0.5, 0)
     
-    this.bossHpText = this.add.text(width / 2, 60, `Slimes: 0`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Slimes: 0`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
@@ -140,7 +137,7 @@ export class SlimeKingBoss extends Phaser.Scene {
   private createSlime(word: string, x: number, y: number, size: number) {
     const sprite = this.add.rectangle(x, y, size, size, 0x44aaaa)
     const label = this.add.text(x, y, word, {
-      fontSize: `${Math.max(16, size / 5)}px`, color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
+      fontSize: `${Math.max(24, size / 4)}px`, color: '#ffff00', backgroundColor: '#000000', padding: { x: 6, y: 3 }, fontStyle: 'bold'
     }).setOrigin(0.5)
     
     const slime: Slime = { word, x, y, speed: 0, sprite, label, hp: 1, size }

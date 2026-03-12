@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 interface Shield {
     sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle
@@ -67,11 +68,7 @@ export class BoneKnightBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
         this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -90,12 +87,12 @@ export class BoneKnightBoss extends Phaser.Scene {
         }).setOrigin(0.5, 0)
 
         // Boss Sprite (Bone Knight is tall and grey/silver)
-        this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 200, 350, 0xbdc3c7)
+        this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 350, 0xbdc3c7)
         this.add.rectangle(width / 2, height / 2 - 180, 100, 100, 0xbdc3c7) // Head
 
         this.bossMaxHp = this.level.wordCount
         this.bossHp = this.bossMaxHp
-        this.bossHpText = this.add.text(width / 2, height / 2 - 250, `Bone Knight HP: ${this.bossHp}/${this.bossMaxHp}`, {
+        this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Bone Knight HP: ${this.bossHp}/${this.bossMaxHp}`, {
             fontSize: '24px', color: '#e0e0e0'
         }).setOrigin(0.5)
 
@@ -145,10 +142,11 @@ export class BoneKnightBoss extends Phaser.Scene {
             sprite.setStrokeStyle(4, 0x2980b9)
 
             const text = this.add.text(x, y, word, {
-                fontSize: '24px',
-                color: i === 0 ? '#ffffff' : '#888888',
+                fontSize: '36px',
+                color: i === 0 ? '#ffff00' : '#888888',
                 backgroundColor: '#000000',
-                padding: { x: 4, y: 2 }
+                padding: { x: 6, y: 3 },
+                fontStyle: 'bold'
             }).setOrigin(0.5)
 
             this.shields.push({ sprite, text, word })

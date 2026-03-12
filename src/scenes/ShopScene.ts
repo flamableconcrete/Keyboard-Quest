@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
 import { ITEMS, getItemColor, getItem } from '../data/items'
+import { generateAllItemTextures } from '../art/itemsArt'
 
 export class ShopScene extends Phaser.Scene {
   private profileSlot!: number
@@ -17,6 +18,8 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+
+    generateAllItemTextures(this)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
 
@@ -84,7 +87,11 @@ export class ShopScene extends Phaser.Scene {
     }
 
     const itemColor = getItemColor(item.rarity)
-    this.add.text(x - 180, y - 30, item.name, { fontSize: '18px', color: itemColor, fontStyle: 'bold' }).setOrigin(0, 0.5)
+    
+    // Add pixel art
+    this.add.image(x - 145, y, item.id).setScale(1.5)
+
+    this.add.text(x - 110, y - 30, item.name, { fontSize: '18px', color: itemColor, fontStyle: 'bold' }).setOrigin(0, 0.5)
 
     const equippedItemId = this.profile.equipment[item.slot]
     const equippedItem = equippedItemId ? getItem(equippedItemId) : null
@@ -116,8 +123,8 @@ export class ShopScene extends Phaser.Scene {
       effectStr += cur === item.effect.goldMultiplier ? `+${item.effect.goldMultiplier * 100}% Gold ` : `Gold: +${cur * 100}% -> +${item.effect.goldMultiplier * 100}% `
     }
 
-    this.add.text(x - 180, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
-    this.add.text(x - 180, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 360 } }).setOrigin(0, 0)
+    this.add.text(x - 110, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
+    this.add.text(x - 110, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 280 } }).setOrigin(0, 0)
 
     const statusText = `${item.goldCost} Gold`
     const statusColor = canAfford ? '#ffd700' : '#ff4444'

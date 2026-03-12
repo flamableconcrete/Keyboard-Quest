@@ -8,6 +8,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
+import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class TypemancerBoss extends Phaser.Scene {
   private level!: LevelConfig
@@ -20,7 +21,6 @@ export class TypemancerBoss extends Phaser.Scene {
   private wordQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Rectangle
-  private bossLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   private mechanicText!: Phaser.GameObjects.Text
@@ -62,11 +62,7 @@ export class TypemancerBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  const pProfile = loadProfile(this.profileSlot)
-  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
-  if (activeCompanion) {
-      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
-  }
+  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -90,25 +86,20 @@ export class TypemancerBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Typemancer is black/white/glitchy placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height / 2 - 50, 300, 350, 0x111111)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 300, 350, 0x111111)
     this.bossSprite.setStrokeStyle(4, 0xffffff)
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 - 250, `Typemancer HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Typemancer HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
-    }).setOrigin(0.5)
-
-    this.bossLabel = this.add.text(width / 2, height / 2 - 50, '', {
-      fontSize: '40px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 12, y: 6 }
     }).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
       x: width / 2,
-      y: height - 100,
+      y: height - 160,
       fontSize: 48,
       onWordComplete: this.onWordComplete.bind(this),
       onWrongKey: this.onWrongKey.bind(this),
@@ -202,19 +193,15 @@ export class TypemancerBoss extends Phaser.Scene {
     // Apply phase specific logic
     if (this.phase === 2) { // Scrambled
       const scrambled = this.scrambleWord(word)
-      this.bossLabel.setText(scrambled)
-      this.engine.setWord(word, "_".repeat(word.length))
+      this.engine.setWord(word, scrambled)
     } else if (this.phase === 3) { // Memory
-      this.bossLabel.setText(word)
       this.engine.setWord(word)
       this.visibilityTimer?.remove()
       this.visibilityTimer = this.time.delayedCall(1500, () => {
         const hidden = "_".repeat(word.length)
-        this.bossLabel.setText(hidden)
         this.engine.setDisplayWord(hidden)
       })
     } else {
-      this.bossLabel.setText(word)
       this.engine.setWord(word)
     }
   }
@@ -302,7 +289,6 @@ export class TypemancerBoss extends Phaser.Scene {
 
     if (passed) {
       this.bossSprite.destroy()
-      this.bossLabel.destroy()
       this.bossHpText.setText('RESTORED!')
     }
 

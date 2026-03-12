@@ -284,32 +284,104 @@ AvatarRenderer.drawHead(gfx, config.skinTone)
     }
   }
 
-  // ── Equipment ─────────────────────────────────────────────
-
   private static drawEquipment(
     gfx: Phaser.GameObjects.Graphics,
     equipment: EquipmentData
   ): void {
-    // If we have a weapon, draw a simple sword in the right hand (left side of screen)
-    if (equipment.weapon) {
-      // Hilt at col 1, row 20
-      AvatarRenderer.rect(gfx, 1, 20, 2, 1, 0x8b4513) // brown crossguard
-      AvatarRenderer.rect(gfx, 1, 21, 1, 2, 0x8b4513) // brown handle
-      AvatarRenderer.px(gfx, 1, 23, 0xffd700)         // gold pommel
-      // Blade going up to row 10
-      AvatarRenderer.rect(gfx, 1, 10, 1, 10, 0xcccccc) // silver blade
-      // Optional tip
-      AvatarRenderer.px(gfx, 1, 9, 0xeeeeee)
+    if (equipment.armor) {
+      switch (equipment.armor) {
+        case 'leather_tunic':
+        case 'padded_envelope':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0x8b4513)
+          AvatarRenderer.rect(gfx, 2, 16, 2, 5, 0x8b4513)
+          AvatarRenderer.rect(gfx, 12, 16, 2, 5, 0x8b4513)
+          break
+        case 'chainmail_shirt':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0xaaaaaa)
+          AvatarRenderer.rect(gfx, 2, 16, 2, 5, 0xaaaaaa)
+          AvatarRenderer.rect(gfx, 12, 16, 2, 5, 0xaaaaaa)
+          break
+        case 'steel_plate':
+        case 'iron_gauntlet':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0xcccccc)
+          AvatarRenderer.rect(gfx, 5, 17, 2, 6, 0xeeeeee)
+          AvatarRenderer.rect(gfx, 2, 16, 2, 5, 0xcccccc)
+          AvatarRenderer.rect(gfx, 12, 16, 2, 5, 0xcccccc)
+          break
+        case 'dragon_scale_mail':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0x228b22)
+          AvatarRenderer.rect(gfx, 2, 16, 2, 5, 0x228b22)
+          AvatarRenderer.rect(gfx, 12, 16, 2, 5, 0x228b22)
+          AvatarRenderer.rect(gfx, 5, 17, 1, 1, 0xff4444); AvatarRenderer.rect(gfx, 7, 19, 1, 1, 0xff4444); AvatarRenderer.rect(gfx, 9, 17, 1, 1, 0xff4444)
+          break
+        case 'aegis_armor':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0xffd700)
+          AvatarRenderer.rect(gfx, 6, 18, 4, 4, 0xffffff)
+          AvatarRenderer.rect(gfx, 2, 16, 2, 5, 0xffd700)
+          AvatarRenderer.rect(gfx, 12, 16, 2, 5, 0xffd700)
+          AvatarRenderer.px(gfx, 7, 19, 0x88aaff); AvatarRenderer.px(gfx, 8, 19, 0x88aaff)
+          break
+        case 'ink_blotter':
+          AvatarRenderer.rect(gfx, 4, 16, 8, 8, 0xc19a6b)
+          AvatarRenderer.px(gfx, 6, 18, 0x111111); AvatarRenderer.px(gfx, 7, 19, 0x111111); AvatarRenderer.px(gfx, 6, 20, 0x111111)
+          break
+      }
     }
 
-    // If we have armor, draw a shield or chestplate overlay
-    if (equipment.armor) {
-      // Draw a simple shield on the left hand (right side of screen)
-      // Base
-      AvatarRenderer.rect(gfx, 13, 17, 3, 5, 0x666666) // dark gray rim
-      AvatarRenderer.rect(gfx, 14, 18, 1, 3, 0xaa2222) // red center
-      // Point
-      AvatarRenderer.rect(gfx, 14, 22, 1, 1, 0x666666) // point
+    if (equipment.weapon) {
+      // Base drawn on left side (right hand): cols 1-3, rows 10-23
+      const drawSword = (bladeC: number, guardC: number, handleC: number, h: number, glowC?: number) => {
+        AvatarRenderer.rect(gfx, 1, 20, 2, 1, guardC)
+        AvatarRenderer.rect(gfx, 1, 21, 1, 2, handleC)
+        AvatarRenderer.rect(gfx, 1, 20 - h, 1, h, bladeC)
+        if (glowC) AvatarRenderer.px(gfx, 0, 20 - Math.floor(h/2), glowC)
+      }
+      switch (equipment.weapon) {
+        case 'rusty_quill':
+          AvatarRenderer.rect(gfx, 1, 18, 2, 5, 0x8b4513)
+          AvatarRenderer.rect(gfx, 0, 14, 3, 4, 0xdddddd)
+          AvatarRenderer.px(gfx, 1, 23, 0x555555) // nib point
+          break
+        case 'obsidian_nib':
+          AvatarRenderer.rect(gfx, 1, 19, 1, 4, 0x111111)
+          AvatarRenderer.rect(gfx, 0, 15, 3, 4, 0x222222)
+          AvatarRenderer.px(gfx, 1, 23, 0x444444)
+          break
+        case 'copper_shortsword': drawSword(0xb87333, 0x8b4513, 0x5c4033, 6); break
+        case 'iron_broadsword': 
+          AvatarRenderer.rect(gfx, 1, 20, 3, 1, 0x606060)
+          AvatarRenderer.rect(gfx, 2, 21, 1, 2, 0x303030)
+          AvatarRenderer.rect(gfx, 1, 12, 3, 8, 0xa0a0a0)
+          break
+        case 'steel_longsword': drawSword(0xdcdcdc, 0x808080, 0x404040, 9); break
+        case 'mithril_blade': drawSword(0xaaffff, 0x008888, 0x004444, 10, 0xaaffff); break
+        case 'excalibur': 
+          AvatarRenderer.rect(gfx, 0, 20, 4, 1, 0xffd700)
+          AvatarRenderer.rect(gfx, 1, 21, 2, 2, 0x222288)
+          AvatarRenderer.rect(gfx, 1, 10, 2, 10, 0xffffff)
+          AvatarRenderer.px(gfx, 1, 9, 0xaaddff); AvatarRenderer.px(gfx, 2, 9, 0xaaddff)
+          break
+      }
+    }
+
+    if (equipment.accessory) {
+      // Accessories can be drawn as necklaces, rings, floating pets, etc.
+      switch (equipment.accessory) {
+        case 'focus_ring': AvatarRenderer.px(gfx, 2, 23, 0x4488ff); break // ring on hand
+        case 'lucky_charm': AvatarRenderer.px(gfx, 8, 17, 0x00cc00); break // clover pin on chest
+        case 'scholars_monocle': 
+          AvatarRenderer.px(gfx, 10, 8, 0xaaffff) // monocle over eye
+          AvatarRenderer.px(gfx, 11, 8, 0xffd700); AvatarRenderer.px(gfx, 12, 9, 0xffd700)
+          break
+        case 'lucky_coin': AvatarRenderer.rect(gfx, 7, 18, 2, 2, 0xffd700); break // coin medallion
+        case 'hunters_charm': AvatarRenderer.px(gfx, 8, 17, 0xeeeeee); break // bone tooth necklace
+        case 'golden_idol': 
+          AvatarRenderer.rect(gfx, 13, 10, 2, 3, 0xffd700) // floating idol companion
+          AvatarRenderer.px(gfx, 13, 11, 0xff0000)
+          break
+        case 'taming_bell': AvatarRenderer.rect(gfx, 14, 23, 2, 2, 0xffaa00); break // bell in offhand
+        case 'midas_ring': AvatarRenderer.px(gfx, 2, 23, 0xffaa00); break // ring on hand
+      }
     }
   }
 }
