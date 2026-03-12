@@ -4,7 +4,7 @@ import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
-import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
+import { getLevelsForWorld } from '../data/levels'
 import { rotateShopItems } from '../utils/shop'
 
 interface ResultData {
