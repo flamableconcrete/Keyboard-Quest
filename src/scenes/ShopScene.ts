@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
-import { ITEMS, getItem } from '../data/items'
+import { ITEMS, getItemColor, getItem } from '../data/items'
 
 export class ShopScene extends Phaser.Scene {
   private profileSlot!: number
@@ -83,7 +83,8 @@ export class ShopScene extends Phaser.Scene {
       })
     }
 
-    this.add.text(x - 180, y - 30, item.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5)
+    const itemColor = getItemColor(item.rarity)
+    this.add.text(x - 180, y - 30, item.name, { fontSize: '18px', color: itemColor, fontStyle: 'bold' }).setOrigin(0, 0.5)
 
     const equippedItemId = this.profile.equipment[item.slot]
     const equippedItem = equippedItemId ? getItem(equippedItemId) : null

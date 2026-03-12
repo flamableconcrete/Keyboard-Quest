@@ -104,6 +104,7 @@ export interface ItemData {
   id: string
   name: string
   slot: 'weapon' | 'armor' | 'accessory'
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic'
   description: string
   goldCost: number
   effect: {

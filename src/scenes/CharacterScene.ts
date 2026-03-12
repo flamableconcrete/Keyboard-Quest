@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { ProfileData, ItemData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { getItem } from '../data/items'
+import { getItem, getItemColor } from '../data/items'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
@@ -417,7 +417,7 @@ export class CharacterScene extends Phaser.Scene {
     )
 
     const itemName = item ? item.name : 'EMPTY'
-    const itemColor = item ? '#ffffff' : '#444444'
+    const itemColor = item ? getItemColor(item.rarity) : '#444444'
     container.add(
       this.add
         .text(x, y, itemName, { fontSize: '18px', color: itemColor, fontStyle: 'bold' })
@@ -535,8 +535,9 @@ export class CharacterScene extends Phaser.Scene {
       })
       this.selectionContainer.add(bg)
 
+      const nameColor = item ? getItemColor(item.rarity) : '#ffffff'
       this.selectionContainer.add(
-        this.add.text(x, y - 10, name, { fontSize: '20px', color: '#ffffff' }).setOrigin(0.5)
+        this.add.text(x, y - 10, name, { fontSize: '20px', color: nameColor }).setOrigin(0.5)
       )
       if (desc) {
         this.selectionContainer.add(
