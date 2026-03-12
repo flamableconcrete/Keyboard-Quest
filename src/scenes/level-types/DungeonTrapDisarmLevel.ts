@@ -38,7 +38,7 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
   private playerHp = 3
   private heartIcons: Phaser.GameObjects.Image[] = []
   private timerText!: Phaser.GameObjects.Text
-  private timerBg!: Phaser.GameObjects.Graphics
+
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
@@ -85,7 +85,7 @@ export class DungeonTrapDisarmLevel extends Phaser.Scene {
     this.buildHeartHUD()
 
     // ── HUD: Timer ──────────────────────────────────────────────────────────
-    this.timerBg = this.add.graphics().setDepth(10)
+    this.add.graphics().setDepth(10)
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px',
       color: '#ffcc44',
