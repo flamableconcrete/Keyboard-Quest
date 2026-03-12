@@ -21,6 +21,7 @@ export class TypingEngine {
   private charTexts: Phaser.GameObjects.Text[] = []
   private wordStartTime = 0
   private wpmText?: Phaser.GameObjects.Text
+  private lastWpmUpdate = 0
 
   // Tracking stats
   correctKeystrokes = 0
@@ -38,8 +39,11 @@ export class TypingEngine {
     if (config.showWpm !== false) {
       const { width, height } = this.scene.scale
       this.wpmText = this.scene.add.text(width - 20, height - 20, 'WPM: 0', {
-        fontSize: '20px',
-        color: '#aaaaaa'
+        fontSize: '32px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 4
       }).setOrigin(1, 1).setDepth(100)
       this.scene.events.on('update', this.updateWpm, this)
     }
@@ -47,7 +51,11 @@ export class TypingEngine {
 
   private updateWpm() {
     if (!this.wpmText || !this.wpmText.active) return
-    const elapsed = Date.now() - this.sessionStartTime
+    const now = Date.now()
+    if (now - this.lastWpmUpdate < 500) return
+    this.lastWpmUpdate = now
+
+    const elapsed = now - this.sessionStartTime
     const wpm = elapsed > 0 ? Math.round(this.completedWords / (elapsed / 60000)) : 0
     this.wpmText.setText(`WPM: ${wpm}`)
   }
