@@ -7,6 +7,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 interface WebLine {
   index: number;
@@ -72,8 +73,15 @@ export class SpiderBoss extends Phaser.Scene {
     this.add.rectangle(centerX, centerY, width, height, 0x0a0a1a)
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+  const pProfile = loadProfile(this.profileSlot)
+  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+  if (activeCompanion) {
+      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
+  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {

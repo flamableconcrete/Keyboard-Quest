@@ -10,6 +10,7 @@ import { TypingHands } from '../../components/TypingHands'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 export class MiniBossTypical extends Phaser.Scene {
   private level!: LevelConfig
@@ -62,10 +63,17 @@ export class MiniBossTypical extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e2a)
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
 
     // Prominent Avatar on the left
     this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(2.5).setDepth(5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(width * 0.25 + 100, height / 2, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {

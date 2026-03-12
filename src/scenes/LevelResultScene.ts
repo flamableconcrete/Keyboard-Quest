@@ -3,8 +3,9 @@ import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
-import { calcXpReward, calcCharacterLevel } from '../utils/scoring'
-import { getLevelsForWorld } from '../data/levels'
+import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
+import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
+import { rotateShopItems } from '../utils/shop'
 
 interface ResultData {
   level: LevelConfig
@@ -40,6 +41,24 @@ export class LevelResultScene extends Phaser.Scene {
     const prevLevel = this.profile.characterLevel
     this.profile.xp += xpGained
     this.profile.characterLevel = calcCharacterLevel(this.profile.xp)
+
+    // Companion XP
+    const leveledUpCompanions: { name: string, level: number }[] = []
+
+    if (this.profile.activeCompanionId || this.profile.activePetId) {
+      const activeEntities = [...this.profile.companions, ...this.profile.pets]
+        .filter(c => c.id === this.profile.activeCompanionId || c.id === this.profile.activePetId)
+
+      for (const entity of activeEntities) {
+        const prevCompLevel = calcCompanionLevel(entity.xp)
+        entity.xp += xpGained
+        const newCompanionLevel = calcCompanionLevel(entity.xp)
+
+        if (newCompanionLevel > prevCompLevel) {
+          leveledUpCompanions.push({ name: entity.name, level: newCompanionLevel })
+        }
+      }
+    }
 
     // Award gold — 2 gold per enemy (word) defeated
     // Calculate gold based on bonus chance
@@ -86,6 +105,14 @@ export class LevelResultScene extends Phaser.Scene {
       this.profile.unlockedLetters.push(level.miniBossUnlocksLetter)
     }
 
+    // Rotate shop items if a mini-boss or boss was defeated
+    if (level.isMiniBoss || level.isBoss) {
+      if (!this.profile.currentShopItemIds) {
+        this.profile.currentShopItemIds = []
+      }
+      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [])
+    }
+
     saveProfile(this.resultData.profileSlot, this.profile)
 
     // Victory detection — route to VictoryScene if Typemancer defeated
@@ -125,10 +152,20 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '24px', color: '#ffd700'
     }).setOrigin(0.5)
 
+    let yPos = 455
+
     if (this.profile.characterLevel > prevLevel) {
-      this.add.text(width / 2, 455, `Level Up! Now Level ${this.profile.characterLevel}`, {
+      this.add.text(width / 2, yPos, `Level Up! Now Level ${this.profile.characterLevel}`, {
         fontSize: '24px', color: '#ffd700'
       }).setOrigin(0.5)
+      yPos += 40
+    }
+
+    for (const comp of leveledUpCompanions) {
+      this.add.text(width / 2, yPos, `${comp.name} Leveled Up! Now Level ${comp.level}`, {
+        fontSize: '24px', color: '#aaffaa'
+      }).setOrigin(0.5)
+      yPos += 40
     }
 
     // Letter unlock banner
@@ -137,6 +174,7 @@ export class LevelResultScene extends Phaser.Scene {
         fontSize: '26px', color: '#aaaaff'
       }).setOrigin(0.5)
     }
+
 
     // Continue button
     const cont = this.add.text(width / 2, 640, '[ Continue ]', {

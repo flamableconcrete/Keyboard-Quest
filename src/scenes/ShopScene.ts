@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
-import { ITEMS } from '../data/items'
+import { ITEMS, getItem } from '../data/items'
 
 export class ShopScene extends Phaser.Scene {
   private profileSlot!: number
@@ -46,7 +46,13 @@ export class ShopScene extends Phaser.Scene {
         fontSize: '24px', color: '#ffffff', fontStyle: 'bold'
       }).setOrigin(0.5)
 
-      const catItems = ITEMS.filter(item => item.slot === cat && item.goldCost > 0)
+      const catItems = ITEMS.filter(item =>
+        item.slot === cat &&
+        item.goldCost > 0 &&
+        this.profile.currentShopItemIds?.includes(item.id) &&
+        !this.profile.ownedItemIds.includes(item.id)
+      )
+
       catItems.forEach((item, j) => {
         const cy = 160 + j * 100
         this.renderItemCard(cx, cy, item)
@@ -55,18 +61,23 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private renderItemCard(x: number, y: number, item: ItemData) {
-    const isOwned = this.profile.ownedItemIds.includes(item.id)
     const canAfford = (this.profile.gold ?? 0) >= item.goldCost
 
-    const bgColor = isOwned ? 0x223322 : canAfford ? 0x333366 : 0x2a2a2a
+    const bgColor = canAfford ? 0x333366 : 0x2a2a2a
     const bg = this.add.rectangle(x, y, 380, 90, bgColor)
       .setStrokeStyle(2, 0x4e4e6a)
 
-    if (!isOwned && canAfford) {
+    if (canAfford) {
       bg.setInteractive({ useHandCursor: true })
       bg.on('pointerdown', () => {
         this.profile.gold -= item.goldCost
         this.profile.ownedItemIds.push(item.id)
+
+        // Remove item from shop pool upon purchase
+        if (this.profile.currentShopItemIds) {
+          this.profile.currentShopItemIds = this.profile.currentShopItemIds.filter(id => id !== item.id)
+        }
+
         saveProfile(this.profileSlot, this.profile)
         this.scene.restart({ profileSlot: this.profileSlot })
       })
@@ -74,19 +85,41 @@ export class ShopScene extends Phaser.Scene {
 
     this.add.text(x - 180, y - 30, item.name, { fontSize: '18px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5)
 
+    const equippedItemId = this.profile.equipment[item.slot]
+    const equippedItem = equippedItemId ? getItem(equippedItemId) : null
+
     let effectStr = ''
-    if (item.effect.power) effectStr += `+${item.effect.power} PWR `
-    if (item.effect.hp) effectStr += `+${item.effect.hp} HP `
-    if (item.effect.defeatAdditionalEnemiesChance) effectStr += `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave `
-    if (item.effect.absorbAttacksChance) effectStr += `${item.effect.absorbAttacksChance * 100}% Block `
-    if (item.effect.bonusGoldChance) effectStr += `${item.effect.bonusGoldChance * 100}% Bonus Gold `
-    if (item.effect.goldMultiplier) effectStr += `+${item.effect.goldMultiplier * 100}% Gold `
+
+    if (item.effect.power) {
+      const cur = equippedItem?.effect?.power || 0
+      effectStr += cur === item.effect.power ? `+${item.effect.power} PWR ` : `PWR: ${cur} -> ${item.effect.power} `
+    }
+    if (item.effect.hp) {
+      const cur = equippedItem?.effect?.hp || 0
+      effectStr += cur === item.effect.hp ? `+${item.effect.hp} HP ` : `HP: ${cur} -> ${item.effect.hp} `
+    }
+    if (item.effect.defeatAdditionalEnemiesChance) {
+      const cur = equippedItem?.effect?.defeatAdditionalEnemiesChance || 0
+      effectStr += cur === item.effect.defeatAdditionalEnemiesChance ? `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave ` : `Cleave: ${cur * 100}% -> ${item.effect.defeatAdditionalEnemiesChance * 100}% `
+    }
+    if (item.effect.absorbAttacksChance) {
+      const cur = equippedItem?.effect?.absorbAttacksChance || 0
+      effectStr += cur === item.effect.absorbAttacksChance ? `${item.effect.absorbAttacksChance * 100}% Block ` : `Block: ${cur * 100}% -> ${item.effect.absorbAttacksChance * 100}% `
+    }
+    if (item.effect.bonusGoldChance) {
+      const cur = equippedItem?.effect?.bonusGoldChance || 0
+      effectStr += cur === item.effect.bonusGoldChance ? `${item.effect.bonusGoldChance * 100}% Bonus Gold ` : `Bonus Gold: ${cur * 100}% -> ${item.effect.bonusGoldChance * 100}% `
+    }
+    if (item.effect.goldMultiplier) {
+      const cur = equippedItem?.effect?.goldMultiplier || 0
+      effectStr += cur === item.effect.goldMultiplier ? `+${item.effect.goldMultiplier * 100}% Gold ` : `Gold: +${cur * 100}% -> +${item.effect.goldMultiplier * 100}% `
+    }
 
     this.add.text(x - 180, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
     this.add.text(x - 180, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 360 } }).setOrigin(0, 0)
 
-    const statusText = isOwned ? 'OWNED' : `${item.goldCost} Gold`
-    const statusColor = isOwned ? '#44ff44' : canAfford ? '#ffd700' : '#ff4444'
+    const statusText = `${item.goldCost} Gold`
+    const statusColor = canAfford ? '#ffd700' : '#ff4444'
     this.add.text(x + 180, y - 30, statusText, { fontSize: '16px', color: statusColor, fontStyle: 'bold' }).setOrigin(1, 0.5)
   }
 }

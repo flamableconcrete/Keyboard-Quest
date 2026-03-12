@@ -6,6 +6,7 @@ import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 export class MagicRuneTypingLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -43,8 +44,15 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
 
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
 
     // Level name
