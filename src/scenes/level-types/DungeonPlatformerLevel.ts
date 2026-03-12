@@ -366,13 +366,13 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   private onWordComplete(_word: string, _elapsed: number) {
     if (!this.currentObstacle) return
     const obs = this.currentObstacle
+    this.currentObstacle = null  // clear immediately so keydown handler doesn't flash old letter
     this.wordsCompleted++
     this.updateCounterText()
 
     this.playClearAnimation(obs, () => {
       obs.sprite.destroy()
       obs.label.destroy()
-      this.currentObstacle = null
       this.startWalking()
       this.time.delayedCall(150, () => this.spawnNextObstacle())
     })
