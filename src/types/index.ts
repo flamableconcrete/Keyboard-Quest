@@ -6,7 +6,6 @@ export interface LevelResult {
   accuracyStars: StarRating
   speedStars: StarRating
   completedAt: number
-  companionUsed?: boolean
 }
 
 export interface CompanionData {
@@ -51,6 +50,7 @@ export interface ProfileData {
   worldMasteryRewards: string[]
   bossWeaknessKnown: string | null
   gameMode: 'regular' | 'advanced'
+  currentShopItemIds?: string[]
   gold: number
   showFingerHints: boolean
   avatarConfig?: AvatarConfig
@@ -103,6 +103,7 @@ export interface ItemData {
   id: string
   name: string
   slot: 'weapon' | 'armor' | 'accessory'
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic'
   description: string
   goldCost: number
   effect: {

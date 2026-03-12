@@ -10,6 +10,7 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 interface Goblin {
   word: string
@@ -86,8 +87,15 @@ export class GoblinWhackerLevel extends Phaser.Scene {
 
     // Hero sprite
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(80, this.pathY, avatarKey).setScale(1.5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(160, this.pathY + 10, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
     // HUD - HP hearts
     this.hpHearts = []
@@ -373,19 +381,14 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: acc,
         speedStars: spd,
-        passed,
-        companionUsed,
-        })
+        passed
+      })
     })
   }
 }

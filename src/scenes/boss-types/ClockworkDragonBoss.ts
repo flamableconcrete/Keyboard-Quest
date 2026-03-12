@@ -7,6 +7,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 interface Gear {
   container: Phaser.GameObjects.Container
@@ -68,8 +69,15 @@ export class ClockworkDragonBoss extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a1a)
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+  const pProfile = loadProfile(this.profileSlot)
+  const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+  if (activeCompanion) {
+      this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
+  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -364,19 +372,14 @@ export class ClockworkDragonBoss extends Phaser.Scene {
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
     this.time.delayedCall(1500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: acc,
         speedStars: spd,
-        passed,
-        companionUsed,
-        })
+        passed
+      })
     })
   }
 

@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { ProfileData, ItemData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { getItem } from '../data/items'
+import { getItem, getItemColor } from '../data/items'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
@@ -276,7 +276,7 @@ export class CharacterScene extends Phaser.Scene {
     if (outfit) {
       const thumbKey = `tab_outfit_${this.profileSlot}_${index}_${Date.now()}`
       const thumbConfig = { ...outfit, id: thumbKey }
-      AvatarRenderer.generateOne(this, thumbConfig)
+      AvatarRenderer.generateOne(this, thumbConfig, this.profile.equipment)
       const thumb = this.add.image(x, y, thumbKey).setDisplaySize(20, 40)
       this.container.add(thumb)
     } else {
@@ -394,7 +394,7 @@ export class CharacterScene extends Phaser.Scene {
 
   private renderTabPreview() {
     this.avatarConfig.id = `custom_${Date.now()}`
-    AvatarRenderer.generateOne(this, this.avatarConfig)
+    AvatarRenderer.generateOne(this, this.avatarConfig, this.profile.equipment)
   }
 
   private addSectionTitle(container: Phaser.GameObjects.Container, y: number, text: string) {
@@ -451,7 +451,7 @@ export class CharacterScene extends Phaser.Scene {
     )
 
     const itemName = item ? item.name : 'EMPTY'
-    const itemColor = item ? '#ffffff' : '#444444'
+    const itemColor = item ? getItemColor(item.rarity) : '#444444'
     container.add(
       this.add
         .text(x, y, itemName, { fontSize: '14px', color: itemColor, fontStyle: 'bold' })
@@ -565,6 +565,7 @@ export class CharacterScene extends Phaser.Scene {
       )
     })
   }
+
 
 
   private allocatePoint(key: 'hpPoints' | 'powerPoints' | 'focusPoints') {

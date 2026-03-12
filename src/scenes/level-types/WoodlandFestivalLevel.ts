@@ -5,6 +5,7 @@ import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { setupPause } from '../../utils/pauseSetup'
+import { generateAllCompanionTextures } from '../../art/companionsArt'
 
 export class WoodlandFestivalLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -37,8 +38,15 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x2d4a1e)
 
     const pProfileAvatar = loadProfile(this.profileSlot)
+    generateAllCompanionTextures(this)
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
+
+    const pProfile = loadProfile(this.profileSlot)
+    const activeCompanion = pProfile?.activeCompanionId || pProfile?.activePetId
+    if (activeCompanion) {
+        this.add.image(180, height - 90, activeCompanion).setScale(1.5).setDepth(4)
+    }
 
     // HUD
     this.add.text(width / 2, 40, this.level.name, {
@@ -104,20 +112,14 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     if (this.finished) return
     this.finished = true
     this.engine.destroy()
-    this.aiTimer?.remove()
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
-    // WoodlandFestival has no fail state, max stars for base XP
+    this.aiTimer?.remove()// WoodlandFestival has no fail state, max stars for base XP
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,
         speedStars: 5,
-        passed,
-        companionUsed,
+        passed
       })
     })
   }

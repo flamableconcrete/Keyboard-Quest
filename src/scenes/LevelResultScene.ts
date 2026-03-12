@@ -3,8 +3,9 @@ import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
-import { calcXpReward, calcCharacterLevel } from '../utils/scoring'
+import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
 import { getLevelsForWorld, ALL_LEVELS } from '../data/levels'
+import { rotateShopItems } from '../utils/shop'
 
 interface ResultData {
   level: LevelConfig
@@ -12,7 +13,6 @@ interface ResultData {
   accuracyStars: number
   speedStars: number
   passed: boolean
-  companionUsed: boolean
 }
 
 export class LevelResultScene extends Phaser.Scene {
@@ -42,6 +42,24 @@ export class LevelResultScene extends Phaser.Scene {
     this.profile.xp += xpGained
     this.profile.characterLevel = calcCharacterLevel(this.profile.xp)
 
+    // Companion XP
+    const leveledUpCompanions: { name: string, level: number }[] = []
+
+    if (this.profile.activeCompanionId || this.profile.activePetId) {
+      const activeEntities = [...this.profile.companions, ...this.profile.pets]
+        .filter(c => c.id === this.profile.activeCompanionId || c.id === this.profile.activePetId)
+
+      for (const entity of activeEntities) {
+        const prevCompLevel = calcCompanionLevel(entity.xp)
+        entity.xp += xpGained
+        const newCompanionLevel = calcCompanionLevel(entity.xp)
+
+        if (newCompanionLevel > prevCompLevel) {
+          leveledUpCompanions.push({ name: entity.name, level: newCompanionLevel })
+        }
+      }
+    }
+
     // Award gold — 2 gold per enemy (word) defeated
     // Calculate gold based on bonus chance
     let baseGold = level.wordCount * 2
@@ -66,12 +84,6 @@ export class LevelResultScene extends Phaser.Scene {
         accuracyStars: accuracyStars as any,
         speedStars: speedStars as any,
         completedAt: Date.now(),
-        companionUsed: this.resultData.companionUsed,
-      }
-    } else if (currentStars === prevStars) {
-      // If same score, but this run was solo and previous wasn't, prioritize the solo run
-      if (this.resultData.companionUsed === false && prev.companionUsed === true) {
-        this.profile.levelResults[level.id].companionUsed = false
       }
     }
 
@@ -85,15 +97,20 @@ export class LevelResultScene extends Phaser.Scene {
       }
     }
 
-    // Solo Scribe title check
-    this.checkSoloScribe()
-
     // Unlock next level(s)
     this.unlockNextLevels(level)
 
     // Letter unlock if mini-boss
     if (level.miniBossUnlocksLetter && !this.profile.unlockedLetters.includes(level.miniBossUnlocksLetter)) {
       this.profile.unlockedLetters.push(level.miniBossUnlocksLetter)
+    }
+
+    // Rotate shop items if a mini-boss or boss was defeated
+    if (level.isMiniBoss || level.isBoss) {
+      if (!this.profile.currentShopItemIds) {
+        this.profile.currentShopItemIds = []
+      }
+      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [])
     }
 
     saveProfile(this.resultData.profileSlot, this.profile)
@@ -135,10 +152,20 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '24px', color: '#ffd700'
     }).setOrigin(0.5)
 
+    let yPos = 455
+
     if (this.profile.characterLevel > prevLevel) {
-      this.add.text(width / 2, 455, `Level Up! Now Level ${this.profile.characterLevel}`, {
+      this.add.text(width / 2, yPos, `Level Up! Now Level ${this.profile.characterLevel}`, {
         fontSize: '24px', color: '#ffd700'
       }).setOrigin(0.5)
+      yPos += 40
+    }
+
+    for (const comp of leveledUpCompanions) {
+      this.add.text(width / 2, yPos, `${comp.name} Leveled Up! Now Level ${comp.level}`, {
+        fontSize: '24px', color: '#aaffaa'
+      }).setOrigin(0.5)
+      yPos += 40
     }
 
     // Letter unlock banner
@@ -148,12 +175,6 @@ export class LevelResultScene extends Phaser.Scene {
       }).setOrigin(0.5)
     }
 
-    if (level.isBoss) {
-      const soloStatus = this.resultData.companionUsed ? '❌ Companion Used' : '✅ Solo'
-      this.add.text(width / 2, 455, `Solo Scribe Status: ${soloStatus}`, {
-        fontSize: '24px', color: this.resultData.companionUsed ? '#ff8888' : '#88ff88'
-      }).setOrigin(0.5)
-    }
 
     // Continue button
     const cont = this.add.text(width / 2, 640, '[ Continue ]', {
@@ -172,21 +193,6 @@ export class LevelResultScene extends Phaser.Scene {
         this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
       }
     })
-  }
-
-  private checkSoloScribe() {
-    const bossLevelConfigs = ALL_LEVELS.filter(l => l.isBoss)
-    let allSolo = true
-    for (const config of bossLevelConfigs) {
-      const result = this.profile.levelResults[config.id]
-      if (!result || result.companionUsed !== false) {
-        allSolo = false
-        break
-      }
-    }
-    if (allSolo && !this.profile.titles.includes('Solo Scribe')) {
-      this.profile.titles.push('Solo Scribe')
-    }
   }
 
   private showFailScreen() {
