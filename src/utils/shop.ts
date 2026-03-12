@@ -20,10 +20,8 @@ export function getInitialShopItems(ownedItemIds: string[]): string[] {
   return shopItems
 }
 
-export function rotateShopItems(currentShopItemIds: string[], ownedItemIds: string[]): string[] {
-  // We want to replace 1-2 items per restock (let's say 1-2 items total across all categories to simulate a partial restock, or 1-2 per category?
-  // "each mini boss that is defeated should change 1-2 items available in the shop" implies 1-2 items total)
-  const itemsToReplaceCount = Math.floor(Math.random() * 2) + 1 // 1 or 2 items
+export function rotateShopItems(currentShopItemIds: string[], ownedItemIds: string[], itemsToReplaceCount: number = Math.floor(Math.random() * 2) + 1): string[] {
+  // We want to replace 1-2 items per restock by default
 
   const newShopItemIds = [...currentShopItemIds]
 

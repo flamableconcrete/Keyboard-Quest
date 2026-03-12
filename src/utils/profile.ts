@@ -1,5 +1,5 @@
 import { ProfileData } from '../types'
-import { getInitialShopItems } from './shop'
+import { getInitialShopItems, rotateShopItems } from './shop'
 
 const HOME_ROW: string[] = ['a', 's', 'd', 'f', 'j', 'k', 'l']
 const KEY = (slot: number) => `kq_profile_${slot}`
@@ -37,6 +37,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight', avata
     currentShopItemIds: getInitialShopItems([]),
     gold: 0,
     showFingerHints: true,
+    shopCapacityUpgraded: true,
   }
 }
 
@@ -54,6 +55,10 @@ export function loadProfile(slot: number): ProfileData | null {
     if (data.showFingerHints === undefined) data.showFingerHints = true
     if (!data.currentShopItemIds) {
       data.currentShopItemIds = getInitialShopItems(data.ownedItemIds || [])
+      data.shopCapacityUpgraded = true
+    } else if (!data.shopCapacityUpgraded) {
+      data.currentShopItemIds = rotateShopItems(data.currentShopItemIds, data.ownedItemIds || [], 0)
+      data.shopCapacityUpgraded = true
     }
     return data
   } catch {

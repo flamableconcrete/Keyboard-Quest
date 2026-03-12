@@ -56,6 +56,7 @@ export interface ProfileData {
   avatarConfig?: AvatarConfig
   savedOutfits?: AvatarConfig[]
   debugUnlockedLevelIds?: string[]
+  shopCapacityUpgraded?: boolean
 }
 
 export type LevelType =
