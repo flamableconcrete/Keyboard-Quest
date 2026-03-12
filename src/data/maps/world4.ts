@@ -368,7 +368,6 @@ export const WORLD4_MAP: WorldMapData = {
   ],
 
   specialNodes: {
-    inventory: { x: 480, y: 640 },
     tavern: { x: 620, y: 640 },
     stable: { x: 760, y: 640 },
     shop: { x: 900, y: 640 },

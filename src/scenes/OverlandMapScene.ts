@@ -107,6 +107,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawMasteryChest()
     this.drawSettingsButton()
     this.drawProfilesButton()
+    this.drawCharacterButton()
 
     let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
     this.currentNodeIndex = 0
@@ -354,20 +355,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       })
     })
 
-    // Character
-    const ip = specialPositions['inventory']
-    this.add.ellipse(ip.x, ip.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const characterNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(ip.x, ip.y + 25, 'CHARACTER', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
-    characterNode.on('pointerdown', () => {
-      this.glideAvatarTo(ip, 'inventory', () => {
-        // Pause overworld map and launch character scene to keep map visible behind it
-        this.scene.pause()
-        this.scene.launch('Character', { profileSlot: this.profileSlot })
-      })
-    })
-
     // Shop
     const shp = specialPositions['shop']
     this.add.ellipse(shp.x, shp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
@@ -494,6 +481,20 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
       this.scene.start('ProfileSelect')
+    })
+  }
+
+  private drawCharacterButton() {
+    const { width, height } = this.scale
+    const btn = this.add.text(width - 20, height - 20, '👤 CHARACTER', {
+      fontSize: '24px', color: '#ffffff', backgroundColor: '#444444', padding: { x: 16, y: 12 }
+    }).setOrigin(1, 1).setInteractive({ useHandCursor: true }).setDepth(2000)
+    btn.on('pointerover', () => btn.setBackgroundColor('#666666'))
+    btn.on('pointerout', () => btn.setBackgroundColor('#444444'))
+    btn.on('pointerdown', () => {
+      // Pause overworld map and launch character scene to keep map visible behind it
+      this.scene.pause()
+      this.scene.launch('Character', { profileSlot: this.profileSlot })
     })
   }
 
