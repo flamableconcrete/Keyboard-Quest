@@ -210,21 +210,49 @@ export class LevelResultScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.5, 'Try again?', {
       fontSize: '28px', color: '#aaaaaa'
     }).setOrigin(0.5)
-    const retry = this.add.text(width / 2, height * 0.65, '[ Retry ]  (Space)', {
-      fontSize: '32px', color: '#ffd700'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    const retryPrompt = this.add.text(width / 2, height * 0.65, 'Press SPACE or click to retry', {
+      fontSize: '22px', color: '#aaaaaa'
+    }).setOrigin(0.5)
+
+    this.tweens.add({
+      targets: retryPrompt,
+      alpha: 0.3,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
 
     const doRetry = () => {
       this.scene.start('LevelIntro', { level: this.resultData.level, profileSlot: this.resultData.profileSlot })
     }
 
-    retry.on('pointerdown', doRetry)
-    this.input.keyboard!.once('keydown-SPACE', doRetry)
+    // Capture global pointer down (like in LevelIntroScene) if they aren't clicking the map button
+    const pointerDownHandler = (_pointer: Phaser.Input.Pointer, currentlyOver: any[]) => {
+      // Check if we are clicking on the interactive map button instead
+      if (currentlyOver && currentlyOver.length > 0 && currentlyOver[0] === map) {
+        return // Let the map button handler take this
+      }
+      this.input.off('pointerdown', pointerDownHandler)
+      this.input.keyboard!.off('keydown-SPACE', keyHandler)
+      doRetry()
+    }
+
+    this.input.on('pointerdown', pointerDownHandler)
+
+    const keyHandler = () => {
+      this.input.off('pointerdown', pointerDownHandler)
+      doRetry()
+    }
+    this.input.keyboard!.once('keydown-SPACE', keyHandler)
 
     const map = this.add.text(width / 2, height * 0.75, '[ Map ]', {
       fontSize: '28px', color: '#aaaaaa'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     map.on('pointerdown', () => {
+      this.input.off('pointerdown', pointerDownHandler)
+      this.input.keyboard!.off('keydown-SPACE', keyHandler)
       this.scene.start('OverlandMap', { profileSlot: this.resultData.profileSlot })
     })
   }
