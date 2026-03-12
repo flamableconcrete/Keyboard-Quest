@@ -23,6 +23,15 @@ export function calcSpeedStars(wpm: number, world: number = 3): StarRating {
   return 1
 }
 
+export function getSpeedThresholds(world: number = 3): { star3: number, star4: number, star5: number } {
+  const scale = 0.6 + world * 0.1
+  return {
+    star3: Math.ceil(25 * scale),
+    star4: Math.ceil(35 * scale),
+    star5: Math.ceil(50 * scale)
+  }
+}
+
 // Base XP + bonus per star
 export function calcXpReward(accStars: number, spdStars: number, baseXp: number): number {
   const totalStars = accStars + spdStars  // 2-10
