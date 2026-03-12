@@ -158,6 +158,15 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       this.typingHands = new TypingHands(this, width / 2, height - 100)
     }
 
+    // Update finger hints after each keystroke
+    this.input.keyboard?.on('keydown', () => {
+      if (this.currentObstacle && this.typingHands) {
+        const nextIdx = this.engine.getTypedSoFar().length
+        const nextCh = this.currentObstacle.word[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
+    })
+
     // ── Word Pool ─────────────────────────────────────────────────
     const difficulty = Math.ceil(this.level.world / 2)
     this.words = getWordPool(
@@ -328,6 +337,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
 
     // Let the player start typing immediately while obstacle scrolls in
     this.engine.setWord(word)
+    if (this.typingHands) this.typingHands.highlightFinger(word[0])
 
     const heroX = this.hero.x
     const targetX = heroX + 120
