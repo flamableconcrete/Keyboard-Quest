@@ -80,16 +80,16 @@ export class DiceLichBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Indigo)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 250, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 250, 0x4b0082)
     
     // Dice (White)
-    this.diceSprite = this.add.rectangle(width / 2 + 200, height / 2 - 100, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
-    this.diceText = this.add.text(width / 2 + 200, height / 2 - 100, '?', { 
-      fontSize: '40px', color: '#000000' 
+    this.diceSprite = this.add.rectangle(width / 2 + 200, height * 0.42 - 25, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
+    this.diceText = this.add.text(width / 2 + 200, height * 0.42 - 25, '?', {
+      fontSize: '40px', color: '#000000'
     }).setOrigin(0.5)
-    
-    this.curseLabel = this.add.text(width / 2 + 200, height / 2 - 40, 'ROLLING...', { 
-      fontSize: '18px', color: '#ffffff' 
+
+    this.curseLabel = this.add.text(width / 2 + 200, height * 0.42 + 35, 'ROLLING...', {
+      fontSize: '18px', color: '#ffffff'
     }).setOrigin(0.5)
 
     this.bossMaxHp = this.level.wordCount

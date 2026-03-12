@@ -106,12 +106,13 @@ export class MiniBossTypical extends Phaser.Scene {
                    this.level.bossId?.toLowerCase().includes('ogre') ||
                    this.level.storyBeat?.toLowerCase().includes('ogre');
 
+    const bossY = height / 2 - 50
     if (isOgre) {
       generateGoblinWhackerTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, height * 0.28, 'ogre').setScale(3)
+      this.bossSprite = this.add.image(width * 0.75, bossY, 'ogre').setScale(3)
     } else {
       generateGenericBossTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, height * 0.28, 'generic_boss').setScale(3)
+      this.bossSprite = this.add.image(width * 0.75, bossY, 'generic_boss').setScale(3)
     }
     if (this.weaknessActive) {
       this.add.text(width * 0.75, 55, '⚡ Weakness Known! Boss HP -20%', {

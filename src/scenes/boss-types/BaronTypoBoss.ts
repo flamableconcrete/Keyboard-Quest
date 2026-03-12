@@ -79,7 +79,7 @@ export class BaronTypoBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Baron is purple and sophisticated-looking placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 300, 0x800080)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
     
     this.bossMaxHp = this.level.wordCount

@@ -86,7 +86,7 @@ export class TypemancerBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Typemancer is black/white/glitchy placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 300, 350, 0x111111)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 300, 350, 0x111111)
     this.bossSprite.setStrokeStyle(4, 0xffffff)
     
     this.bossMaxHp = this.level.wordCount

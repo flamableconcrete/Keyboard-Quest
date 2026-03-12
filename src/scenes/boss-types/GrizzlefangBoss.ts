@@ -95,7 +95,7 @@ export class GrizzlefangBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Grizzlefang is big and orange/brown)
-    this.bossSprite = this.add.image(width / 2, height * 0.28, 'ogre').setScale(3)
+    this.bossSprite = this.add.image(width / 2, height * 0.42, 'ogre').setScale(3)
     
     this.bossMaxHp = this.weaknessActive
       ? Math.max(1, Math.floor(this.level.wordCount * 0.8))

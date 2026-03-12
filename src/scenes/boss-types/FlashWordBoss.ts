@@ -63,7 +63,7 @@ export class FlashWordBoss extends Phaser.Scene {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 250, 250, 0x9b30ff)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 250, 250, 0x9b30ff)
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp

@@ -76,7 +76,7 @@ export class AncientDragonBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Ancient Dragon is big and purple)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 350, 350, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 350, 350, 0x4b0082)
     
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp

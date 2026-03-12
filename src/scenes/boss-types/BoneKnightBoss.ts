@@ -87,8 +87,8 @@ export class BoneKnightBoss extends Phaser.Scene {
         }).setOrigin(0.5, 0)
 
         // Boss Sprite (Bone Knight is tall and grey/silver)
-        this.bossSprite = this.add.rectangle(width / 2, height * 0.28, 200, 350, 0xbdc3c7)
-        this.add.rectangle(width / 2, height / 2 - 180, 100, 100, 0xbdc3c7) // Head
+        this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 350, 0xbdc3c7)
+        this.add.rectangle(width / 2, height * 0.42 - 225, 100, 100, 0xbdc3c7) // Head
 
         this.bossMaxHp = this.level.wordCount
         this.bossHp = this.bossMaxHp
