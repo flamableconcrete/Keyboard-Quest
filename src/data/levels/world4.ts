@@ -174,7 +174,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     timeLimit: 225,
     storyBeat: 'The Vault-Keeper, Guardian of V, will not yield the final seal!',
     rewards: { xp: 1040, title: 'Seeker of V' },
-    bossGate: { minCombinedStars: 20, levelIds: ['w4_l8', 'w4_l9'] },
+    bossGate: { minCombinedStars: 16, levelIds: ['w4_l8', 'w4_l9'] },
     isMiniBoss: true,
     bossId: 'baron_typo',
     miniBossUnlocksLetter: 'v',
