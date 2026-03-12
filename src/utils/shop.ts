@@ -1,6 +1,6 @@
 import { ITEMS } from '../data/items'
 
-const ITEMS_PER_CATEGORY = 3
+const ITEMS_PER_CATEGORY = 5
 
 export function getInitialShopItems(ownedItemIds: string[]): string[] {
   const shopItems: string[] = []
