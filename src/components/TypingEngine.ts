@@ -9,6 +9,7 @@ export interface TypingEngineConfig {
   onWordComplete: (word: string, elapsedMs: number) => void
   onWrongKey: () => void
   silent?: boolean
+  showWpm?: boolean
 }
 
 export class TypingEngine {
@@ -19,6 +20,7 @@ export class TypingEngine {
   private config: TypingEngineConfig
   private charTexts: Phaser.GameObjects.Text[] = []
   private wordStartTime = 0
+  private wpmText?: Phaser.GameObjects.Text
 
   // Tracking stats
   correctKeystrokes = 0
@@ -32,6 +34,22 @@ export class TypingEngine {
     this.scene = config.scene
     this.sessionStartTime = Date.now()
     this.scene.input.keyboard?.on('keydown', this.handleKey, this)
+
+    if (config.showWpm !== false) {
+      const { width, height } = this.scene.scale
+      this.wpmText = this.scene.add.text(width - 20, height - 20, 'WPM: 0', {
+        fontSize: '20px',
+        color: '#aaaaaa'
+      }).setOrigin(1, 1).setDepth(100)
+      this.scene.events.on('update', this.updateWpm, this)
+    }
+  }
+
+  private updateWpm() {
+    if (!this.wpmText || !this.wpmText.active) return
+    const elapsed = Date.now() - this.sessionStartTime
+    const wpm = elapsed > 0 ? Math.round(this.completedWords / (elapsed / 60000)) : 0
+    this.wpmText.setText(`WPM: ${wpm}`)
   }
 
   setWord(word: string, displayWord?: string) {
@@ -132,6 +150,10 @@ export class TypingEngine {
 
   destroy() {
     this.scene.input.keyboard?.off('keydown', this.handleKey, this)
+    this.scene.events.off('update', this.updateWpm, this)
+    if (this.wpmText) {
+      this.wpmText.destroy()
+    }
     this.clearWord()
   }
 }
