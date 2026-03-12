@@ -486,15 +486,80 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawCharacterButton() {
     const { width, height } = this.scale
-    const btn = this.add.text(width - 20, height - 20, '👤 CHARACTER', {
-      fontSize: '24px', color: '#ffffff', backgroundColor: '#444444', padding: { x: 16, y: 12 }
-    }).setOrigin(1, 1).setInteractive({ useHandCursor: true }).setDepth(2000)
-    btn.on('pointerover', () => btn.setBackgroundColor('#666666'))
-    btn.on('pointerout', () => btn.setBackgroundColor('#444444'))
-    btn.on('pointerdown', () => {
-      // Pause overworld map and launch character scene to keep map visible behind it
-      this.scene.pause()
-      this.scene.launch('Character', { profileSlot: this.profileSlot })
+
+    // Position at bottom right, inset slightly
+    const cx = width - 60
+    const cy = height - 60
+
+    // Prominent golden outer ring (glow/pulse)
+    const glowRing = this.add.circle(cx, cy, 45, 0xffd700, 0.4).setDepth(1998)
+
+    // Fancy border
+    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999)
+    border.setStrokeStyle(4, 0xffffff)
+
+    // Dark interior background
+    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000)
+
+    // The icon itself
+    const icon = this.add.text(cx, cy, '👤', {
+      fontSize: '40px'
+    }).setOrigin(0.5).setDepth(2001)
+
+    // Group them for interaction
+    const btnZone = this.add.zone(cx, cy, 90, 90)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(2002)
+
+    // Enticing continuous pulse on the glow ring
+    this.tweens.add({
+      targets: glowRing,
+      scaleX: 1.15,
+      scaleY: 1.15,
+      alpha: 0.1,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    })
+
+    // Hover effects
+    btnZone.on('pointerover', () => {
+      bg.setFillStyle(0x2a2a4e)
+      border.setStrokeStyle(4, 0xffd700)
+      this.tweens.add({
+        targets: icon,
+        scaleX: 1.2,
+        scaleY: 1.2,
+        duration: 150
+      })
+    })
+
+    btnZone.on('pointerout', () => {
+      bg.setFillStyle(0x1a1a2e)
+      border.setStrokeStyle(4, 0xffffff)
+      this.tweens.add({
+        targets: icon,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 150
+      })
+    })
+
+    btnZone.on('pointerdown', () => {
+      // Small pop effect on click
+      this.tweens.add({
+        targets: [border, bg, icon],
+        scaleX: 0.9,
+        scaleY: 0.9,
+        duration: 50,
+        yoyo: true,
+        onComplete: () => {
+          // Pause overworld map and launch character scene to keep map visible behind it
+          this.scene.pause()
+          this.scene.launch('Character', { profileSlot: this.profileSlot })
+        }
+      })
     })
   }
 
