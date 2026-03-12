@@ -209,20 +209,14 @@ export class SillyChallengeLevel extends Phaser.Scene {
     this.finished = true
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
-    this.engine.destroy()
-
-    const profile = loadProfile(this.profileSlot)
-    const companionUsed = !!(profile?.activeCompanionId || profile?.activePetId)
-
-    // SillyChallenge always gives max stars for base XP
+    this.engine.destroy()// SillyChallenge always gives max stars for base XP
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,
         speedStars: 5,
-        passed,
-        companionUsed,
+        passed
       })
     })
   }

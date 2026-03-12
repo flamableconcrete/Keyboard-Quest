@@ -57,8 +57,7 @@ export class CharacterCreatorLevel extends Phaser.Scene {
         accuracyStars: 5,
         speedStars: 5,
         passed: true,
-        companionUsed: false,
-      })
+        })
     })
   }
 }
