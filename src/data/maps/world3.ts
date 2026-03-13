@@ -275,8 +275,12 @@ function buildPathSegments(): PathSegment[] {
     { cx: 520, cy: 170 },
     // mb3 → l8: upward
     { cx: 620, cy: 120 },
-    // l8 → boss: final climb
+    // l8 → l9: curve left
     { cx: 600, cy: 60 },
+    // l9 → mb4: right upward
+    { cx: 720, cy: 40 },
+    // mb4 → boss: final climb
+    { cx: 800, cy: 20 },
   ]
 }
 
@@ -343,7 +347,9 @@ export const WORLD3_MAP: WorldMapData = {
     { x: 400, y: 210 },  // l7
     { x: 560, y: 150 },  // mb3
     { x: 640, y: 100 },  // l8
-    { x: 580, y: 50 },   // boss — summit
+    { x: 680, y: 60 },   // l9
+    { x: 760, y: 30 },   // mb4
+    { x: 860, y: 20 },   // boss — summit
   ],
 
   specialNodes: {

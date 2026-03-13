@@ -296,8 +296,12 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1180, cy: 440 },
     // mb3 → l8: left and up
     { cx: 1100, cy: 300 },
-    // l8 → boss: final right
-    { cx: 1180, cy: 200 },
+    // l8 → l9: curve up
+    { cx: 1100, cy: 240 },
+    // l9 → mb4: right curve
+    { cx: 1140, cy: 180 },
+    // mb4 → boss: final right
+    { cx: 1220, cy: 140 },
   ]
 }
 
@@ -364,7 +368,9 @@ export const WORLD4_MAP: WorldMapData = {
     { x: 1160, y: 360 }, // l7
     { x: 1180, y: 470 }, // mb3
     { x: 1080, y: 280 }, // l8
-    { x: 1200, y: 180 }, // boss
+    { x: 1060, y: 210 }, // l9
+    { x: 1120, y: 150 }, // mb4
+    { x: 1260, y: 120 }, // boss
   ],
 
   specialNodes: {
