@@ -17,8 +17,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 90,
     dialogue: [
-      { speaker: "enemy", text: "The Shadowed Fen is home to restless skeletons who guard an ancient ford." },
-      { speaker: "hero", text: "Return to the earth, restless dead!" }
+      { speaker: "enemy", text: "None may cross the Mistweaver Shore. The dead have held it since the Age of Silence." },
+      { speaker: "hero", text: "I've crossed worse for worse reasons. Move aside." },
     ],
     rewards: { xp: 160 },
     bossGate: null,
@@ -32,8 +32,9 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 100,
     dialogue: [
-      { speaker: "enemy", text: "Ogre champions challenge all who pass through Dorn Flats." },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "They call this the Proving Grounds. Every champion who came here proved our point." },
+      { speaker: "hero", text: "What point is that?" },
+      { speaker: "enemy", text: "That they weren't ready. Neither are you." },
     ],
     rewards: { xp: 180 },
     bossGate: null,
@@ -47,8 +48,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 25,
     timeLimit: 110,
     dialogue: [
-      { speaker: "enemy", text: "Undead march along the red-mossed road. Hold the line!" },
-      { speaker: "hero", text: "Return to the earth, restless dead!" }
+      { speaker: "enemy", text: "This road runs red with more than moss. Hold the line... if you can." },
+      { speaker: "hero", text: "I've held worse. Let's see what you've got." },
     ],
     rewards: { xp: 200 },
     bossGate: null,
@@ -62,8 +63,9 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 35,
     timeLimit: 140,
     dialogue: [
-      { speaker: "enemy", text: "Thornback the Troll, Keeper of T, bars your path!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "THORNBACK holds this gate! No T, no path! Simple as that!" },
+      { speaker: "hero", text: "Simple. That's one word for you." },
+      { speaker: "enemy", text: "You think you're clever. Clever ones crack first." },
     ],
     rewards: { xp: 380, title: 'Seeker of T' },
     bossGate: { minCombinedStars: 8, levelIds: ['w2_l1', 'w2_l2', 'w2_l3'] },
@@ -81,8 +83,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 25,
     timeLimit: 90,
     dialogue: [
-      { speaker: "enemy", text: "With T restored, the forest paths open wider." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "T is back? Bah. More words for you and more trouble for us!" },
+      { speaker: "hero", text: "That's the idea. I'm getting the hang of this." },
     ],
     rewards: { xp: 200 },
     bossGate: null,
@@ -96,8 +98,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 25,
     timeLimit: 100,
     dialogue: [
-      { speaker: "enemy", text: "Slimes multiply in the damp fen." },
-      { speaker: "hero", text: "Ugh, more slimes. Let\'s clean this up." }
+      { speaker: "enemy", text: "Slimes split, slimes multiply. You can't type fast enough." },
+      { speaker: "hero", text: "I know. I've tried this before. Spoiler: I won." },
     ],
     rewards: { xp: 220 },
     bossGate: null,
@@ -111,8 +113,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 120,
     dialogue: [
-      { speaker: "enemy", text: "Ancient dwarven traps line the Stone Shelf passage." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Dwarven traps. Centuries old. Still deadly." },
+      { speaker: "hero", text: "Fortunately, so am I. Well — moderately deadly." },
     ],
     rewards: { xp: 240 },
     bossGate: null,
@@ -126,8 +128,9 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 38,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "Irontongue the Iron Witch, Keeper of I, seals the keep!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "I am Irontongue. Every word of power flows through I — and I control every word." },
+      { speaker: "hero", text: "Then you're what's been strangling the language." },
+      { speaker: "enemy", text: "Poetic. You'll make a fine addition to my web." },
     ],
     rewards: { xp: 420, title: 'Seeker of I' },
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l4', 'w2_l5', 'w2_l6'] },
@@ -145,8 +148,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 110,
     dialogue: [
-      { speaker: "enemy", text: "Strange runes appear on the thistle-lined path." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "These runes were carved before your kind learned to write. Can you even read them?" },
+      { speaker: "hero", text: "Let me try. That's how you learn anything." },
     ],
     rewards: { xp: 240 },
     bossGate: null,
@@ -160,8 +163,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 15,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "The heroes of Heronshire offer their swords." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "You've made it further than most. Our guild watches. We'd like to walk with you a while." },
+      { speaker: "hero", text: "I'd be glad for the company. Welcome." },
     ],
     rewards: { xp: 200, companionId: 'archer' },
     bossGate: null,
@@ -175,8 +178,9 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 40,
     timeLimit: 160,
     dialogue: [
-      { speaker: "enemy", text: "Hexus the Hollow Horned One, Keeper of H, guards the ridge!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "H hisses... echoes... haunts. I've kept it in the hollow where nothing escapes." },
+      { speaker: "hero", text: "You can keep the haunting. I just need the letter." },
+      { speaker: "enemy", text: "Then you'll have to pry it from the cold hollow of this ridge." },
     ],
     rewards: { xp: 460, title: 'Seeker of H' },
     bossGate: { minCombinedStars: 10, levelIds: ['w2_l7', 'w2_l8'] },
@@ -194,8 +198,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 120,
     dialogue: [
-      { speaker: "enemy", text: "An alchemist offers potions in exchange for correctly typed ingredients." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Ah! A brave one! Help me mix these potions and I'll see you well rewarded." },
+      { speaker: "hero", text: "Potions for passage? That's a trade I can make." },
     ],
     rewards: { xp: 260, item: 'iron_helm' },
     bossGate: null,
@@ -209,8 +213,8 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 18,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "A scholar catalogues the creatures of the fen." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "You're heading toward the Hydra. Sit. Read this before you go." },
+      { speaker: "hero", text: "I'm listening. Every detail." },
     ],
     rewards: { xp: 220 },
     bossGate: null,
@@ -224,8 +228,9 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 42,
     timeLimit: 165,
     dialogue: [
-      { speaker: "enemy", text: "Crackthorn the Crone, Keeper of C, cackles in the hollow!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Cackle, crackle! Come for C, have you? What will you give me for it?" },
+      { speaker: "hero", text: "Nothing. It doesn't belong to you." },
+      { speaker: "enemy", text: "Oho! Then you'll have to TAKE it — if you can stand the cold." },
     ],
     rewards: { xp: 500, title: 'Seeker of C' },
     bossGate: { minCombinedStars: 12, levelIds: ['w2_l9', 'w2_l10'] },
@@ -243,8 +248,11 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     wordCount: 50,
     timeLimit: 200,
     dialogue: [
-      { speaker: "enemy", text: "Five heads, five tongues — the Hydra speaks only in riddles of letters!" },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Five heads. Five minds. We have debated whether to let you pass." },
+      { speaker: "hero", text: "Unanimous decision?" },
+      { speaker: "enemy", text: "Four to one. The fifth head wanted to eat you immediately." },
+      { speaker: "hero", text: "I'm trying not to think about that." },
+      { speaker: "enemy", text: "You should. It's still hungry." },
     ],
     rewards: { xp: 1000, title: 'Slayer of the Hydra' },
     bossGate: { minCombinedStars: 16, levelIds: ['w2_mb1', 'w2_mb2', 'w2_mb3', 'w2_mb4'] },
