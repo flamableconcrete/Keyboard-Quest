@@ -17,8 +17,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 10,
     timeLimit: 60,
     dialogue: [
-      { speaker: "enemy", text: "The last working quill chooses you. Drive back the goblins of Oakhaven Outskirts to begin your quest!" },
-      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+      { speaker: "enemy", text: "Ha! Another soft-handed villager thinks words can stop us!" },
+      { speaker: "hero",  text: "I— yes. Actually, I do. Stand back!" },
     ],
     rewards: { xp: 50 },
     bossGate: null,
@@ -32,8 +32,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 15,
     timeLimit: 60,
     dialogue: [
-      { speaker: "enemy", text: "Goblins have raided the village of Riverbend Village! Drive them off!" },
-      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+      { speaker: "enemy", text: "Look! They send one hero to save a whole village. How... adorable." },
+      { speaker: "hero",  text: "Laugh all you want. I'm still driving you out." },
     ],
     rewards: { xp: 100 },
     bossGate: null,
@@ -47,8 +47,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 75,
     dialogue: [
-      { speaker: "enemy", text: "More goblins! These ones carry stolen words on their backs." },
-      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+      { speaker: "enemy", text: "We took every word on this road. You'll find nothing to throw at us!" },
+      { speaker: "hero",  text: "I don't need what you stole. I have plenty more." },
     ],
     rewards: { xp: 120 },
     bossGate: null,
@@ -62,8 +62,9 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 30,
     timeLimit: 120,
     dialogue: [
-      { speaker: "enemy", text: "Knuckle the Ogre, Keeper of E, stands in your way!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "I am Knuckle — and E belongs to ME. What do you want with it?" },
+      { speaker: "hero",  text: "Give it back. Every word in the world needs it." },
+      { speaker: "enemy", text: "The last hero who said that never left the thicket." },
     ],
     rewards: { xp: 300, title: 'Seeker of E' },
     bossGate: { minCombinedStars: 6, levelIds: ['w1_l2', 'w1_l3'] },
@@ -81,8 +82,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 90,
     dialogue: [
-      { speaker: "enemy", text: "The letter E has been restored! New words flood back into the world." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The letter E is gone and you think you can fight us? Fool!" },
+      { speaker: "hero",  text: "E's back now. Which means I've got more words than yesterday." },
     ],
     rewards: { xp: 150 },
     bossGate: null,
@@ -96,8 +97,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 18,
     timeLimit: 60,
     dialogue: [
-      { speaker: "enemy", text: "Navigate the crumbling ruins — jump pits, dodge boulders, and unlock ancient doors!" },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "These ruins haven't seen a living soul in centuries. They will claim you." },
+      { speaker: "hero",  text: "I just have to keep typing... I can do this." },
     ],
     rewards: { xp: 160 },
     bossGate: null,
@@ -111,8 +112,9 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 35,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "Nessa the Snake Dancer, Keeper of N, coils to strike!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Ssso... the little hero comes for N. Do you even know what you're asking?" },
+      { speaker: "hero",  text: "I know exactly what I'm asking. Hand it over." },
+      { speaker: "enemy", text: "Bold words. Let's see if your fingers are as brave as your mouth." },
     ],
     rewards: { xp: 350, title: 'Seeker of N' },
     bossGate: { minCombinedStars: 7, levelIds: ['w1_l4', 'w1_l5'] },
@@ -130,8 +132,9 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: 60,
     dialogue: [
-      { speaker: "enemy", text: "A goblin cook challenges you to an EXPLODING CHEESE contest!" },
-      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+      { speaker: "enemy", text: "You dare enter my camp?! My exploding cheese will flatten your fingers!" },
+      { speaker: "hero",  text: "...Is that a real threat? Are you a real cook?" },
+      { speaker: "enemy", text: "TASTE THE BRIE OF DOOM!" },
     ],
     rewards: { xp: 130 },
     bossGate: null,
@@ -145,8 +148,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 25,
     timeLimit: 90,
     dialogue: [
-      { speaker: "enemy", text: "Undead scouts guard the mountain pass. Type them down!" },
-      { speaker: "hero", text: "Return to the earth, restless dead!" }
+      { speaker: "enemy", text: "Turn back. The pass belongs to the dead now." },
+      { speaker: "hero",  text: "I need through. I'm sorry." },
     ],
     rewards: { xp: 180 },
     bossGate: null,
@@ -160,8 +163,9 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 40,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "Rend the Red, Keeper of R, strikes from the shadows!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Clever, surviving this far. But R is mine, and I don't share." },
+      { speaker: "hero",  text: "R belongs to everyone. To every word that needs it." },
+      { speaker: "enemy", text: "Then everyone will go without. I'll begin with you." },
     ],
     rewards: { xp: 400, title: 'Seeker of R' },
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l7'] },
@@ -179,8 +183,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 10,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "Study the Monster Manual — learn the weaknesses of Grizzlefang before you face him." },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Ah, a visitor! Come — I have notes on Grizzlefang. You'll need them." },
+      { speaker: "hero",  text: "Tell me everything." },
     ],
     rewards: { xp: 100 },
     bossGate: null,
@@ -194,8 +198,11 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     wordCount: 60,
     timeLimit: 300,
     dialogue: [
-      { speaker: "enemy", text: "Grizzlefang the Keyboard Ogre — armor forged from broken keys. Shatter it!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "I have crushed a thousand heroes beneath these fists. To dust." },
+      { speaker: "hero",  text: "Then you've had plenty of practice. So have I." },
+      { speaker: "enemy", text: "So. You're {name}. They said you were brave. They were mistaken." },
+      { speaker: "hero",  text: "Are we going to talk all day or..." },
+      { speaker: "enemy", text: "You're going to regret that." },
     ],
     rewards: { xp: 600, item: 'iron_gauntlet', title: 'Hero of the Heartland' },
     bossGate: { minCombinedStars: 8, levelIds: ['w1_l8'] },
