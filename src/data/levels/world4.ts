@@ -17,8 +17,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 32,
     timeLimit: 110,
     dialogue: [
-      { speaker: "enemy", text: "Deep in the Shrouded Wilds, shadow goblins hunt in packs." },
-      { speaker: "hero", text: "Stand aside, foul goblins! Your raids end here." }
+      { speaker: "enemy", text: "Shadow goblins! We move silent! You won't see us coming!" },
+      { speaker: "hero",  text: "I've been doing this long enough to see plenty." },
     ],
     rewards: { xp: 320 },
     bossGate: null,
@@ -32,8 +32,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 35,
     timeLimit: 130,
     dialogue: [
-      { speaker: "enemy", text: "The dead rise from the murky mere with terrible purpose." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The drowned rise with terrible purpose. They remember what you forget." },
+      { speaker: "hero",  text: "I remember enough. Step aside." },
     ],
     rewards: { xp: 340 },
     bossGate: null,
@@ -47,8 +47,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 28,
     timeLimit: 140,
     dialogue: [
-      { speaker: "enemy", text: "Hidden traps litter the ancient dwarven pass through the wilds." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Ancient traps. Every one still perfect. Still deadly. Still waiting." },
+      { speaker: "hero",  text: "So am I." },
     ],
     rewards: { xp: 360 },
     bossGate: null,
@@ -62,8 +62,9 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 55,
     timeLimit: 200,
     dialogue: [
-      { speaker: "enemy", text: "Brutus the Bridge Troll, Keeper of B, guards the only crossing!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "TOLL. Everyone pays toll. Even you, {name}." },
+      { speaker: "hero",  text: "The toll is getting B back. That's what I'm paying with." },
+      { speaker: "enemy", text: "You pay with your fingers. Brutus BREAKS fingers." },
     ],
     rewards: { xp: 800, title: 'Seeker of B' },
     bossGate: { minCombinedStars: 16, levelIds: ['w4_l1', 'w4_l2', 'w4_l3'] },
@@ -81,8 +82,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 30,
     timeLimit: 140,
     dialogue: [
-      { speaker: "enemy", text: "Witch runes pulse among the wych elm roots." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Witch runes twist the air here. They rearrange what you write. Don't trust your eyes." },
+      { speaker: "hero",  text: "I trust my fingers. Eyes are optional." },
     ],
     rewards: { xp: 380 },
     bossGate: null,
@@ -96,8 +97,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 35,
     timeLimit: 130,
     dialogue: [
-      { speaker: "enemy", text: "Barrow wights emerge from the ancient downs at dusk." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "We were warriors once. Now we are wardens. Leave. This is our rest." },
+      { speaker: "hero",  text: "I wish I could. Your masters won't let me." },
     ],
     rewards: { xp: 360 },
     bossGate: null,
@@ -111,8 +112,9 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 58,
     timeLimit: 210,
     dialogue: [
-      { speaker: "enemy", text: "Wraith-Witch Wynna, Keeper of W, materialises within the keep!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "W whispers through every wall in this keep. You'll hear it in your sleep." },
+      { speaker: "hero",  text: "I don't sleep much anymore." },
+      { speaker: "enemy", text: "No. But you will... once I'm done with you." },
     ],
     rewards: { xp: 880, title: 'Seeker of W' },
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l4', 'w4_l5'] },
@@ -130,8 +132,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 35,
     timeLimit: 130,
     dialogue: [
-      { speaker: "enemy", text: "Yew-sap slimes multiply in the crossing pools." },
-      { speaker: "hero", text: "Ugh, more slimes. Let\'s clean this up." }
+      { speaker: "enemy", text: "Yew-sap slimes — venomous and hungry. They've dissolved three heroes this week." },
+      { speaker: "hero",  text: "I'll be number four that they missed." },
     ],
     rewards: { xp: 380 },
     bossGate: null,
@@ -145,8 +147,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 20,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "A jester challenges you to a word duel in the valley below." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "A word duel in the valley! The jester challenges all comers! Ha-HA!" },
+      { speaker: "hero",  text: "Fine. But if I lose I'm going to be annoyed for days." },
     ],
     rewards: { xp: 300 },
     bossGate: null,
@@ -160,8 +162,9 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 60,
     timeLimit: 220,
     dialogue: [
-      { speaker: "enemy", text: "Yax the Yeti-Lord, Keeper of Y, roars from the heights!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "YAAAAX. I am the heights. I am the cold. I am Y." },
+      { speaker: "hero",  text: "And I'm the one who came to take it back." },
+      { speaker: "enemy", text: "Many have said that. I still feel the wind from their running." },
     ],
     rewards: { xp: 960, title: 'Seeker of Y' },
     bossGate: { minCombinedStars: 18, levelIds: ['w4_l6', 'w4_l7'] },
@@ -179,8 +182,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 36,
     timeLimit: 140,
     dialogue: [
-      { speaker: "enemy", text: "Vault-guardians of the ancient veldt ruins challenge all who approach." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The vault-guardians have stood since before the Age of Silence. They'll stand after." },
+      { speaker: "hero",  text: "They won't stand in my way." },
     ],
     rewards: { xp: 400 },
     bossGate: null,
@@ -194,8 +197,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 30,
     timeLimit: 120,
     dialogue: [
-      { speaker: "enemy", text: "A shadow warden traps you in the hollow — escape!" },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The hollow closes in. There's no door. Only words to unlock the way." },
+      { speaker: "hero",  text: "I know. I've been here before. Different hollow." },
     ],
     rewards: { xp: 380 },
     bossGate: null,
@@ -209,8 +212,9 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 62,
     timeLimit: 225,
     dialogue: [
-      { speaker: "enemy", text: "The Vault-Keeper, Guardian of V, will not yield the final seal!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "V is the last seal. I have kept it for an age. No exceptions." },
+      { speaker: "hero",  text: "I'm not asking for an exception. I'm taking it back." },
+      { speaker: "enemy", text: "Then you'll find the seal was forged to resist exactly that." },
     ],
     rewards: { xp: 1040, title: 'Seeker of V' },
     bossGate: { minCombinedStars: 16, levelIds: ['w4_l8', 'w4_l9'] },
@@ -228,8 +232,11 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     wordCount: 70,
     timeLimit: 280,
     dialogue: [
-      { speaker: "enemy", text: "In the heart of the Shrouded Wilds stands the Dice Lich — his power drawn from letters lost to chance." },
-      { speaker: "hero", text: "Return to the earth, restless dead!" }
+      { speaker: "enemy", text: "Every letter you've restored is a letter I've studied. I know your patterns." },
+      { speaker: "hero",  text: "Then you know I don't stop." },
+      { speaker: "enemy", text: "You've been lucky, {name}. The dice decide everything here." },
+      { speaker: "hero",  text: "Then roll them." },
+      { speaker: "enemy", text: "...With pleasure. Let the Dice Lich begin." },
     ],
     rewards: { xp: 2000, title: 'Lich Vanquisher' },
     bossGate: { minCombinedStars: 24, levelIds: ['w4_mb1', 'w4_mb2', 'w4_mb3', 'w4_mb4'] },
