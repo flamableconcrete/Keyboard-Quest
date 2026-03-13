@@ -41,6 +41,17 @@ export class LevelIntroScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale
 
+    // Back button
+    const backBtn = this.add.text(20, 20, '◀ BACK TO MAP', {
+      fontSize: '20px', color: '#ffffff', backgroundColor: '#444444', padding: { x: 8, y: 4 }
+    }).setInteractive({ useHandCursor: true })
+    backBtn.on('pointerover', () => backBtn.setStyle({ backgroundColor: '#666666' }))
+    backBtn.on('pointerout', () => backBtn.setStyle({ backgroundColor: '#444444' }))
+    backBtn.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation()
+      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+    })
+
     this.add.text(width / 2, height * 0.25, this.level.name, {
       fontSize: '64px', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(0.5)
@@ -59,7 +70,7 @@ export class LevelIntroScene extends Phaser.Scene {
       : (this.profile.avatarChoice || 'avatar_0')
 
     const avatarTargetX = width / 2 - 200
-    const avatar = this.add.sprite(-200, height * 0.7, avatarTexture).setOrigin(0.5, 1).setScale(2)
+    const avatar = this.add.sprite(-200, height * 0.85, avatarTexture).setOrigin(0.5, 1).setScale(2)
 
     // Render Representative Enemy
     let enemyTexture = ''
@@ -121,7 +132,7 @@ export class LevelIntroScene extends Phaser.Scene {
     let enemy: Phaser.GameObjects.Sprite | null = null
 
     if (enemyTexture) {
-      enemy = this.add.sprite(width + 200, height * 0.7, enemyTexture).setOrigin(0.5, 1).setScale(3)
+      enemy = this.add.sprite(width + 200, height * 0.85, enemyTexture).setOrigin(0.5, 1).setScale(3)
       if (enemyTexture === 'generic_boss') {
         enemy.setScale(2)
       } else if (enemyTexture.includes('placeholder') || enemyTexture === 'generic_monster') {
@@ -130,7 +141,7 @@ export class LevelIntroScene extends Phaser.Scene {
     }
 
     // Sequence Dialogue Bubbles
-    const prompt = this.add.text(width / 2, height * 0.85, 'Press SPACE or click to begin', {
+    const prompt = this.add.text(width / 2, height * 0.95, 'Press SPACE or click to begin', {
       fontSize: '22px', color: '#aaaaaa'
     }).setOrigin(0.5)
     prompt.setAlpha(0)
@@ -219,6 +230,7 @@ export class LevelIntroScene extends Phaser.Scene {
 
       drawBubble(dialogues[i].speaker as 'hero' | 'enemy', dialogues[i].text, currentDelay, isLast ? () => {
         // Show and pulse the prompt
+        prompt.setAlpha(1)
         this.tweens.add({
           targets: prompt,
           alpha: 0.3,
