@@ -123,9 +123,9 @@ export class AvatarCustomizerScene extends Phaser.Scene {
     confirmBox.on('pointerdown', () => this.handleConfirm())
 
     // Back button
-    const backText = this.add.text(40, height - 55, '< Back', {
-      fontSize: '20px', color: '#888888', fontFamily: MONO_FONT
-    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+    const backText = this.add.text(60, 40, '← BACK', {
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }, fontFamily: MONO_FONT
+    }).setInteractive({ useHandCursor: true })
     backText.on('pointerdown', () => {
       if (this.returnTo === 'Settings') {
         this.scene.start('Settings', { profileSlot: this.slot })
