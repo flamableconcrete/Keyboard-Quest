@@ -5,7 +5,7 @@
 
 ## Problem
 
-The `dialogue` arrays in all world level configs (`world1.ts`–`world5.ts`) are generic and repetitive. The hero has ~6 stock phrases reused across 40+ levels (e.g. "Stand aside, foul goblins! Your raids end here.", "I've come to restore the letters! Surrender them!"). Every level uses the same 2-line structure (enemy sets scene → hero gives canned response). There is no narrative arc, no personality differentiation between enemy types, and no sense of the hero growing over time.
+The `dialogue` arrays in all world level configs (`world1.ts`–`world5.ts`) are generic and repetitive. The hero has ~6 stock phrases reused across approximately 68 levels (e.g. "Stand aside, foul goblins! Your raids end here.", "I've come to restore the letters! Surrender them!"). Every level uses the same 2-line structure (enemy sets scene → hero gives canned response). There is no narrative arc, no personality differentiation between enemy types, and no sense of the hero growing over time.
 
 ## Goal
 
@@ -31,11 +31,11 @@ Rewrite all `dialogue` arrays in `world1.ts`, `world2.ts`, `world3.ts`, `world4.
 
 ### Length by Level Type
 
-| Level type | Lines |
-|---|---|
-| Regular levels | 2–3 |
-| Mini-boss levels | 3–4 |
-| World boss levels | 4–5 |
+| Level type | Lines | Identified by |
+|---|---|---|
+| Regular levels | 2–3 | neither `isBoss` nor `isMiniBoss` |
+| Mini-boss levels | 3–4 | `isMiniBoss: true` |
+| World boss levels | 4–5 | `isBoss: true` |
 
 ### Hero Voice Arc
 
@@ -52,6 +52,7 @@ Rewrite all `dialogue` arrays in `world1.ts`, `world2.ts`, `world3.ts`, `world4.
 - Used in ~20–30% of levels
 - Always by the enemy (taunting, surprised) or a neutral NPC — never self-referential by the hero
 - Only included where it fits naturally; never forced
+- On boss levels, the natural position for a name-drop is the enemy's escalation line (not the opening), e.g. enemy opens → hero retorts → enemy escalates with name → hero closes with a one-liner
 
 ### Enemy Voice
 
@@ -61,12 +62,15 @@ Each enemy type has a distinct personality:
 - **Bosses:** theatrical, grandiose, personally invested in crushing the hero
 - **NPCs (alchemist, scholar, etc.):** warm, eccentric, or businesslike depending on context
 
+Note: Several levels (GuildRecruitment, PotionBrewingLab, MonsterManual, WoodlandFestival) use `speaker: "enemy"` for a friendly NPC. Treat the personality rules for that slot as applying to the NPC's voice, not a hostile enemy.
+
 ### Flow
 
 - Dialogue feels like an interrupted conversation, not a Q&A
 - Enemy does not always get the last word on regular levels
-- Boss levels end with the boss making a threatening declaration (raises stakes before the fight begins)
+- Boss levels always end with the boss speaking last (a threatening declaration that raises stakes), even in World 5
 - No line should be reused verbatim across levels
+- Keep each individual dialogue string under ~100 characters to avoid clipping the fixed-height speech bubble (bubble height is fixed at 110px with word-wrap at 300px)
 
 ## Illustrative Examples
 
