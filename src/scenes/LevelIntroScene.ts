@@ -155,11 +155,11 @@ export class LevelIntroScene extends Phaser.Scene {
     }
 
     const drawBubble = (speaker: 'hero' | 'enemy', text: string, delay: number, onComplete?: () => void) => {
-      const bubbleWidth = 400
-      const bubbleHeight = 100
+      const bubbleWidth = 340
+      const bubbleHeight = 110
       const isHero = speaker === 'hero'
 
-      const bubbleX = isHero ? (width / 2 - 150) : (width / 2 + 150)
+      const bubbleX = isHero ? (width / 2 - 200) : (width / 2 + 200)
       const bubbleY = height * 0.45
 
       const graphics = this.add.graphics({ x: bubbleX, y: bubbleY })
