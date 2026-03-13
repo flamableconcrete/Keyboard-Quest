@@ -115,7 +115,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
       { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
     ],
     rewards: { xp: 1200, title: 'Seeker of X' },
-    bossGate: { minCombinedStars: 22, levelIds: ['w5_l4', 'w5_l5'] },
+    bossGate: { minCombinedStars: 16, levelIds: ['w5_l4', 'w5_l5'] },
     isMiniBoss: true,
     bossId: 'dice_lich',
     miniBossUnlocksLetter: 'x',
@@ -164,7 +164,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
       { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
     ],
     rewards: { xp: 1300, title: 'Seeker of Z' },
-    bossGate: { minCombinedStars: 22, levelIds: ['w5_l6', 'w5_l7'] },
+    bossGate: { minCombinedStars: 16, levelIds: ['w5_l6', 'w5_l7'] },
     isMiniBoss: true,
     bossId: 'grizzlefang',
     miniBossUnlocksLetter: 'z',
@@ -198,7 +198,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
       { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
     ],
     rewards: { xp: 1400, title: "Jester's Bane" },
-    bossGate: { minCombinedStars: 24, levelIds: ['w5_l8'] },
+    bossGate: { minCombinedStars: 8, levelIds: ['w5_l8'] },
     isMiniBoss: true,
     bossId: 'spider_boss',
     miniBossUnlocksLetter: 'j',

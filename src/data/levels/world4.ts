@@ -213,7 +213,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
       { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
     ],
     rewards: { xp: 1040, title: 'Seeker of V' },
-    bossGate: { minCombinedStars: 20, levelIds: ['w4_l8', 'w4_l9'] },
+    bossGate: { minCombinedStars: 16, levelIds: ['w4_l8', 'w4_l9'] },
     isMiniBoss: true,
     bossId: 'baron_typo',
     miniBossUnlocksLetter: 'v',

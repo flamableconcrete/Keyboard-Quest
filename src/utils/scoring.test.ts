@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcAccuracyStars, calcSpeedStars, calcXpReward, calcCharacterLevel, checkWorldMastery } from './scoring'
+import { calcAccuracyStars, calcSpeedStars, getSpeedThresholds, calcXpReward, calcCharacterLevel, checkWorldMastery } from './scoring'
 import { ProfileData } from '../types'
 import { getLevelsForWorld } from '../data/levels'
 
@@ -24,6 +24,29 @@ describe('calcSpeedStars', () => {
   })
   it('returns 3 stars for 30 WPM', () => {
     expect(calcSpeedStars(30)).toBe(3)
+  })
+})
+
+describe('getSpeedThresholds', () => {
+  it('calculates the proper WPM targets for world 1', () => {
+    const targets = getSpeedThresholds(1)
+    expect(targets.star3).toBe(18) // Math.ceil(25 * 0.7)
+    expect(targets.star4).toBe(25) // Math.ceil(35 * 0.7)
+    expect(targets.star5).toBe(35) // Math.ceil(50 * 0.7)
+  })
+
+  it('calculates the proper WPM targets for world 3', () => {
+    const targets = getSpeedThresholds(3)
+    expect(targets.star3).toBe(23) // Math.ceil(25 * 0.9)
+    expect(targets.star4).toBe(32) // Math.ceil(35 * 0.9)
+    expect(targets.star5).toBe(45) // Math.ceil(50 * 0.9)
+  })
+
+  it('calculates the proper WPM targets for world 5', () => {
+    const targets = getSpeedThresholds(5)
+    expect(targets.star3).toBe(28) // Math.ceil(25 * 1.1) = 28
+    expect(targets.star4).toBe(39) // Math.ceil(35 * 1.1) = 39
+    expect(targets.star5).toBe(56) // Math.ceil(50 * 1.1) = 55.00000000000001 = 56
   })
 })
 

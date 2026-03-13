@@ -107,6 +107,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawMasteryChest()
     this.drawSettingsButton()
     this.drawProfilesButton()
+    this.drawCharacterButton()
 
     let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
     this.currentNodeIndex = 0
@@ -214,8 +215,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       const r = this.profile.levelResults[id]
       return sum + (r ? r.accuracyStars + r.speedStars : 0)
     }, 0)
-    const avg = total / levelIds.length
-    return avg >= minCombinedStars
+    return total >= minCombinedStars
   }
 
   private drawNodes(levels: LevelConfig[], nodePositions: NodePosition[]) {
@@ -231,11 +231,14 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         : unlocked && !gated ? 0xffffff
         : 0x444444
 
+      // 2.5x larger for world bosses
+      const baseScale = level.isBoss ? 3.75 : 1.5
+
       // Base oval
-      this.add.ellipse(pos.x, pos.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
+      this.add.ellipse(pos.x, pos.y + (16 * (baseScale / 1.5)), 64 * (baseScale / 1.5), 24 * (baseScale / 1.5), 0x8b6b3a).setDepth(998)
 
       const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
-      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(1.5)
+      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(baseScale)
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
@@ -244,8 +247,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerover', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1.5 * 1.15,
-            scaleY: 1.5 * 1.15,
+            scaleX: baseScale * 1.15,
+            scaleY: baseScale * 1.15,
             duration: 150,
             ease: 'Back.easeOut',
           })
@@ -253,7 +256,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           this.glowRect?.destroy()
           this.glowRect = this.add.rectangle(
             pos.x, pos.y,
-            (nodeSprite.width * 1.5) + 12, (nodeSprite.height * 1.5) + 12,
+            (nodeSprite.width * baseScale) + 12, (nodeSprite.height * baseScale) + 12,
             0xffffff, 0.2
           ).setDepth(nodeSprite.depth - 1)
           this.showTooltip(level, pos)
@@ -262,8 +265,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         nodeSprite.on('pointerout', () => {
           this.tweens.add({
             targets: nodeSprite,
-            scaleX: 1.5,
-            scaleY: 1.5,
+            scaleX: baseScale,
+            scaleY: baseScale,
             duration: 150,
             ease: 'Sine.easeIn',
           })
@@ -320,7 +323,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           repeat: -1,
         })
         const gate = level.bossGate!
-        this.add.text(pos.x, pos.y + 24, `Need avg ${gate.minCombinedStars}★`, {
+        this.add.text(pos.x, pos.y + 24, `Need ${gate.minCombinedStars}★ total`, {
           fontSize: '10px', color: '#ff8888'
         }).setOrigin(0.5).setDepth(2000)
       }
@@ -349,20 +352,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     stableNode.on('pointerdown', () => {
       this.glideAvatarTo(sp, 'stable', () => {
         this.scene.start('Stable', { profileSlot: this.profileSlot })
-      })
-    })
-
-    // Character
-    const ip = specialPositions['inventory']
-    this.add.ellipse(ip.x, ip.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const characterNode = this.add.sprite(ip.x, ip.y, 'map-common', COMMON_FRAMES.nodeInventory)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(ip.x, ip.y + 25, 'CHARACTER', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5).setDepth(2000)
-    characterNode.on('pointerdown', () => {
-      this.glideAvatarTo(ip, 'inventory', () => {
-        // Pause overworld map and launch character scene to keep map visible behind it
-        this.scene.pause()
-        this.scene.launch('Character', { profileSlot: this.profileSlot })
       })
     })
 
@@ -492,6 +481,85 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
       this.scene.start('ProfileSelect')
+    })
+  }
+
+  private drawCharacterButton() {
+    const { width, height } = this.scale
+
+    // Position at bottom right, inset slightly
+    const cx = width - 60
+    const cy = height - 60
+
+    // Prominent golden outer ring (glow/pulse)
+    const glowRing = this.add.circle(cx, cy, 45, 0xffd700, 0.4).setDepth(1998)
+
+    // Fancy border
+    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999)
+    border.setStrokeStyle(4, 0xffffff)
+
+    // Dark interior background
+    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000)
+
+    // The icon itself
+    const icon = this.add.text(cx, cy, '👤', {
+      fontSize: '40px'
+    }).setOrigin(0.5).setDepth(2001)
+
+    // Group them for interaction
+    const btnZone = this.add.zone(cx, cy, 90, 90)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(2002)
+
+    // Enticing continuous pulse on the glow ring
+    this.tweens.add({
+      targets: glowRing,
+      scaleX: 1.15,
+      scaleY: 1.15,
+      alpha: 0.1,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    })
+
+    // Hover effects
+    btnZone.on('pointerover', () => {
+      bg.setFillStyle(0x2a2a4e)
+      border.setStrokeStyle(4, 0xffd700)
+      this.tweens.add({
+        targets: icon,
+        scaleX: 1.2,
+        scaleY: 1.2,
+        duration: 150
+      })
+    })
+
+    btnZone.on('pointerout', () => {
+      bg.setFillStyle(0x1a1a2e)
+      border.setStrokeStyle(4, 0xffffff)
+      this.tweens.add({
+        targets: icon,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 150
+      })
+    })
+
+    btnZone.on('pointerdown', () => {
+      // Small pop effect on click
+      this.tweens.add({
+        targets: [border, bg, icon],
+        scaleX: 0.9,
+        scaleY: 0.9,
+        duration: 50,
+        yoyo: true,
+        onComplete: () => {
+          // Pause overworld map and launch character scene to keep map visible behind it
+          this.scene.pause()
+          this.scene.launch('Character', { profileSlot: this.profileSlot })
+        }
+      })
     })
   }
 

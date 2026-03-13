@@ -5,6 +5,7 @@ import { loadProfile } from '../utils/profile'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { generateGoblinWhackerTextures } from '../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../art/genericBossArt'
+import { getSpeedThresholds } from '../utils/scoring'
 
 const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
   GoblinWhacker:      '⚔️ Wave Defence',
@@ -59,6 +60,12 @@ export class LevelIntroScene extends Phaser.Scene {
     const subtitle = LEVEL_TYPE_LABELS[this.level.type] ?? this.level.type
     this.add.text(width / 2, height * 0.35, subtitle, {
       fontSize: '28px', color: '#aaddff', fontStyle: 'italic'
+    }).setOrigin(0.5)
+
+    const thresholds = getSpeedThresholds(this.level.world)
+    const targetsText = `🎯 Target Speeds: ⭐⭐⭐ ${thresholds.star3} WPM | ⭐⭐⭐⭐ ${thresholds.star4} WPM | ⭐⭐⭐⭐⭐ ${thresholds.star5} WPM`
+    this.add.text(width / 2, height * 0.43, targetsText, {
+      fontSize: '18px', color: '#ffffaa', align: 'center'
     }).setOrigin(0.5)
 
     // Render Avatar

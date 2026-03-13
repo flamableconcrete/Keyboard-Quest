@@ -87,9 +87,9 @@ export class StableScene extends Phaser.Scene {
       })
     })
 
-    const back = this.add.text(width / 2, height - 40, '[ Back to Map ]', {
-      fontSize: '24px', color: '#ffffff'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    const back = this.add.text(60, 40, '← BACK', {
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
+    }).setInteractive({ useHandCursor: true })
     back.on('pointerdown', () => {
       this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
     })

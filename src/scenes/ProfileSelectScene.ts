@@ -39,7 +39,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
   private render() {
     this.children.removeAll(true)
-    const { width, height } = this.scale
+    const { width } = this.scale
 
     const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
       fontSize: '20px', color: '#aaaaaa', fontFamily: MONO_FONT
@@ -74,14 +74,9 @@ export class ProfileSelectScene extends Phaser.Scene {
     })
 
     // Back button
-    const backW = 120
-    const backH = 40
-    const backX = 80
-    const backY = height - 40
-    this.drawPixelPanel(backX, backY, backW, backH, 0x2a2a4a, 0x5555aa)
-    const back = this.add.text(backX, backY, '< BACK', {
-      fontSize: '18px', color: '#aaaaaa', fontFamily: MONO_FONT
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    const back = this.add.text(60, 40, '← BACK', {
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }, fontFamily: MONO_FONT
+    }).setInteractive({ useHandCursor: true })
     back.on('pointerdown', () => this.scene.start('MainMenu'))
   }
 
