@@ -71,6 +71,15 @@ export class LevelIntroScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     })
 
+    const back = this.add.text(60, 40, '← BACK', {
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
+    }).setInteractive({ useHandCursor: true })
+
+    back.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation()
+      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+    })
+
     this.input.keyboard?.once('keydown-SPACE', this.enter, this)
     this.input.once('pointerdown', this.enter, this)
   }

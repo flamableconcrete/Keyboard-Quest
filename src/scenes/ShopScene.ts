@@ -32,7 +32,7 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(1, 0.5)
 
     const back = this.add.text(60, 40, '← BACK', {
-      fontSize: '20px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 10, y: 5 }
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
     }).setInteractive({ useHandCursor: true })
 
     back.on('pointerdown', () => {
