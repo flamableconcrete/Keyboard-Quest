@@ -16,7 +16,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_BASE,
     wordCount: 28,
     timeLimit: 100,
-    storyBeat: 'Fire goblins have made their home in the volcanic reaches of the Ember Peaks.',
+    dialogue: [
+      { speaker: "enemy", text: "Fire goblins! Tougher than the forest kind! Burn everything — everyone!" },
+      { speaker: "hero", text: "You're on fire. Literally. Convenient for me." }
+    ],
     rewards: { xp: 240 },
     bossGate: null,
   },
@@ -28,7 +31,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_BASE,
     wordCount: 30,
     timeLimit: 120,
-    storyBeat: 'Ash walkers stir from their resting places in Cinderholt.',
+    dialogue: [
+      { speaker: "enemy", text: "Ash walkers do not tire. They do not fear. They simply advance." },
+      { speaker: "hero", text: "And they simply fall. I've done this before." }
+    ],
     rewards: { xp: 260 },
     bossGate: null,
   },
@@ -40,7 +46,11 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_BASE,
     wordCount: 25,
     timeLimit: 100,
-    storyBeat: 'Dragon cultists chase you through the Scalethorn tunnels!',
+    dialogue: [
+      { speaker: "enemy", text: "The tunnels collapse for the unworthy! Run, little hero!" },
+      { speaker: "hero", text: "I've outrun worse. Though not by much." },
+      { speaker: "enemy", text: "We'll see about that!" }
+    ],
     rewards: { xp: 280 },
     bossGate: null,
   },
@@ -52,7 +62,11 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_BASE,
     wordCount: 45,
     timeLimit: 170,
-    storyBeat: 'Moloch the Magma Mole, Keeper of M, erupts from the earth!',
+    dialogue: [
+      { speaker: "enemy", text: "MOLOCH erupts! M is mine — buried deep beneath this mountain!" },
+      { speaker: "hero", text: "Deep enough? I've been digging all campaign." },
+      { speaker: "enemy", text: "Clever. But this mountain is older than your cleverness." }
+    ],
     rewards: { xp: 560, title: 'Seeker of M' },
     bossGate: { minCombinedStars: 12, levelIds: ['w3_l1', 'w3_l2', 'w3_l3'] },
     isMiniBoss: true,
@@ -68,7 +82,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB1,
     wordCount: 30,
     timeLimit: 110,
-    storyBeat: 'Monster gladiators compete on the cooled lava flats of Pumice Mesa.',
+    dialogue: [
+      { speaker: "enemy", text: "The gladiators of Pumice Mesa bow to no one. Especially not outsiders." },
+      { speaker: "hero", text: "Then bow to no one. Just move." }
+    ],
     rewards: { xp: 280 },
     bossGate: null,
   },
@@ -80,7 +97,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB1,
     wordCount: 24,
     timeLimit: 130,
-    storyBeat: 'Runes carved into the thermal spires hum with volcanic power.',
+    dialogue: [
+      { speaker: "enemy", text: "These runes hold the heat of a thousand summers. Touch them wrong and burn." },
+      { speaker: "hero", text: "I touch nothing wrong. That's the whole point." }
+    ],
     rewards: { xp: 300 },
     bossGate: null,
   },
@@ -92,7 +112,11 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB1,
     wordCount: 48,
     timeLimit: 180,
-    storyBeat: 'Pyreth the Phoenix Paladin, Keeper of P, rises from the ashes!',
+    dialogue: [
+      { speaker: "enemy", text: "I rise. I fall. I rise again. You cannot kill a phoenix." },
+      { speaker: "hero", text: "I don't need to kill you. I just need the letter." },
+      { speaker: "enemy", text: "Then survive me first, {name}. I've been burning for centuries." }
+    ],
     rewards: { xp: 620, title: 'Seeker of P' },
     bossGate: { minCombinedStars: 14, levelIds: ['w3_l4', 'w3_l5'] },
     isMiniBoss: true,
@@ -108,7 +132,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB2,
     wordCount: 28,
     timeLimit: 140,
-    storyBeat: 'Master alchemists at the Upper Crucible brew potions from volcanic minerals.',
+    dialogue: [
+      { speaker: "enemy", text: "Volcanic minerals! Extraordinary! Help me brew these and you'll earn my finest work." },
+      { speaker: "hero", text: "You had me at extraordinary. Let's brew." }
+    ],
     rewards: { xp: 320, item: 'flame_shield' },
     bossGate: null,
   },
@@ -120,7 +147,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB2,
     wordCount: 30,
     timeLimit: 120,
-    storyBeat: 'Magma slimes pour from vents along Eruption Road.',
+    dialogue: [
+      { speaker: "enemy", text: "Magma slimes split from the vents! Each one hotter than the last!" },
+      { speaker: "hero", text: "I've split colder things. Though not by much." }
+    ],
     rewards: { xp: 300 },
     bossGate: null,
   },
@@ -132,7 +162,11 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB2,
     wordCount: 50,
     timeLimit: 190,
-    storyBeat: 'Urgruth the Umber Elemental, Keeper of U, blocks the crossing!',
+    dialogue: [
+      { speaker: "enemy", text: "U is the sound of understanding — and you understand nothing of what guards this bridge." },
+      { speaker: "hero", text: "I understand enough. You're blocking my path." },
+      { speaker: "enemy", text: "Then feel the weight of the Umber. Your understanding ends here." }
+    ],
     rewards: { xp: 680, title: 'Seeker of U' },
     bossGate: { minCombinedStars: 14, levelIds: ['w3_l6', 'w3_l7'] },
     isMiniBoss: true,
@@ -148,7 +182,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB3,
     wordCount: 20,
     timeLimit: null,
-    storyBeat: 'The smiths of Grim Forge hold a naming festival.',
+    dialogue: [
+      { speaker: "enemy", text: "A hero at our festival! Enter! We'll name your deeds in fire-song tonight!" },
+      { speaker: "hero", text: "I've never had a fire-song before. I'll take it." }
+    ],
     rewards: { xp: 300 },
     bossGate: null,
   },
@@ -160,7 +197,10 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB3,
     wordCount: 22,
     timeLimit: null,
-    storyBeat: 'A dragon scholar at Grudge Summit is cataloguing fire-type creatures.',
+    dialogue: [
+      { speaker: "enemy", text: "You're heading to the Citadel. You should know what lives inside. Sit." },
+      { speaker: "hero", text: "I'm already sitting. Talk fast." }
+    ],
     rewards: { xp: 280 },
     bossGate: null,
   },
@@ -172,7 +212,11 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB3,
     wordCount: 52,
     timeLimit: 195,
-    storyBeat: 'Gorven the Gorgon Guard, Keeper of G, awaits at the pit!',
+    dialogue: [
+      { speaker: "enemy", text: "None who have looked upon Gorven have left the pit. You'll be no different." },
+      { speaker: "hero", text: "Then I won't look. I'll type." },
+      { speaker: "enemy", text: "Clever. But cleverness has a way of... petrifying... under pressure." }
+    ],
     rewards: { xp: 740, title: 'Seeker of G' },
     bossGate: { minCombinedStars: 16, levelIds: ['w3_l8', 'w3_l9'] },
     isMiniBoss: true,
@@ -188,7 +232,13 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_AFTER_MB4,
     wordCount: 60,
     timeLimit: 240,
-    storyBeat: 'Gears turn and steam hisses — the mechanical dragon awakens!',
+    dialogue: [
+      { speaker: "enemy", text: "TICK. TICK. TICK. I have waited inside this citadel for three hundred years." },
+      { speaker: "hero", text: "A lot of waiting for a machine." },
+      { speaker: "enemy", text: "A lot of hubris for a mortal." },
+      { speaker: "hero", text: "Let's find out which matters more." },
+      { speaker: "enemy", text: "Beginning threat calculation... ATTACK." }
+    ],
     rewards: { xp: 1500, title: 'Dragon Slayer' },
     bossGate: { minCombinedStars: 20, levelIds: ['w3_mb1', 'w3_mb2', 'w3_mb3', 'w3_mb4'] },
     isBoss: true,

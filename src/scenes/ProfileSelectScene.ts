@@ -39,7 +39,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
   private render() {
     this.children.removeAll(true)
-    const { width, height } = this.scale
+    const { width } = this.scale
 
     const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
       fontSize: '20px', color: '#aaaaaa', fontFamily: MONO_FONT
