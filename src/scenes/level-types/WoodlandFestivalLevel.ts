@@ -1,4 +1,5 @@
 // src/scenes/level-types/WoodlandFestivalLevel.ts
+import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
@@ -9,6 +10,7 @@ import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class WoodlandFestivalLevel extends Phaser.Scene {
+  private goldManager!: GoldManager
   private level!: LevelConfig
   private profileSlot!: number
   private engine!: TypingEngine
@@ -43,7 +45,15 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-    new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+    this.goldManager = new GoldManager(this)
+    if (petRenderer.getPetSprite()) {
+      const pProfile = loadProfile(this.profileSlot)!;
+      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
+      if (p) {
+        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
+      }
+    }
 
     // HUD
     this.add.text(width / 2, 40, this.level.name, {
@@ -91,6 +101,13 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
   }
 
   private onWordComplete(_word: string, _elapsed: number) {
+    // Drop gold on kill
+    if (this.goldManager) {
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+    }
+
     this.playerScore++
     this.playerScoreText.setText(`Player Score: ${this.playerScore}`)
 
@@ -112,6 +129,7 @@ export class WoodlandFestivalLevel extends Phaser.Scene {
     this.aiTimer?.remove()// WoodlandFestival has no fail state, max stars for base XP
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,

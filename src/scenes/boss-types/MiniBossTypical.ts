@@ -1,4 +1,5 @@
 // src/scenes/boss-types/MiniBossTypical.ts
+import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
@@ -14,6 +15,7 @@ import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class MiniBossTypical extends Phaser.Scene {
+  private goldManager!: GoldManager
   private level!: LevelConfig
   private profileSlot!: number
   private words: string[] = []
@@ -69,7 +71,15 @@ export class MiniBossTypical extends Phaser.Scene {
     // Prominent Avatar on the left
     this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(2.5).setDepth(5)
 
-    new CompanionAndPetRenderer(this, width * 0.25, height / 2 - 50, this.profileSlot)
+    const petRenderer = new CompanionAndPetRenderer(this, width * 0.25, height / 2 - 50, this.profileSlot)
+    this.goldManager = new GoldManager(this)
+    if (petRenderer.getPetSprite()) {
+      const pProfile = loadProfile(this.profileSlot)!;
+      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
+      if (p) {
+        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
+      }
+    }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -217,6 +227,13 @@ export class MiniBossTypical extends Phaser.Scene {
   }
 
   private onWordComplete(_word: string, _elapsed: number) {
+    // Drop gold on kill
+    if (this.goldManager) {
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+    }
+
     if (this.finished) return
 
     this.wordQueue.shift()
@@ -281,6 +298,7 @@ export class MiniBossTypical extends Phaser.Scene {
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
     this.time.delayedCall(1000, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: acc,

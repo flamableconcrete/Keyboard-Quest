@@ -12,6 +12,7 @@ export const COMPANION_TEMPLATES: CompanionTemplate[] = [
 ]
 
 export const PET_TEMPLATES: CompanionTemplate[] = [
+  { id: 'dog', name: 'Barnaby the Dog', backstory: 'A loyal hound that sniffs out gold.', type: 'pet', goldCost: 0 },
   { id: 'goblin', name: 'Gibs the Tame Goblin', backstory: 'Defeated but reformed.', type: 'pet', goldCost: 50 },
   { id: 'slime', name: 'Blorp the Slime', backstory: 'Surprisingly loyal.', type: 'pet', goldCost: 100 },
   { id: 'skeleton', name: 'Clatter the Skeleton', backstory: 'A very helpful pile of bones.', type: 'pet', goldCost: 150 },

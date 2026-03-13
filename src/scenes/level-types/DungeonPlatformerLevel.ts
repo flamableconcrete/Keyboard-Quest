@@ -1,5 +1,6 @@
 // src/scenes/level-types/DungeonPlatformerLevel.ts
 import Phaser from 'phaser'
+import { GoldManager } from '../../utils/goldSystem'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
@@ -23,6 +24,7 @@ interface Obstacle {
 }
 
 export class DungeonPlatformerLevel extends Phaser.Scene {
+  public goldManager?: GoldManager
   private level!: LevelConfig
   private profileSlot!: number
 
@@ -364,6 +366,13 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
 
   // ── Word Complete ────────────────────────────────────────────────
   private onWordComplete(_word: string, _elapsed: number) {
+    // Drop gold on kill
+    if (this.goldManager) {
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+    }
+
     if (!this.currentObstacle) return
     const obs = this.currentObstacle
     this.currentObstacle = null  // clear immediately so keydown handler doesn't flash old letter
@@ -457,6 +466,9 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
 
   // ── Update (scrolling + dust) ────────────────────────────────────
   update(_time: number, delta: number) {
+    // @ts-ignore
+    this.goldManager?.update(delta)
+    // @ts-ignore
     if (this.finished) return
     const dt = delta / 1000
     const { width, height } = this.scale
@@ -512,6 +524,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     )
     this.time.delayedCall(passed ? 500 : 1400, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level, profileSlot: this.profileSlot,
         accuracyStars: acc, speedStars: spd, passed
       })
