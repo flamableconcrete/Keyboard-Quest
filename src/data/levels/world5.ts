@@ -17,8 +17,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 36,
     timeLimit: 120,
     dialogue: [
-      { speaker: "enemy", text: "Soldiers of the Typemancer guard the base of the tower." },
-      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+      { speaker: "enemy", text: "No one passes the Typemancer's gates! No one!" },
+      { speaker: "hero",  text: "I'm not no one." },
     ],
     rewards: { xp: 460 },
     bossGate: null,
@@ -32,8 +32,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 32,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "The maze shifts as you type — words unlock passages." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The labyrinth shifts. New traps each time. Even a veteran can't prepare." },
+      { speaker: "hero",  text: "I'm not prepared. I'm experienced. There's a difference." },
     ],
     rewards: { xp: 480 },
     bossGate: null,
@@ -47,8 +47,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 24,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "Ancient scrolls hold the history of the Typemancer\'s rise." },
-      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+      { speaker: "enemy", text: "These scrolls contain the Typemancer's full history. It's unsettling. Read anyway." },
+      { speaker: "hero",  text: "Show me." },
     ],
     rewards: { xp: 440 },
     bossGate: null,
@@ -62,8 +62,9 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 65,
     timeLimit: 240,
     dialogue: [
-      { speaker: "enemy", text: "Quixel the Quillmaster, Keeper of Q, scratches rare words into the walls!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Quixel the Quillmaster! The rarest letter belongs to the rarest keeper!" },
+      { speaker: "hero",  text: "Q goes to everyone or it goes to no one. Hand it over." },
+      { speaker: "enemy", text: "You've come far to demand things of Quixel. You won't leave carrying them." },
     ],
     rewards: { xp: 1100, title: 'Seeker of Q' },
     bossGate: { minCombinedStars: 20, levelIds: ['w5_l1', 'w5_l2', 'w5_l3'] },
@@ -81,8 +82,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 32,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "Enchanted forges ring with the sound of rare letters being hammered into shape." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "These forges ring with rare letters being hammered into shape. Touch nothing you can't type." },
+      { speaker: "hero",  text: "I'm ready." },
     ],
     rewards: { xp: 500 },
     bossGate: null,
@@ -96,8 +97,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 40,
     timeLimit: 140,
     dialogue: [
-      { speaker: "enemy", text: "Bone warriors march across the xeric flats beneath the tower." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The Typemancer's own guard. We were alive when he took the letters. We'll be here when you fail." },
+      { speaker: "hero",  text: "You've waited a long time. Don't wait any longer." },
     ],
     rewards: { xp: 480 },
     bossGate: null,
@@ -111,8 +112,9 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 68,
     timeLimit: 250,
     dialogue: [
-      { speaker: "enemy", text: "Xeron the Hexed Exile, Keeper of X, casts words as weapons!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "X. The rarest stroke. The hardest reach. You will never cross it." },
+      { speaker: "hero",  text: "Watch." },
+      { speaker: "enemy", text: "Brave. Stupid. I've hexed heroes for less, {name}. Prepare yourself." },
     ],
     rewards: { xp: 1200, title: 'Seeker of X' },
     bossGate: { minCombinedStars: 16, levelIds: ['w5_l4', 'w5_l5'] },
@@ -130,8 +132,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 22,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "A court jester challenges you with the zaniest words in the realm." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The Mad King's jester! With the zaniest words in the KNOWN WORLD! Ha ha HA!" },
+      { speaker: "hero",  text: "I've heard worse. Let's go." },
     ],
     rewards: { xp: 440 },
     bossGate: null,
@@ -145,8 +147,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 22,
     timeLimit: null,
     dialogue: [
-      { speaker: "enemy", text: "The imprisoned faeries of Zephyr Court beg you to free them with words." },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "Hero! Our words are locked away with us! Break the seal and we'll sing your name to the winds!" },
+      { speaker: "hero",  text: "That's the nicest thing anyone's offered me in a while. I'm in." },
     ],
     rewards: { xp: 460 },
     bossGate: null,
@@ -160,8 +162,9 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 70,
     timeLimit: 260,
     dialogue: [
-      { speaker: "enemy", text: "Zindark the Zealot, Keeper of Z, stands between you and the final ascent!" },
-      { speaker: "hero", text: "I\'ve come to restore the letters! Surrender them!" }
+      { speaker: "enemy", text: "Z. The final letter. I have died for it. I will kill for it. It does not leave this spire." },
+      { speaker: "hero",  text: "Every other Keeper said the same." },
+      { speaker: "enemy", text: "Every other Keeper was not a Zealot. This ends differently." },
     ],
     rewards: { xp: 1300, title: 'Seeker of Z' },
     bossGate: { minCombinedStars: 16, levelIds: ['w5_l6', 'w5_l7'] },
@@ -179,8 +182,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 38,
     timeLimit: 150,
     dialogue: [
-      { speaker: "enemy", text: "The tower trembles as you climb — type to keep your footing!" },
-      { speaker: "hero", text: "Let\'s clear the path and move forward!" }
+      { speaker: "enemy", text: "The tower trembles! The stairway crumbles! Type faster than the falling stone!" },
+      { speaker: "hero",  text: "Moving." },
     ],
     rewards: { xp: 520 },
     bossGate: null,
@@ -194,8 +197,9 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 72,
     timeLimit: 265,
     dialogue: [
-      { speaker: "enemy", text: "The Typemancer\'s jester blocks the throne room with jokes and jabs!" },
-      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+      { speaker: "enemy", text: "Ha! You've come so far just to laugh at your own failure!" },
+      { speaker: "hero",  text: "I'm not laughing." },
+      { speaker: "enemy", text: "No. But I am. And that's the joke. Come on then — show me what you've got." },
     ],
     rewards: { xp: 1400, title: "Jester's Bane" },
     bossGate: { minCombinedStars: 8, levelIds: ['w5_l8'] },
@@ -213,8 +217,11 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     wordCount: 80,
     timeLimit: 360,
     dialogue: [
-      { speaker: "enemy", text: "The Typemancer floats above his throne, weaving letters into destruction. Face him — and type your destiny!" },
-      { speaker: "hero", text: "Your reign of silence is over! Prepare yourself!" }
+      { speaker: "enemy", text: "So. {name}. You've returned every letter I scattered. Every one." },
+      { speaker: "hero",  text: "Every one." },
+      { speaker: "enemy", text: "I scattered them because this world didn't deserve them. It still doesn't." },
+      { speaker: "hero",  text: "That's not your call." },
+      { speaker: "enemy", text: "It was. It is. And when I take them back — it will be again." },
     ],
     rewards: { xp: 5000, title: 'Keyboard Champion' },
     bossGate: { minCombinedStars: 28, levelIds: ['w5_mb1', 'w5_mb2', 'w5_mb3', 'w5_mb4'] },
