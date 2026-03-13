@@ -43,28 +43,26 @@ export class LevelIntroScene extends Phaser.Scene {
     const { width, height } = this.scale
 
     // Back button
-    const backBtn = this.add.text(20, 20, '◀ BACK TO MAP', {
-      fontSize: '20px', color: '#ffffff', backgroundColor: '#444444', padding: { x: 8, y: 4 }
+    const back = this.add.text(60, 40, '← BACK', {
+      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
     }).setInteractive({ useHandCursor: true })
-    backBtn.on('pointerover', () => backBtn.setStyle({ backgroundColor: '#666666' }))
-    backBtn.on('pointerout', () => backBtn.setStyle({ backgroundColor: '#444444' }))
-    backBtn.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+    back.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation()
       this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
     })
 
-    this.add.text(width / 2, height * 0.25, this.level.name, {
+    this.add.text(width / 2, height * 0.10, this.level.name, {
       fontSize: '64px', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(0.5)
 
     const subtitle = LEVEL_TYPE_LABELS[this.level.type] ?? this.level.type
-    this.add.text(width / 2, height * 0.35, subtitle, {
+    this.add.text(width / 2, height * 0.20, subtitle, {
       fontSize: '28px', color: '#aaddff', fontStyle: 'italic'
     }).setOrigin(0.5)
 
     const thresholds = getSpeedThresholds(this.level.world)
     const targetsText = `🎯 Target Speeds: ⭐⭐⭐ ${thresholds.star3} WPM | ⭐⭐⭐⭐ ${thresholds.star4} WPM | ⭐⭐⭐⭐⭐ ${thresholds.star5} WPM`
-    this.add.text(width / 2, height * 0.43, targetsText, {
+    this.add.text(width / 2, height * 0.28, targetsText, {
       fontSize: '18px', color: '#ffffaa', align: 'center'
     }).setOrigin(0.5)
 
@@ -76,7 +74,7 @@ export class LevelIntroScene extends Phaser.Scene {
       ? this.profile.avatarConfig.id
       : (this.profile.avatarChoice || 'avatar_0')
 
-    const avatarTargetX = width / 2 - 200
+    const avatarTargetX = width * 0.18
     const avatar = this.add.sprite(-200, height * 0.85, avatarTexture).setOrigin(0.5, 1).setScale(2)
 
     // Render Representative Enemy
@@ -135,7 +133,7 @@ export class LevelIntroScene extends Phaser.Scene {
       enemyTexture = 'generic_monster'
     }
 
-    const enemyTargetX = width / 2 + 200
+    const enemyTargetX = width * 0.82
     let enemy: Phaser.GameObjects.Sprite | null = null
 
     if (enemyTexture) {
@@ -177,8 +175,8 @@ export class LevelIntroScene extends Phaser.Scene {
       const bubbleHeight = 110
       const isHero = speaker === 'hero'
 
-      const bubbleX = isHero ? (width / 2 - 200) : (width / 2 + 200)
-      const bubbleY = height * 0.45
+      const bubbleX = isHero ? width * 0.28 : width * 0.72
+      const bubbleY = height * 0.44
 
       const graphics = this.add.graphics({ x: bubbleX, y: bubbleY })
       graphics.fillStyle(0xffffff, 1)
@@ -186,26 +184,29 @@ export class LevelIntroScene extends Phaser.Scene {
       graphics.fillRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
       graphics.strokeRoundedRect(-bubbleWidth / 2, -bubbleHeight / 2, bubbleWidth, bubbleHeight, 16)
 
-      // Draw tail pointing to the speaker
+      // Draw tail pointing down-outward toward the speaker (who stands farther out than the bubble)
+      graphics.fillStyle(0xffffff, 1)
+      graphics.lineStyle(4, 0x000000, 1)
       if (isHero) {
-        graphics.fillTriangle(-60, bubbleHeight / 2, -20, bubbleHeight / 2, -80, bubbleHeight / 2 + 40)
-        graphics.strokeTriangle(-60, bubbleHeight / 2, -20, bubbleHeight / 2, -80, bubbleHeight / 2 + 40)
+        graphics.fillTriangle(-80, bubbleHeight / 2, -40, bubbleHeight / 2, -110, bubbleHeight / 2 + 50)
+        graphics.strokeTriangle(-80, bubbleHeight / 2, -40, bubbleHeight / 2, -110, bubbleHeight / 2 + 50)
         graphics.lineStyle(4, 0xffffff, 1)
         graphics.beginPath()
-        graphics.moveTo(-58, bubbleHeight / 2)
-        graphics.lineTo(-22, bubbleHeight / 2)
+        graphics.moveTo(-78, bubbleHeight / 2)
+        graphics.lineTo(-42, bubbleHeight / 2)
         graphics.strokePath()
       } else {
-        graphics.fillTriangle(20, bubbleHeight / 2, 60, bubbleHeight / 2, 80, bubbleHeight / 2 + 40)
-        graphics.strokeTriangle(20, bubbleHeight / 2, 60, bubbleHeight / 2, 80, bubbleHeight / 2 + 40)
+        graphics.fillTriangle(40, bubbleHeight / 2, 80, bubbleHeight / 2, 110, bubbleHeight / 2 + 50)
+        graphics.strokeTriangle(40, bubbleHeight / 2, 80, bubbleHeight / 2, 110, bubbleHeight / 2 + 50)
         graphics.lineStyle(4, 0xffffff, 1)
         graphics.beginPath()
-        graphics.moveTo(22, bubbleHeight / 2)
-        graphics.lineTo(58, bubbleHeight / 2)
+        graphics.moveTo(42, bubbleHeight / 2)
+        graphics.lineTo(78, bubbleHeight / 2)
         graphics.strokePath()
       }
 
-      const bubbleText = this.add.text(bubbleX, bubbleY, text, {
+      const resolvedText = text.replace(/\{name\}/g, this.profile.playerName)
+      const bubbleText = this.add.text(bubbleX, bubbleY, resolvedText, {
         fontSize: '18px', color: '#000000', wordWrap: { width: bubbleWidth - 40 }, align: 'center', fontStyle: 'bold'
       }).setOrigin(0.5)
 
