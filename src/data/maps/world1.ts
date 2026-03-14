@@ -193,6 +193,7 @@ function buildGround(): TileGrid {
   g[20][31] = WATER
   g[20][33] = WATER
   g[20][35] = WATER
+  g[20][36] = WATER
   g[21][31] = WATER
   g[21][33] = WATER
   g[21][35] = WATER
