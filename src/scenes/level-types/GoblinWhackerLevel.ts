@@ -293,15 +293,15 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   private onWordComplete(word: string, _elapsed: number) {
-    // Drop gold on kill
-    if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
-    }
-
     const goblin = this.goblins.find(g => g.word === word)
     if (goblin) {
+      // Drop gold on kill below the goblin
+      if (this.goldManager) {
+        const dropX = goblin.x + (Math.random() * 40 - 20);
+        const dropY = goblin.sprite.y + 40 + (Math.random() * 20 - 10);
+        this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      }
+
       this.removeGoblin(goblin)
       this.goblinsDefeated++
 
