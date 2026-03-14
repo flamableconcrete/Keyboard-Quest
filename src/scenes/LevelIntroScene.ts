@@ -146,9 +146,9 @@ export class LevelIntroScene extends Phaser.Scene {
     }
 
     // Sequence Dialogue Bubbles
-    const prompt = this.add.text(width / 2, height * 0.95, 'Press SPACE or click to begin', {
-      fontSize: '22px', color: '#aaaaaa'
-    }).setOrigin(0.5)
+    const prompt = this.add.text(width / 2, height * 0.95, '', {
+      fontSize: '22px', color: '#aaaaaa', backgroundColor: '#333333', padding: { x: 20, y: 10 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     prompt.setAlpha(0)
 
     // Entrance Animations
@@ -170,7 +170,16 @@ export class LevelIntroScene extends Phaser.Scene {
       })
     }
 
+    const dialogues = this.level.dialogue || (this.level.storyBeat ? [{speaker: 'enemy' as 'enemy', text: this.level.storyBeat}] : [])
+    let currentDialogueIndex = 0
+    let currentBubbleObjs: Phaser.GameObjects.GameObject[] = []
+    let isAnimatingBubble = false
+
     const drawBubble = (speaker: 'hero' | 'enemy', text: string, delay: number, onComplete?: () => void) => {
+      // Clean up previous bubble if exists
+      currentBubbleObjs.forEach(obj => obj.destroy())
+      currentBubbleObjs = []
+
       const bubbleWidth = 340
       const bubbleHeight = 110
       const isHero = speaker === 'hero'
@@ -215,6 +224,9 @@ export class LevelIntroScene extends Phaser.Scene {
       bubbleText.setAlpha(0)
       bubbleText.setScale(0)
 
+      currentBubbleObjs.push(graphics, bubbleText)
+      isAnimatingBubble = true
+
       this.tweens.add({
         targets: [graphics, bubbleText],
         alpha: 1,
@@ -223,37 +235,76 @@ export class LevelIntroScene extends Phaser.Scene {
         duration: 400,
         ease: 'Back.easeOut',
         delay: delay,
-        onComplete: onComplete
+        onComplete: () => {
+          isAnimatingBubble = false
+          if (onComplete) onComplete()
+        }
       })
-
-      return [graphics, bubbleText]
     }
 
-    const dialogues = this.level.dialogue || (this.level.storyBeat ? [{speaker: 'enemy' as 'enemy', text: this.level.storyBeat}] : [])
+    const showNextDialogue = () => {
+      if (isAnimatingBubble) return // Ignore input if a bubble is currently animating
 
-    let currentDelay = 1000
+      if (currentDialogueIndex < dialogues.length) {
+        const dialog = dialogues[currentDialogueIndex]
+        const isLast = currentDialogueIndex === dialogues.length - 1
 
-    for (let i = 0; i < dialogues.length; i++) {
-      const isLast = i === dialogues.length - 1
+        prompt.setText(isLast ? 'Press SPACE or Click to Begin' : 'Press SPACE or Click to Continue')
+        prompt.setAlpha(1)
 
-      drawBubble(dialogues[i].speaker as 'hero' | 'enemy', dialogues[i].text, currentDelay, isLast ? () => {
-        // Show and pulse the prompt
+        drawBubble(dialog.speaker as 'hero' | 'enemy', dialog.text, 0, () => {
+          // ensure pulse is running if not already
+          if (!this.tweens.getTweensOf(prompt).length) {
+            this.tweens.add({
+              targets: prompt,
+              alpha: 0.6,
+              duration: 800,
+              yoyo: true,
+              repeat: -1,
+              ease: 'Sine.easeInOut',
+            })
+          }
+        })
+        currentDialogueIndex++
+      } else {
+        this.enter()
+      }
+    }
+
+    // Input handlers
+    this.input.keyboard?.on('keydown-SPACE', () => {
+      if (currentDialogueIndex === 0) return // Space not allowed before first dialogue is ready
+      showNextDialogue()
+    })
+
+    // Global pointer down for advancing dialogue or clicking the prompt
+    this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+      // If clicking the back button, let the back button handle it
+      if (currentlyOver.includes(back)) return
+      if (currentDialogueIndex === 0) return
+      showNextDialogue()
+    })
+
+    // Start first dialogue after entrance animations
+    this.time.delayedCall(1000, () => {
+      if (dialogues.length > 0) {
+        showNextDialogue()
+      } else {
+        // No dialogue, just show the begin prompt
+        prompt.setText('Press SPACE or Click to Begin')
         prompt.setAlpha(1)
         this.tweens.add({
           targets: prompt,
-          alpha: 0.3,
+          alpha: 0.6,
           duration: 800,
           yoyo: true,
           repeat: -1,
           ease: 'Sine.easeInOut',
         })
-
-        // Enable input only after all animations finish
-        this.input.keyboard?.once('keydown-SPACE', this.enter, this)
-        this.input.once('pointerdown', this.enter, this)
-      } : undefined)
-      currentDelay += 2000 // Wait 2 seconds between speech bubbles
-    }
+        currentDialogueIndex = dialogues.length // set to end
+        // Let player press space/click to enter
+      }
+    })
   }
 
   private enter() {
