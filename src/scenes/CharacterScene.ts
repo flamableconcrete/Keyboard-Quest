@@ -42,18 +42,17 @@ export class CharacterScene extends Phaser.Scene {
 
     // Semi-transparent modal background
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+      .setInteractive()
+      .on('pointerdown', () => this.closeScene())
 
     // Main modal panel
     const panelWidth = 1000
     const panelHeight = 600
     const panelX = width / 2
     const panelY = height / 2
-    this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x1a1a2e).setStrokeStyle(4, 0x4e4e6a)
-
-    // Block clicks behind the modal
-    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
-      .setInteractive()
-      .setDepth(-1)
+    this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x1a1a2e)
+      .setStrokeStyle(4, 0x4e4e6a)
+      .setInteractive() // prevent clicks passing through to the background
 
     // Close Button (top right of modal)
     this.add
@@ -64,16 +63,7 @@ export class CharacterScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        if (this.avatarDirty) {
-          // Restart OverlandMap so it picks up the new avatar
-          this.scene.stop('OverlandMap')
-          this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
-        } else {
-          this.scene.resume('OverlandMap')
-        }
-        this.scene.stop()
-      })
+      .on('pointerdown', () => this.closeScene())
 
     this.container = this.add.container(0, 0)
 
@@ -584,6 +574,17 @@ export class CharacterScene extends Phaser.Scene {
       saveProfile(this.profileSlot, this.profile)
       this.drawActiveTab()
     }
+  }
+
+  private closeScene() {
+    if (this.avatarDirty) {
+      // Restart OverlandMap so it picks up the new avatar
+      this.scene.stop('OverlandMap')
+      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+    } else {
+      this.scene.resume('OverlandMap')
+    }
+    this.scene.stop()
   }
 
   private getEffectString(effect: ItemData['effect']): string {
