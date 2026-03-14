@@ -237,6 +237,9 @@ export class CharacterScene extends Phaser.Scene {
       this.profile.avatarConfig = JSON.parse(JSON.stringify(this.avatarConfig))
       this.profile.avatarChoice = this.avatarConfig.id
       saveProfile(this.profileSlot, this.profile)
+      if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
+        this.textures.remove(this.profile.avatarConfig.id)
+      }
       this.avatarDirty = true
 
       saveBg.setFillStyle(0x44ff44)
@@ -435,6 +438,10 @@ export class CharacterScene extends Phaser.Scene {
       unequipBtn.on('pointerdown', () => {
         this.profile.equipment[slot] = null
         saveProfile(this.profileSlot, this.profile)
+        if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
+          this.textures.remove(this.profile.avatarConfig.id)
+        }
+        this.avatarDirty = true
         this.drawActiveTab()
       })
       container.add(unequipBtn)
@@ -507,6 +514,10 @@ export class CharacterScene extends Phaser.Scene {
         if (!isEquipped) {
           this.profile.equipment[slot] = item.id
           saveProfile(this.profileSlot, this.profile)
+          if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
+            this.textures.remove(this.profile.avatarConfig.id)
+          }
+          this.avatarDirty = true
           this.drawActiveTab()
         }
       })
