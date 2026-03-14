@@ -15,7 +15,7 @@ export interface CompanionData {
   type: 'companion' | 'pet'
   level: number
   xp: number
-  autoStrikeCount: number // 1-3
+  autoStrikeCount?: number // 1-3
 }
 
 export interface EquipmentData {

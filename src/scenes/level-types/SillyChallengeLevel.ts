@@ -1,4 +1,5 @@
 // src/scenes/level-types/SillyChallengeLevel.ts
+import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
@@ -19,6 +20,7 @@ interface SillyEntity {
 }
 
 export class SillyChallengeLevel extends Phaser.Scene {
+  private goldManager!: GoldManager
   private level!: LevelConfig
   private profileSlot!: number
   private words: string[] = []
@@ -57,7 +59,15 @@ export class SillyChallengeLevel extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-    new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+    this.goldManager = new GoldManager(this)
+    if (petRenderer.getPetSprite()) {
+      const pProfile = loadProfile(this.profileSlot)!;
+      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
+      if (p) {
+        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
+      }
+    }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -136,6 +146,7 @@ export class SillyChallengeLevel extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
     if (this.finished) return
 
     this.entities.forEach(g => {
@@ -167,6 +178,13 @@ export class SillyChallengeLevel extends Phaser.Scene {
   }
 
   private onWordComplete(word: string, _elapsed: number) {
+    // Drop gold on kill
+    if (this.goldManager) {
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+    }
+
     const entity = this.entities.find(g => g.word === word)
     if (entity) {
       this.removeEntity(entity)
@@ -209,6 +227,7 @@ export class SillyChallengeLevel extends Phaser.Scene {
     this.engine.destroy()// SillyChallenge always gives max stars for base XP
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,

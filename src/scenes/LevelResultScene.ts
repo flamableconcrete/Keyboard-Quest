@@ -13,6 +13,7 @@ interface ResultData {
   accuracyStars: number
   speedStars: number
   passed: boolean
+  extraGold?: number
 }
 
 export class LevelResultScene extends Phaser.Scene {
@@ -71,7 +72,7 @@ export class LevelResultScene extends Phaser.Scene {
     if (Math.random() < goldChance) {
       baseGold *= 2
     }
-    const goldEarned = Math.floor(baseGold * (1 + goldMultiplier))
+    const goldEarned = Math.floor(baseGold * (1 + goldMultiplier)) + (this.resultData.extraGold || 0)
     this.profile.gold = (this.profile.gold ?? 0) + goldEarned
 
     // Save level result (only improve, never overwrite with worse total score)

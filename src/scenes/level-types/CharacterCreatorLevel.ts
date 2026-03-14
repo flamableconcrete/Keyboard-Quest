@@ -1,10 +1,12 @@
 
 // src/scenes/level-types/CharacterCreatorLevel.ts
 import Phaser from 'phaser'
+import { GoldManager } from '../../utils/goldSystem'
 import { LevelConfig } from '../../types'
 import { TypingEngine } from '../../components/TypingEngine'
 
 export class CharacterCreatorLevel extends Phaser.Scene {
+  public goldManager?: GoldManager
   private profileSlot!: number
   private level!: LevelConfig
   private engine!: TypingEngine
@@ -46,18 +48,26 @@ export class CharacterCreatorLevel extends Phaser.Scene {
   }
 
   private onWordComplete(_word: string, _elapsed: number) {
+    // Drop gold on kill
+    if (this.goldManager) {
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+    }
+
     if (this.finished) return
     this.finished = true
     this.engine.destroy()
 
     this.time.delayedCall(500, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: 5,
         speedStars: 5,
-        passed: true,
-        })
+        passed: true
+      })
     })
   }
 }

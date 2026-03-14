@@ -1,4 +1,5 @@
 // src/scenes/boss-types/AncientDragonBoss.ts
+import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
@@ -11,6 +12,7 @@ import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 
 export class AncientDragonBoss extends Phaser.Scene {
+  private goldManager!: GoldManager
   private level!: LevelConfig
   private profileSlot!: number
   private engine!: TypingEngine
@@ -56,7 +58,15 @@ export class AncientDragonBoss extends Phaser.Scene {
     const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
     this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
 
-  new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
+  this.goldManager = new GoldManager(this)
+  if (petRenderer.getPetSprite()) {
+    const pProfile = loadProfile(this.profileSlot)!;
+    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
+    if (p) {
+      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
+    }
+  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -234,6 +244,7 @@ export class AncientDragonBoss extends Phaser.Scene {
     const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
     this.time.delayedCall(2000, () => {
       this.scene.start('LevelResult', {
+        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
         level: this.level,
         profileSlot: this.profileSlot,
         accuracyStars: acc,

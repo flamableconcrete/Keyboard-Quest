@@ -11,6 +11,7 @@ export function generateAllCompanionTextures(scene: Phaser.Scene) {
   generatePetTexture(scene, 'slime')
   generatePetTexture(scene, 'skeleton')
   generatePetTexture(scene, 'baby_dragon')
+  generatePetTexture(scene, 'dog')
 }
 
 export function generateCompanionTexture(scene: Phaser.Scene, companionId: string) {
@@ -112,6 +113,15 @@ export function generatePetTexture(scene: Phaser.Scene, petId: string) {
       g.fillStyle(0x000000)
       g.fillRect(6*s, 4*s, 1*s, 1*s) // eye
       g.fillRect(9*s, 4*s, 1*s, 1*s) // eye
+      break
+    case 'dog':
+      g.fillStyle(0x8b4513) // saddle brown
+      g.fillRect(4 * s, 8 * s, 10 * s, 6 * s) // body
+      g.fillRect(3 * s, 6 * s, 4 * s, 4 * s) // head
+      g.fillStyle(0x5c4033) // dark brown
+      g.fillRect(3 * s, 5 * s, 2 * s, 3 * s) // ear
+      g.fillStyle(0x000000)
+      g.fillRect(4 * s, 7 * s, 1 * s, 1 * s) // eye
       break
     case 'baby_dragon':
       g.fillStyle(0xff4444)

@@ -47,15 +47,7 @@ export class CompanionAndPetRenderer {
   }
   
   private playAttackAnimation() {
-    if (this.petSprite) {
-      this.scene.tweens.add({
-        targets: this.petSprite,
-        x: this.startPetX + 35,
-        yoyo: true,
-        duration: 130,
-        ease: 'Quad.easeOut'
-      })
-    }
+
     if (this.companionSprite) {
       this.scene.tweens.add({
         targets: this.companionSprite,
@@ -68,6 +60,10 @@ export class CompanionAndPetRenderer {
     }
   }
   
+  public getPetSprite() { return this.petSprite }
+  public getStartPetX() { return this.startPetX }
+  public getStartPetY() { return this.petSprite ? this.petSprite.y : 0 }
+
   public destroy() {
     this.scene.events.off('word_completed_attack', this.playAttackAnimation, this)
   }

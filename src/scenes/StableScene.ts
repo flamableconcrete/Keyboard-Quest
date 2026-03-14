@@ -31,7 +31,7 @@ export class StableScene extends Phaser.Scene {
       fontSize: '22px', color: '#cccccc'
     }).setOrigin(0.5)
 
-    this.add.text(width / 2, 115, 'Pets provide auto-strikes that automatically destroy enemies.', {
+    this.add.text(width / 2, 115, 'Pets automatically collect gold dropped by defeated enemies.', {
       fontSize: '14px', color: '#88aaff', fontStyle: 'italic'
     }).setOrigin(0.5)
 
@@ -103,7 +103,7 @@ export class StableScene extends Phaser.Scene {
     this.add.image(x - 90, y - 10, pet.id).setScale(2)
     
     this.add.text(x - 30, y - 65, pet.name, { fontSize: '15px', color: '#ffffff', wordWrap: { width: 160 } }).setOrigin(0, 0)
-    this.add.text(x - 30, y - 25, `Lv ${level} · x${pet.autoStrikeCount} strike`, { fontSize: '13px', color: '#aaffaa' }).setOrigin(0, 0)
+    this.add.text(x - 30, y - 25, `Lv ${level} · +${(100 + (level * 25))} Spd`, { fontSize: '13px', color: '#aaffaa' }).setOrigin(0, 0)
     this.add.text(x - 30, y - 5, pet.backstory, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 160 } }).setOrigin(0, 0)
     
     const activeLabel = isActive ? '✓ Active' : '[ Set Active ]'

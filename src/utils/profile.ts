@@ -1,4 +1,5 @@
 import { ProfileData } from '../types'
+import { createCompanion } from '../data/companions'
 import { getInitialShopItems, rotateShopItems } from './shop'
 
 const HOME_ROW: string[] = ['a', 's', 'd', 'f', 'j', 'k', 'l']
@@ -26,9 +27,9 @@ export function createProfile(playerName: string, avatarChoice = 'knight', avata
     equipment: { weapon: null, armor: null, accessory: null },
     spells: [],
     companions: [],
-    pets: [],
+    pets: [createCompanion('dog')],
     activeCompanionId: null,
-    activePetId: null,
+    activePetId: 'dog',
     titles: [],
     ownedItemIds: [],
     worldMasteryRewards: [],
