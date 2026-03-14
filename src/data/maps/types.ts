@@ -33,6 +33,12 @@ export interface MapNodePosition {
   y: number
 }
 
+/** Bezier control point (absolute unified coords) connecting a world boss to next world's first node */
+export interface WorldTransition {
+  cx: number
+  cy: number
+}
+
 /** Particle emitter config for world atmosphere */
 export interface AtmosphereEmitter {
   /** Key into common spritesheet frame name */
@@ -79,8 +85,6 @@ export interface WorldMapData {
   decorations: DecorationPlacement[]
   /** Node pixel positions (indexed same as level array) */
   nodePositions: MapNodePosition[]
-  /** Special node positions */
-  specialNodes: Record<string, MapNodePosition>
   /** Bezier path segments between consecutive nodes */
   pathSegments: PathSegment[]
   /** Atmosphere particle emitters */

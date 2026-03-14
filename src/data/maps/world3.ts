@@ -352,12 +352,6 @@ export const WORLD3_MAP: WorldMapData = {
     { x: 860, y: 20 },   // boss — summit
   ],
 
-  specialNodes: {
-    tavern: { x: 640, y: 670 },
-    stable: { x: 780, y: 670 },
-    shop: { x: 920, y: 670 },
-  },
-
   pathSegments: buildPathSegments(),
   atmosphere: buildAtmosphere(),
   animatedTiles: buildAnimatedTiles(),
