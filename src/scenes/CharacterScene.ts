@@ -18,6 +18,7 @@ export class CharacterScene extends Phaser.Scene {
   private avatarConfig!: AvatarConfig
   private avatarPreviewImage!: Phaser.GameObjects.Image
   private avatarDirty = false
+  private originalAvatarId: string | null = null
 
   constructor() {
     super('Character')
@@ -29,6 +30,7 @@ export class CharacterScene extends Phaser.Scene {
 
     // Initialize avatar config once from profile
     if (this.profile.avatarConfig) {
+      this.originalAvatarId = this.profile.avatarConfig.id
       this.avatarConfig = JSON.parse(JSON.stringify(this.profile.avatarConfig))
     } else {
       this.avatarConfig = randomizeOneConfig()
@@ -227,9 +229,6 @@ export class CharacterScene extends Phaser.Scene {
       this.profile.avatarConfig = JSON.parse(JSON.stringify(this.avatarConfig))
       this.profile.avatarChoice = this.avatarConfig.id
       saveProfile(this.profileSlot, this.profile)
-      if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
-        this.textures.remove(this.profile.avatarConfig.id)
-      }
       this.avatarDirty = true
 
       saveBg.setFillStyle(0x44ff44)
@@ -428,9 +427,6 @@ export class CharacterScene extends Phaser.Scene {
       unequipBtn.on('pointerdown', () => {
         this.profile.equipment[slot] = null
         saveProfile(this.profileSlot, this.profile)
-        if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
-          this.textures.remove(this.profile.avatarConfig.id)
-        }
         this.avatarDirty = true
         this.drawActiveTab()
       })
@@ -504,9 +500,6 @@ export class CharacterScene extends Phaser.Scene {
         if (!isEquipped) {
           this.profile.equipment[slot] = item.id
           saveProfile(this.profileSlot, this.profile)
-          if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
-            this.textures.remove(this.profile.avatarConfig.id)
-          }
           this.avatarDirty = true
           this.drawActiveTab()
         }
@@ -591,6 +584,14 @@ export class CharacterScene extends Phaser.Scene {
     if (this.avatarDirty) {
       // Restart OverlandMap so it picks up the new avatar
       this.scene.stop('OverlandMap')
+
+      if (this.originalAvatarId && this.textures.exists(this.originalAvatarId)) {
+        this.textures.remove(this.originalAvatarId)
+      }
+      if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
+        this.textures.remove(this.profile.avatarConfig.id)
+      }
+
       this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
     } else {
       this.scene.resume('OverlandMap')
