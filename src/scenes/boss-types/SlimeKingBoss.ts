@@ -258,4 +258,7 @@ export class SlimeKingBoss extends Phaser.Scene {
       })
     })
   }
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
+  }
 }

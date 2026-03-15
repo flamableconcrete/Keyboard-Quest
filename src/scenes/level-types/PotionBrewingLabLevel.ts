@@ -143,7 +143,8 @@ export class PotionBrewingLabLevel extends Phaser.Scene {
     this.cameras.main.shake(100, 0.01)
   }
 
-  update() {
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
     // No continuous updates needed
   }
 

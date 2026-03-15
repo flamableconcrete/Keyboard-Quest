@@ -136,7 +136,8 @@ export class DungeonEscapeLevel extends Phaser.Scene {
     this.cameras.main.flash(80, 120, 0, 0)
   }
 
-  update() {
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
     // No continuous updates needed
   }
 

@@ -269,4 +269,7 @@ export class BaronTypoBoss extends Phaser.Scene {
       })
     })
   }
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
+  }
 }
