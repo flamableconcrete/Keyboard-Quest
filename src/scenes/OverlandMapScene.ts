@@ -4,7 +4,6 @@ import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
-import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
 import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
@@ -170,7 +169,6 @@ export class OverlandMapScene extends Phaser.Scene {
     })
 
     this.drawWorldTransitionPaths()
-    this.drawMasteryChest()
     this.drawSettingsButton()
     this.drawProfilesButton()
 
@@ -204,6 +202,10 @@ export class OverlandMapScene extends Phaser.Scene {
     })
     this.drawHudButton(w - 330, h - 60, '🍺', 'TAVERN', () => {
       this.scene.start('Tavern', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 420, h - 60, '🏆', 'TROPHIES', () => {
+      this.scene.pause()
+      this.scene.launch('TrophyRoom', { profileSlot: this.profileSlot })
     })
     this.drawHudButton(70, h - 60, '🧭', 'FIND HERO', () => {
       this.panToAvatar()
@@ -461,69 +463,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           fontSize: '10px', color: '#ff8888'
         }).setOrigin(0.5).setDepth(2000)
       }
-    })
-  }
-
-  private drawMasteryChest() {
-    const { width } = this.scale
-    const world = this.profile.currentWorld ?? 1
-    const claimKey = `worldMastery_${world}`
-
-    const masteryItems: Record<number, string> = {
-      1: 'Speed Boots',
-      2: 'Arcane Focus',
-      3: 'Shadow Cloak',
-      4: 'Forest Crown',
-      5: 'Quill of Power',
-    }
-    const item = masteryItems[world] ?? 'Mastery Trophy'
-
-    if (!checkWorldMastery(this.profile, world)) return
-
-    const cx = width - 80
-    const cy = 120
-
-    if (this.profile.worldMasteryRewards.includes(claimKey)) {
-      // Already claimed — show greyed chest
-      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000).setScrollFactor(0)
-      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
-      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
-      return
-    }
-
-    // Unclaimed — show gold pulsing chest
-    const chest = this.add.rectangle(cx, cy, 50, 50, 0xffd700)
-      .setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
-    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
-    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
-
-    this.tweens.add({
-      targets: chest,
-      scaleX: 1.15, scaleY: 1.15,
-      duration: 700, yoyo: true, repeat: -1,
-      ease: 'Sine.easeInOut',
-    })
-
-    chest.on('pointerdown', () => {
-      this.profile.worldMasteryRewards.push(claimKey)
-      saveProfile(this.profileSlot, this.profile)
-
-      const { width: w, height: h } = this.scale
-      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000).setScrollFactor(0)
-      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000).setScrollFactor(0)
-      this.add.text(w / 2, h / 2 - 50, '✨ World Mastery Reward! ✨', {
-        fontSize: '22px', color: '#ffd700'
-      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
-      this.add.text(w / 2, h / 2, `You earned: ${item}`, {
-        fontSize: '20px', color: '#ffffff'
-      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
-      this.add.text(w / 2, h / 2 + 50, 'Click to continue', {
-        fontSize: '16px', color: '#aaaaaa'
-      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
-
-      this.input.once('pointerdown', () => {
-        this.scene.restart({ profileSlot: this.profileSlot })
-      })
     })
   }
 

@@ -31,7 +31,7 @@ const ARCANE_SYMBOL = 30
 const STARFIELD_PATCH = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 74
+const COLS = 82
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -229,10 +229,10 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1180, cy: 170 }, // l5 → mb2  (going up)
     { cx: 1355, cy: 255 }, // mb2 → l6  (going down)
     { cx: 1530, cy: 180 }, // l6 → l7   (going up)
-    { cx: 1710, cy: 80  }, // l7 → mb3  (going up)
-    { cx: 1885, cy: 175 }, // mb3 → l8  (going down)
-    { cx: 2055, cy: 95  }, // l8 → mb4  (going up)
-    { cx: 2220, cy: 220 }, // mb4 → boss (going down to center)
+    { cx: 1710, cy: 115 }, // l7 → mb3  (going up)
+    { cx: 1885, cy: 230 }, // mb3 → l8  (going down)
+    { cx: 2055, cy: 150 }, // l8 → mb4  (going up)
+    { cx: 2220, cy: 245 }, // mb4 → boss (going down to center)
   ]
 }
 
@@ -297,9 +297,9 @@ export const WORLD5_MAP: WorldMapData = {
     { x: 1270, y: 150 }, // mb2
     { x: 1440, y: 280 }, // l6
     { x: 1620, y: 160 }, // l7
-    { x: 1800, y: 80  }, // mb3
-    { x: 1970, y: 190 }, // l8
-    { x: 2140, y: 80  }, // mb4
+    { x: 1800, y: 150 }, // mb3
+    { x: 1970, y: 230 }, // l8
+    { x: 2140, y: 150 }, // mb4
     { x: 2300, y: 360 }, // boss — Typemancer's throne (centered)
   ],
 

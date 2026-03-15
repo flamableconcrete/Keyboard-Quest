@@ -14,7 +14,7 @@ export class CharacterScene extends Phaser.Scene {
   private container!: Phaser.GameObjects.Container
 
   private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
-  private activeSlotSelection: 'weapon' | 'armor' | 'accessory' | null = null
+  private activeSlotSelection: 'weapon' | 'armor' | 'accessory' | 'trophy' | null = null
   private avatarConfig!: AvatarConfig
   private avatarPreviewImage!: Phaser.GameObjects.Image
   private avatarDirty = false
@@ -141,17 +141,20 @@ export class CharacterScene extends Phaser.Scene {
     this.drawPaperDollSlot(this.container, slotsX, avatarY - 90, 'weapon')
 
     // Armor
-    this.drawPaperDollSlot(this.container, slotsX, avatarY + 10, 'armor')
+    this.drawPaperDollSlot(this.container, slotsX, avatarY, 'armor')
 
     // Accessory
-    this.drawPaperDollSlot(this.container, slotsX, avatarY + 110, 'accessory')
+    this.drawPaperDollSlot(this.container, slotsX, avatarY + 90, 'accessory')
+
+    // Trophy
+    this.drawPaperDollSlot(this.container, slotsX, avatarY + 180, 'trophy')
 
     if (this.activeSlotSelection) {
       this.drawItemSelectionList(startX + 640, startY + 50, this.activeSlotSelection)
     }
 
-    this.addSectionTitle(this.container, startY + 340, 'OWNED SPELLS')
-    this.drawSpells(this.container, startX + 50, startY + 390)
+    this.addSectionTitle(this.container, startY + 380, 'OWNED SPELLS')
+    this.drawSpells(this.container, startX + 50, startY + 420)
   }
 
   private drawStatsTab(startX: number, startY: number) {
@@ -462,7 +465,7 @@ export class CharacterScene extends Phaser.Scene {
     }
   }
 
-  private drawItemSelectionList(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory') {
+  private drawItemSelectionList(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory' | 'trophy') {
     this.container.add(
       this.add.text(x, y, `Select ${slot.toUpperCase()}`, {
         fontSize: '20px',

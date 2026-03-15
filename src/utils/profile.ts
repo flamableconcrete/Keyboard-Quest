@@ -24,7 +24,7 @@ export function createProfile(playerName: string, avatarChoice = 'knight', avata
     unlockedLetters: [...HOME_ROW],
     unlockedLevelIds: ['w1_l1'],
     levelResults: {},
-    equipment: { weapon: null, armor: null, accessory: null },
+    equipment: { weapon: null, armor: null, accessory: null, trophy: null },
     spells: [],
     companions: [],
     pets: [createCompanion('dog')],

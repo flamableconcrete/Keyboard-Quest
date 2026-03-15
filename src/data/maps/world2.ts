@@ -225,7 +225,7 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1940, cy: 255 }, // mb3 → l9  (going up)
     { cx: 2110, cy: 335 }, // l9 → l10  (going down)
     { cx: 2285, cy: 250 }, // l10 → mb4 (going up)
-    { cx: 2445, cy: 110 }, // mb4 → boss (going up)
+    { cx: 2445, cy: 155 }, // mb4 → boss (going up)
   ]
 }
 
@@ -295,7 +295,7 @@ export const WORLD2_MAP: WorldMapData = {
     { x: 2020, y: 230 }, // l9
     { x: 2200, y: 360 }, // l10
     { x: 2370, y: 220 }, // mb4
-    { x: 2520, y: 80  }, // boss (right)
+    { x: 2520, y: 170 }, // boss (right)
   ],
 
   pathSegments: buildPathSegments(),

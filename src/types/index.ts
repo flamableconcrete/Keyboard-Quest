@@ -22,6 +22,7 @@ export interface EquipmentData {
   weapon: string | null
   armor: string | null
   accessory: string | null
+  trophy: string | null
 }
 
 export interface ProfileData {
@@ -105,7 +106,7 @@ export interface LevelConfig {
 export interface ItemData {
   id: string
   name: string
-  slot: 'weapon' | 'armor' | 'accessory'
+  slot: 'weapon' | 'armor' | 'accessory' | 'trophy'
   rarity: 'common' | 'uncommon' | 'rare' | 'epic'
   description: string
   goldCost: number

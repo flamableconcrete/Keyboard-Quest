@@ -91,7 +91,7 @@ describe('world map nodePositions layout constraints', () => {
     ['world2', WORLD2_MAP, 2650],
     ['world3', WORLD3_MAP, 2500],
     ['world4', WORLD4_MAP, 2500],
-    ['world5', WORLD5_MAP, 2350],
+    ['world5', WORLD5_MAP, 2600],
   ]
 
   worlds.forEach(([name, map, maxWidth]) => {
@@ -102,9 +102,9 @@ describe('world map nodePositions layout constraints', () => {
         }
       })
 
-      it('y values stay within canvas bounds [30, 680]', () => {
+      it('y values stay within canvas bounds [150, 680] (≥150 avoids HUD overlap)', () => {
         for (const pos of map.nodePositions) {
-          expect(pos.y).toBeGreaterThanOrEqual(30)
+          expect(pos.y).toBeGreaterThanOrEqual(150)
           expect(pos.y).toBeLessThanOrEqual(680)
         }
       })

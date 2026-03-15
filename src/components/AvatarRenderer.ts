@@ -383,5 +383,51 @@ AvatarRenderer.drawHead(gfx, config.skinTone)
         case 'midas_ring': AvatarRenderer.px(gfx, 2, 23, 0xffaa00); break // ring on hand
       }
     }
+
+    if (equipment.trophy) {
+      switch (equipment.trophy) {
+        case 'mastery_speed_boots':
+          // Winged boot held up — blue boot with gold wing
+          AvatarRenderer.rect(gfx, 13, 19, 2, 3, 0x3366cc)
+          AvatarRenderer.px(gfx, 13, 18, 0x2244aa)
+          AvatarRenderer.px(gfx, 15, 18, 0xffd700)
+          AvatarRenderer.px(gfx, 15, 19, 0xffd700)
+          AvatarRenderer.px(gfx, 14, 22, 0x3366cc)
+          break
+        case 'mastery_arcane_focus':
+          // Crystal staff held — purple orb on brown staff
+          AvatarRenderer.rect(gfx, 14, 14, 1, 9, 0x8b4513)
+          AvatarRenderer.rect(gfx, 13, 12, 3, 2, 0x4444aa)
+          AvatarRenderer.px(gfx, 14, 12, 0x8844cc)
+          AvatarRenderer.px(gfx, 14, 14, 0xffd700)
+          break
+        case 'mastery_shadow_cloak':
+          // Shadow dagger — dark blade with purple wisps
+          AvatarRenderer.rect(gfx, 14, 12, 1, 8, 0x222233)
+          AvatarRenderer.rect(gfx, 13, 20, 3, 1, 0x555566)
+          AvatarRenderer.rect(gfx, 14, 21, 1, 2, 0x333344)
+          AvatarRenderer.px(gfx, 13, 14, 0x6644aa)
+          AvatarRenderer.px(gfx, 15, 16, 0x8866cc)
+          break
+        case 'mastery_forest_crown':
+          // Leaf scepter — green leaves on gold shaft
+          AvatarRenderer.rect(gfx, 14, 14, 1, 9, 0x8b6914)
+          AvatarRenderer.px(gfx, 14, 14, 0xffd700)
+          AvatarRenderer.rect(gfx, 13, 11, 1, 3, 0x228b22)
+          AvatarRenderer.rect(gfx, 15, 11, 1, 3, 0x228b22)
+          AvatarRenderer.px(gfx, 14, 11, 0x228b22)
+          AvatarRenderer.px(gfx, 14, 12, 0x33aa33)
+          break
+        case 'mastery_quill_of_power':
+          // Golden quill of power — golden feather radiating energy
+          AvatarRenderer.rect(gfx, 13, 12, 3, 4, 0xffd700)
+          AvatarRenderer.px(gfx, 14, 13, 0xffaa00)
+          AvatarRenderer.rect(gfx, 14, 16, 1, 5, 0x8b4513)
+          AvatarRenderer.px(gfx, 14, 21, 0x222222)
+          AvatarRenderer.px(gfx, 12, 13, 0xaaddff)
+          AvatarRenderer.px(gfx, 15, 11, 0xaaddff)
+          break
+      }
+    }
   }
 }

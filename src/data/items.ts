@@ -215,7 +215,62 @@ export const ITEMS: ItemData[] = [
     goldCost: 1000,
     effect: { bonusGoldChance: 0.6 },
   },
+
+  // --- MASTERY TROPHIES (auto-awarded for world mastery) ---
+  {
+    id: 'mastery_speed_boots',
+    name: 'Speed Boots',
+    slot: 'trophy',
+    rarity: 'epic',
+    description: 'Awarded for mastering World 1. Sharpens reflexes.',
+    goldCost: 0,
+    effect: { focusBonus: 15 },
+  },
+  {
+    id: 'mastery_arcane_focus',
+    name: 'Arcane Focus',
+    slot: 'trophy',
+    rarity: 'epic',
+    description: 'Awarded for mastering World 2. Channels arcane energy.',
+    goldCost: 0,
+    effect: { power: 4 },
+  },
+  {
+    id: 'mastery_shadow_cloak',
+    name: 'Shadow Cloak',
+    slot: 'trophy',
+    rarity: 'epic',
+    description: 'Awarded for mastering World 3. Wraps you in shadow.',
+    goldCost: 0,
+    effect: { absorbAttacksChance: 0.4 },
+  },
+  {
+    id: 'mastery_forest_crown',
+    name: 'Forest Crown',
+    slot: 'trophy',
+    rarity: 'epic',
+    description: 'Awarded for mastering World 4. Crown of the woodland.',
+    goldCost: 0,
+    effect: { bonusGoldChance: 0.4 },
+  },
+  {
+    id: 'mastery_quill_of_power',
+    name: 'Quill of Power',
+    slot: 'trophy',
+    rarity: 'epic',
+    description: 'Awarded for mastering World 5. The mightiest quill.',
+    goldCost: 0,
+    effect: { power: 6, focusBonus: 10 },
+  },
 ]
+
+export const MASTERY_ITEMS: Record<number, string> = {
+  1: 'mastery_speed_boots',
+  2: 'mastery_arcane_focus',
+  3: 'mastery_shadow_cloak',
+  4: 'mastery_forest_crown',
+  5: 'mastery_quill_of_power',
+}
 
 export function getItem(id: string): ItemData | undefined {
   return ITEMS.find((i) => i.id === id)

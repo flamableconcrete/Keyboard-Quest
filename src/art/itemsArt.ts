@@ -5,7 +5,8 @@ export function generateAllItemTextures(scene: Phaser.Scene) {
     'rusty_quill', 'ink_blotter', 'iron_gauntlet', 'focus_ring', 'lucky_charm', 'obsidian_nib', 'padded_envelope', 'scholars_monocle',
     'copper_shortsword', 'iron_broadsword', 'steel_longsword', 'mithril_blade', 'excalibur',
     'leather_tunic', 'chainmail_shirt', 'steel_plate', 'dragon_scale_mail', 'aegis_armor',
-    'lucky_coin', 'hunters_charm', 'golden_idol', 'taming_bell', 'midas_ring'
+    'lucky_coin', 'hunters_charm', 'golden_idol', 'taming_bell', 'midas_ring',
+    'mastery_speed_boots', 'mastery_arcane_focus', 'mastery_shadow_cloak', 'mastery_forest_crown', 'mastery_quill_of_power'
   ]
   items.forEach(id => generateItemTexture(scene, id))
 }
@@ -137,6 +138,65 @@ export function generateItemTexture(scene: Phaser.Scene, itemId: string) {
     case 'midas_ring':
       g.fillStyle(0xffaa00); g.strokeCircle(8*s, 8*s, 3*s)
       g.fillStyle(0xffffff); g.fillRect(6*s, 5*s, 1*s, 1*s); g.fillRect(10*s, 10*s, 1*s, 1*s) // gleam
+      break
+
+    // Mastery Trophies
+    case 'mastery_speed_boots':
+      // Winged boots — blue boot with lightning bolt wing
+      g.fillStyle(0x3366cc); g.fillRect(4*s, 8*s, 5*s, 6*s) // boot body
+      g.fillStyle(0x3366cc); g.fillRect(3*s, 14*s, 7*s, 1*s) // sole
+      g.fillStyle(0x2244aa); g.fillRect(4*s, 8*s, 5*s, 1*s) // top trim
+      g.fillStyle(0xffd700); g.fillRect(9*s, 6*s, 1*s, 3*s) // wing top
+      g.fillStyle(0xffd700); g.fillRect(10*s, 7*s, 1*s, 3*s) // wing mid
+      g.fillStyle(0xffd700); g.fillRect(11*s, 8*s, 1*s, 3*s) // wing tip
+      g.fillStyle(0xaaddff); g.fillRect(5*s, 10*s, 1*s, 1*s) // lightning
+      g.fillStyle(0xaaddff); g.fillRect(6*s, 11*s, 1*s, 1*s)
+      g.fillStyle(0xaaddff); g.fillRect(5*s, 12*s, 1*s, 1*s)
+      break
+    case 'mastery_arcane_focus':
+      // Crystal orb on a staff — purple orb with energy
+      g.fillStyle(0x8b4513); g.fillRect(7*s, 8*s, 2*s, 7*s) // staff
+      g.fillStyle(0x4444aa); g.fillRect(6*s, 3*s, 4*s, 4*s) // orb base
+      g.fillStyle(0x8844cc); g.fillRect(7*s, 4*s, 2*s, 2*s) // orb center
+      g.fillStyle(0xcc66ff); g.fillRect(7*s, 4*s, 1*s, 1*s) // highlight
+      g.fillStyle(0xffd700); g.fillRect(6*s, 7*s, 4*s, 1*s) // gold mount
+      g.fillStyle(0xcc66ff); g.fillRect(5*s, 5*s, 1*s, 1*s) // spark left
+      g.fillStyle(0xcc66ff); g.fillRect(10*s, 3*s, 1*s, 1*s) // spark right
+      break
+    case 'mastery_shadow_cloak':
+      // Dark dagger wreathed in shadow wisps
+      g.fillStyle(0x222233); g.fillRect(7*s, 2*s, 2*s, 9*s) // dark blade
+      g.fillStyle(0x111122); g.fillRect(8*s, 3*s, 1*s, 7*s) // edge
+      g.fillStyle(0x555566); g.fillRect(5*s, 11*s, 6*s, 1*s) // guard
+      g.fillStyle(0x333344); g.fillRect(7*s, 12*s, 2*s, 3*s) // handle
+      g.fillStyle(0x6644aa); g.fillRect(5*s, 5*s, 1*s, 1*s) // shadow wisps
+      g.fillStyle(0x6644aa); g.fillRect(10*s, 7*s, 1*s, 1*s)
+      g.fillStyle(0x8866cc); g.fillRect(4*s, 8*s, 1*s, 1*s)
+      g.fillStyle(0x8866cc); g.fillRect(11*s, 4*s, 1*s, 1*s)
+      break
+    case 'mastery_forest_crown':
+      // Leaf-topped scepter — green and gold
+      g.fillStyle(0x8b6914); g.fillRect(7*s, 7*s, 2*s, 8*s) // shaft
+      g.fillStyle(0xffd700); g.fillRect(6*s, 6*s, 4*s, 1*s) // gold band
+      g.fillStyle(0x228b22); g.fillRect(5*s, 3*s, 2*s, 3*s) // left leaf
+      g.fillStyle(0x228b22); g.fillRect(9*s, 3*s, 2*s, 3*s) // right leaf
+      g.fillStyle(0x228b22); g.fillRect(7*s, 2*s, 2*s, 2*s) // top leaf
+      g.fillStyle(0x33aa33); g.fillRect(6*s, 3*s, 1*s, 1*s) // vein left
+      g.fillStyle(0x33aa33); g.fillRect(9*s, 3*s, 1*s, 1*s) // vein right
+      g.fillStyle(0x33aa33); g.fillRect(7*s, 2*s, 1*s, 1*s) // vein top
+      g.fillStyle(0xffd700); g.fillRect(7*s, 15*s, 2*s, 1*s) // pommel
+      break
+    case 'mastery_quill_of_power':
+      // Mighty quill radiating power — golden feather with energy
+      g.fillStyle(0xffd700); g.fillRect(5*s, 1*s, 5*s, 8*s) // golden feather
+      g.fillStyle(0xffaa00); g.fillRect(6*s, 2*s, 3*s, 6*s) // feather inner
+      g.fillStyle(0xffffff); g.fillRect(7*s, 3*s, 1*s, 4*s) // feather highlight
+      g.fillStyle(0x8b4513); g.fillRect(7*s, 9*s, 2*s, 5*s) // shaft
+      g.fillStyle(0x222222); g.fillRect(7.5*s, 14*s, 1*s, 2*s) // nib
+      g.fillStyle(0xaaddff); g.fillRect(4*s, 3*s, 1*s, 1*s) // energy sparks
+      g.fillStyle(0xaaddff); g.fillRect(10*s, 2*s, 1*s, 1*s)
+      g.fillStyle(0xaaddff); g.fillRect(3*s, 6*s, 1*s, 1*s)
+      g.fillStyle(0xaaddff); g.fillRect(11*s, 5*s, 1*s, 1*s)
       break
 
     default:
