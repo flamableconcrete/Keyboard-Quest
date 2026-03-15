@@ -18,15 +18,9 @@
         justify-content: center;
       }
 
-      /* ── Desktop: show game, hide overlay ── */
+      /* Mobile overlay removed — Phaser handles mobile experience in-game */
       #mobile-overlay { display: none; }
       #app canvas     { display: block; }
-
-      /* ── Mobile / touch-primary device: hide game, show overlay ── */
-      @media (hover: none) and (pointer: coarse) {
-        #app            { display: none; }
-        #mobile-overlay { display: flex; }
-      }
 
       /* ── Mobile overlay layout ── */
       #mobile-overlay {
