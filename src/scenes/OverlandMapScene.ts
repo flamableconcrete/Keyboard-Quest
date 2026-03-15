@@ -80,6 +80,43 @@ export class OverlandMapScene extends Phaser.Scene {
     }
   }
 
+  /** Draw a bezier path segment connecting each world's boss node to the next world's first node. */
+  private drawWorldTransitionPaths(): void {
+    const { worlds, xOffsets, worldTransitions } = UNIFIED_MAP
+    const gfx = this.add.graphics()
+    gfx.lineStyle(6, 0x665533, 0.6)
+
+    for (let i = 0; i < worldTransitions.length; i++) {
+      const fromWorld = worlds[i]
+      const toWorld = worlds[i + 1]
+      if (!fromWorld || !toWorld) continue
+
+      const fromNodes = fromWorld.nodePositions
+      const bossNode = fromNodes[fromNodes.length - 1]
+      const firstNode = toWorld.nodePositions[0]
+      if (!bossNode || !firstNode) continue
+
+      const fx = xOffsets[i] + bossNode.x
+      const fy = bossNode.y
+      const tx = xOffsets[i + 1] + firstNode.x
+      const ty = firstNode.y
+      const { cx, cy } = worldTransitions[i]
+
+      const bezier = new Phaser.Curves.QuadraticBezier(
+        new Phaser.Math.Vector2(fx, fy),
+        new Phaser.Math.Vector2(cx, cy),
+        new Phaser.Math.Vector2(tx, ty),
+      )
+      gfx.beginPath()
+      const points = bezier.getPoints(32)
+      gfx.moveTo(points[0].x, points[0].y)
+      for (let p = 1; p < points.length; p++) {
+        gfx.lineTo(points[p].x, points[p].y)
+      }
+      gfx.strokePath()
+    }
+  }
+
   private buildUnifiedMap(): void {
     const { worlds, xOffsets, widths } = UNIFIED_MAP
 
@@ -105,16 +142,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, UNIFIED_MAP.totalWidth, 720)
 
-    // Snap camera to current world on load
-    const snapWorldIdx = (this.profile.currentWorld ?? 1) - 1
-    const snapOffset = UNIFIED_MAP.xOffsets[snapWorldIdx] ?? 0
-    const snapWidth = UNIFIED_MAP.widths[snapWorldIdx] ?? 1280
-    const vw = this.scale.width
-    this.cameras.main.scrollX = Phaser.Math.Clamp(
-      snapOffset + snapWidth / 2 - vw / 2,
-      0,
-      UNIFIED_MAP.totalWidth - vw
-    )
+    // Camera will be snapped to avatar position after startPos is computed below
 
     this.buildUnifiedMap()
 
@@ -133,6 +161,7 @@ export class OverlandMapScene extends Phaser.Scene {
       this.drawNodes(levels, positions)
     })
 
+    this.drawWorldTransitionPaths()
     this.drawMasteryChest()
     this.drawSettingsButton()
     this.drawProfilesButton()
@@ -202,6 +231,15 @@ export class OverlandMapScene extends Phaser.Scene {
       ? this.profile.avatarConfig.id
       : (this.profile.avatarChoice || 'avatar_0')
     this.avatarBasePos = { x: startPos.x, y: startPos.y }
+
+    // Snap camera to center on the avatar so the player is visible immediately
+    const vw = this.scale.width
+    this.cameras.main.scrollX = Phaser.Math.Clamp(
+      startPos.x - vw / 2,
+      0,
+      UNIFIED_MAP.totalWidth - vw
+    )
+
 this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
     // Scale down the pixel art avatar slightly to fit the map nodes better
     this.avatar.setScale(0.75)
