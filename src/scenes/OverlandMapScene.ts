@@ -203,10 +203,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }
     })
 
-    this.input.on('pointerup', () => {
-      // isPanning stays true until next pointerdown so node click is suppressed
-      // Reset on next frame via pointerdown
-    })
   }
 
   update(time: number) {
@@ -228,7 +224,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     const ptr = this.input.activePointer
     if (ptr && ptr.isDown && this.isPanning) {
       // Edge scroll is handled via drag, skip
-    } else if (ptr) {
+    } else if (ptr && ptr.x >= 0 && ptr.x <= this.scale.width) {
       const px = ptr.x
       const vw = this.scale.width
       const threshold = this.EDGE_SCROLL_THRESHOLD
@@ -244,11 +240,10 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }
 
       if (scrollDelta !== 0) {
-        const vwVal = this.scale.width
         this.cameras.main.scrollX = Phaser.Math.Clamp(
           this.cameras.main.scrollX + scrollDelta,
           0,
-          UNIFIED_MAP.totalWidth - vwVal
+          UNIFIED_MAP.totalWidth - vw
         )
       }
     }
