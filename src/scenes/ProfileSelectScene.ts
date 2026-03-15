@@ -40,6 +40,7 @@ export class ProfileSelectScene extends Phaser.Scene {
   private render() {
     this.children.removeAll(true)
     const { width } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
       fontSize: '20px', color: '#aaaaaa', fontFamily: MONO_FONT
@@ -51,7 +52,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     })
 
     const title = this.add.text(width / 2, 50, 'Choose Your Hero', {
-      fontSize: '40px', color: '#ffd700', fontFamily: MONO_FONT
+      fontSize: mobile ? '28px' : '40px', color: '#ffd700', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
     this.tweens.add({
@@ -63,7 +64,7 @@ export class ProfileSelectScene extends Phaser.Scene {
       repeat: -1
     })
 
-    const slotY = [180, 340, 500, 660]
+    const slotY = mobile ? [140, 280, 420, 560] : [180, 340, 500, 660]
     this.profiles.forEach((profile, i) => {
       const y = slotY[i] ?? 180 + i * 140
       if (profile) {
@@ -82,8 +83,9 @@ export class ProfileSelectScene extends Phaser.Scene {
 
   private renderFilledSlot(profile: ProfileData, slot: number, y: number) {
     const { width } = this.scale
-    const panelW = 700
-    const panelH = 100
+    const mobile = this.registry.get('isMobile')
+    const panelW = mobile ? 500 : 700
+    const panelH = mobile ? 80 : 100
 
     this.drawPixelPanel(width / 2, y, panelW, panelH, 0x2a2a4a, 0x5555aa)
 
@@ -101,21 +103,21 @@ export class ProfileSelectScene extends Phaser.Scene {
         AvatarRenderer.generateOne(this, profile.avatarConfig, profile.equipment);
       }
       const avatarKey = profile.avatarConfig.id;
-      this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72);
+      this.add.image(avatarX, y, avatarKey).setDisplaySize(mobile ? 28 : 36, mobile ? 56 : 72);
     } else {
       const avatarKey = this.textures.exists(profile.avatarChoice) ? profile.avatarChoice : 'avatar_0'
-      this.add.image(avatarX, y, avatarKey).setDisplaySize(36, 72)
+      this.add.image(avatarX, y, avatarKey).setDisplaySize(mobile ? 28 : 36, mobile ? 56 : 72)
     }
 
     // Player name
     const textStartX = avatarX + 45
     this.add.text(textStartX, y - 30, profile.playerName, {
-      fontSize: '24px', color: '#ffffff', fontFamily: MONO_FONT
+      fontSize: mobile ? '18px' : '24px', color: '#ffffff', fontFamily: MONO_FONT
     })
 
     // Stats line
     this.add.text(textStartX, y - 2, `Lv.${profile.characterLevel} — World ${profile.currentWorld}`, {
-      fontSize: '16px', color: '#aaaaaa', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#aaaaaa', fontFamily: MONO_FONT
     })
 
     // Star count
@@ -129,7 +131,7 @@ export class ProfileSelectScene extends Phaser.Scene {
       }
     }
     this.add.text(textStartX, y + 20, `★ ${totalStars}`, {
-      fontSize: '16px', color: '#ffd700', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#ffd700', fontFamily: MONO_FONT
     })
 
     // Active companion
@@ -144,7 +146,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     // Export button
     const exp = this.add.text(width / 2 + 200, y - 15, '[Export]', {
-      fontSize: '16px', color: '#88cc88', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#88cc88', fontFamily: MONO_FONT
     }).setInteractive({ useHandCursor: true })
     exp.on('pointerover', () => exp.setColor('#aaffaa'))
     exp.on('pointerout', () => exp.setColor('#88cc88'))
@@ -157,7 +159,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     // Edit Hero button
     const editY = y + 10;
     const edit = this.add.text(width / 2 + 100, editY, '[Edit Hero]', {
-      fontSize: '16px', color: '#ccaa88', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#ccaa88', fontFamily: MONO_FONT
     }).setInteractive({ useHandCursor: true })
     edit.on('pointerover', () => edit.setColor('#ffeecc'))
     edit.on('pointerout', () => edit.setColor('#ccaa88'))
@@ -168,7 +170,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     // Delete button
     const del = this.add.text(width / 2 + 200, y + 10, '[Delete]', {
-      fontSize: '16px', color: '#cc6666', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#cc6666', fontFamily: MONO_FONT
     }).setInteractive({ useHandCursor: true })
     del.on('pointerover', () => del.setColor('#ff8888'))
     del.on('pointerout', () => del.setColor('#cc6666'))
@@ -182,8 +184,9 @@ export class ProfileSelectScene extends Phaser.Scene {
 
   private renderEmptySlot(slot: number, y: number) {
     const { width } = this.scale
-    const panelW = 700
-    const panelH = 100
+    const mobile = this.registry.get('isMobile')
+    const panelW = mobile ? 500 : 700
+    const panelH = mobile ? 80 : 100
 
     this.drawPixelPanel(width / 2, y, panelW, panelH, 0x1a1a2e, 0x333366)
 
@@ -205,7 +208,7 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     // Import button
     const imp = this.add.text(width / 2 + 250, y, '[Import]', {
-      fontSize: '16px', color: '#88cc88', fontFamily: MONO_FONT
+      fontSize: mobile ? '13px' : '16px', color: '#88cc88', fontFamily: MONO_FONT
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     imp.on('pointerover', () => imp.setColor('#aaffaa'))
     imp.on('pointerout', () => imp.setColor('#88cc88'))
@@ -224,9 +227,10 @@ export class ProfileSelectScene extends Phaser.Scene {
     this.input.keyboard?.removeAllListeners()
     this.children.removeAll(true)
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     this.add.text(width / 2, height * 0.35, "Type your hero's name:", {
-      fontSize: '32px', color: '#ffd700', fontFamily: MONO_FONT
+      fontSize: mobile ? '24px' : '32px', color: '#ffd700', fontFamily: MONO_FONT
     }).setOrigin(0.5)
 
     const musicBtn = this.add.text(width - 20, 20, AudioHelper.isMusicEnabled() ? '🎵 Music: ON' : '🎵 Music: OFF', {
@@ -276,18 +280,62 @@ export class ProfileSelectScene extends Phaser.Scene {
 
     this.input.on('pointerdown', pulseInput)
 
-    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && this.typingBuffer.length > 0) {
-        this.input.keyboard?.removeAllListeners()
-        this.input.off('pointerdown', pulseInput)
-        this.showAvatarGallery(slot, this.typingBuffer)
-      } else if (event.key === 'Backspace') {
-        this.typingBuffer = this.typingBuffer.slice(0, -1)
-      } else if (event.key.length === 1 && this.typingBuffer.length < 16) {
-        this.typingBuffer += event.key
-      }
-      nameDisplay.setText(this.typingBuffer + '_')
-    })
+    if (mobile) {
+      const canvas = this.game.canvas;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = rect.width / this.scale.width;
+      const scaleY = rect.height / this.scale.height;
+
+      const htmlInput = document.createElement('input');
+      htmlInput.type = 'text';
+      htmlInput.maxLength = 16;
+      htmlInput.style.position = 'absolute';
+      htmlInput.style.left = `${rect.left + (this.scale.width / 2 - 100) * scaleX}px`;
+      htmlInput.style.top = `${rect.top + (this.scale.height * 0.5) * scaleY}px`;
+      htmlInput.style.width = `${200 * scaleX}px`;
+      htmlInput.style.height = `${40 * scaleY}px`;
+      htmlInput.style.opacity = '0';
+      htmlInput.style.zIndex = '1000';
+      htmlInput.autocomplete = 'off';
+      htmlInput.autocapitalize = 'off';
+      document.body.appendChild(htmlInput);
+
+      setTimeout(() => htmlInput.focus(), 100);
+
+      htmlInput.addEventListener('input', () => {
+        const val = htmlInput.value.slice(0, 16);
+        this.typingBuffer = val;
+        nameDisplay.setText(val + '_');
+      });
+
+      htmlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const finalName = htmlInput.value.trim();
+          if (finalName.length > 0) {
+            htmlInput.remove();
+            this.input.off('pointerdown', pulseInput);
+            this.showAvatarGallery(slot, finalName);
+          }
+        }
+      });
+
+      this.events.on('shutdown', () => {
+        if (htmlInput.parentElement) htmlInput.remove();
+      });
+    } else {
+      this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+        if (event.key === 'Enter' && this.typingBuffer.length > 0) {
+          this.input.keyboard?.removeAllListeners()
+          this.input.off('pointerdown', pulseInput)
+          this.showAvatarGallery(slot, this.typingBuffer)
+        } else if (event.key === 'Backspace') {
+          this.typingBuffer = this.typingBuffer.slice(0, -1)
+        } else if (event.key.length === 1 && this.typingBuffer.length < 16) {
+          this.typingBuffer += event.key
+        }
+        nameDisplay.setText(this.typingBuffer + '_')
+      })
+    }
   }
 
 
