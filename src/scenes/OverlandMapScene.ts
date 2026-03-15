@@ -6,7 +6,7 @@ import { loadProfile, saveProfile } from '../utils/profile'
 import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
-import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
+import { UNIFIED_MAP } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
