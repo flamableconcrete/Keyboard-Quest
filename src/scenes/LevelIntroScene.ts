@@ -40,6 +40,11 @@ export class LevelIntroScene extends Phaser.Scene {
   }
 
   create() {
+    if (this.registry.get('isMobile')) {
+      this.scene.start('MobileLevelIntro', { level: this.level, profileSlot: this.profileSlot });
+      return;
+    }
+
     const { width, height } = this.scale
 
     // Back button
