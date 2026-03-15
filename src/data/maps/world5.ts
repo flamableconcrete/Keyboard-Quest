@@ -31,7 +31,7 @@ const ARCANE_SYMBOL = 30
 const STARFIELD_PATCH = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 40
+const COLS = 74
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -72,11 +72,11 @@ function buildGround(): TileGrid {
 
   // Scatter variants
   const altPositions = [
-    [1, 10], [2, 22], [3, 34], [4, 6], [5, 18], [6, 30],
-    [7, 2], [8, 14], [9, 26], [10, 38], [11, 8], [12, 20],
-    [13, 32], [14, 4], [15, 16], [16, 28], [17, 36], [18, 12],
-    [19, 24], [20, 6], [21, 18], [22, 30], [1, 26], [3, 8],
-    [5, 36], [7, 16], [9, 28], [11, 4], [13, 20], [15, 32],
+    [1, 19], [2, 41], [3, 63], [4, 11], [5, 33], [6, 56],
+    [7, 4], [8, 26], [9, 48], [10, 70], [11, 15], [12, 37],
+    [13, 59], [14, 7], [15, 30], [16, 52], [17, 67], [18, 22],
+    [19, 44], [20, 11], [21, 33], [22, 56], [1, 48], [3, 15],
+    [5, 67], [7, 30], [9, 52], [11, 7], [13, 37], [15, 59],
   ]
   for (const [r, c] of altPositions) {
     if (r < ROWS && c < COLS) {
@@ -86,106 +86,64 @@ function buildGround(): TileGrid {
 
   // Floating stone platforms
   const floatPatches = [
-    [4, 8], [4, 9], [5, 8], [5, 9],
-    [8, 28], [8, 29], [9, 28], [9, 29],
-    [12, 16], [12, 17], [13, 16], [13, 17],
-    [16, 24], [16, 25], [17, 24],
+    [4, 15], [4, 17], [5, 15], [5, 17],
+    [8, 52], [8, 54], [9, 52], [9, 54],
+    [12, 30], [12, 31], [13, 30], [13, 31],
+    [16, 44], [16, 46], [17, 44],
   ]
   for (const [r, c] of floatPatches) {
     if (r < ROWS && c < COLS) g[r][c] = FLOATING_STONE
   }
 
-  // ── Path ascends steeply from bottom to top (tower climb) ──
-  // Segment 1: l1 (bottom-center) → l2 (up)
-  vPath(g, 20, 18, 21, PATH_V)
-
-  // Segment 2: l2 → l3 (right and up)
-  g[18][20] = PATH_CORNER
-  hPath(g, 18, 20, 24, PATH_H)
-  g[18][24] = PATH_CORNER
-  vPath(g, 24, 16, 18, PATH_V)
-
-  // Segment 3: l3 → mb1 (left and up)
-  g[16][24] = PATH_CORNER
-  hPath(g, 16, 18, 24, PATH_H)
-  g[16][18] = PATH_CORNER
-  vPath(g, 18, 14, 16, PATH_V)
-
-  // Segment 4: mb1 → l4 (right and up)
-  g[14][18] = PATH_CORNER
-  hPath(g, 14, 18, 24, PATH_H)
-  g[14][24] = PATH_CORNER
-  vPath(g, 24, 12, 14, PATH_V)
-
-  // Segment 5: l4 → l5 (left and up)
-  g[12][24] = PATH_CORNER
-  hPath(g, 12, 16, 24, PATH_H)
-  g[12][16] = PATH_CORNER
-  vPath(g, 16, 10, 12, PATH_V)
-
-  // Segment 6: l5 → mb2 (right and up)
-  g[10][16] = PATH_CORNER
-  hPath(g, 10, 16, 22, PATH_H)
-  g[10][22] = PATH_CORNER
-  vPath(g, 22, 8, 10, PATH_V)
-
-  // Segment 7: mb2 → l6 (left and up)
-  g[8][22] = PATH_CORNER
-  hPath(g, 8, 18, 22, PATH_H)
-  g[8][18] = PATH_CORNER
-  vPath(g, 18, 7, 8, PATH_V)
-
-  // Segment 8: l6 → l7 (right and up)
-  g[7][18] = PATH_CORNER
-  hPath(g, 7, 18, 24, PATH_H)
-  g[7][24] = PATH_CORNER
-  vPath(g, 24, 5, 7, PATH_V)
-
-  // Segment 9: l7 → mb3 (left and up)
-  g[5][24] = PATH_CORNER
-  hPath(g, 5, 20, 24, PATH_H)
-  g[5][20] = PATH_CORNER
-  vPath(g, 20, 4, 5, PATH_V)
-
-  // Segment 10: mb3 → l8 (up-center)
-  g[4][20] = PATH_CORNER
-  hPath(g, 4, 20, 22, PATH_H)
-  g[4][22] = PATH_CORNER
-  vPath(g, 22, 3, 4, PATH_V)
-
-  // Segment 11: l8 → boss (center, top)
-  g[3][22] = PATH_CORNER
-  hPath(g, 3, 20, 22, PATH_H)
-  g[3][20] = PATH_CORNER
-  vPath(g, 20, 1, 3, PATH_V)
+  // ── Path ascends left-to-right (tower staircase) ───────────
+  // l1(4,19) → l2(10,16)
+  hPath(g, 19, 4, 10, PATH_H); g[19][10] = PATH_CORNER; vPath(g, 10, 16, 19, PATH_V)
+  // l2(10,16) → l3(17,12)
+  hPath(g, 16, 10, 17, PATH_H); g[16][17] = PATH_CORNER; vPath(g, 17, 12, 16, PATH_V)
+  // l3(17,12) → mb1(23,8)
+  hPath(g, 12, 17, 23, PATH_H); g[12][23] = PATH_CORNER; vPath(g, 23, 8, 12, PATH_V)
+  // mb1(23,8) → l4(28,13)
+  hPath(g, 8, 23, 28, PATH_H); g[8][28] = PATH_CORNER; vPath(g, 28, 8, 13, PATH_V)
+  // l4(28,13) → l5(34,8)
+  hPath(g, 13, 28, 34, PATH_H); g[13][34] = PATH_CORNER; vPath(g, 34, 8, 13, PATH_V)
+  // l5(34,8) → mb2(40,5)
+  hPath(g, 8, 34, 40, PATH_H); g[8][40] = PATH_CORNER; vPath(g, 40, 5, 8, PATH_V)
+  // mb2(40,5) → l6(45,9)
+  hPath(g, 5, 40, 45, PATH_H); g[5][45] = PATH_CORNER; vPath(g, 45, 5, 9, PATH_V)
+  // l6(45,9) → l7(51,5)
+  hPath(g, 9, 45, 51, PATH_H); g[9][51] = PATH_CORNER; vPath(g, 51, 5, 9, PATH_V)
+  // l7(51,5) → mb3(56,3)
+  hPath(g, 5, 51, 56, PATH_H); g[5][56] = PATH_CORNER; vPath(g, 56, 3, 5, PATH_V)
+  // mb3(56,3) → l8(62,6)
+  hPath(g, 3, 56, 62, PATH_H); g[3][62] = PATH_CORNER; vPath(g, 62, 3, 6, PATH_V)
+  // l8(62,6) → mb4(67,3)
+  hPath(g, 6, 62, 67, PATH_H); g[6][67] = PATH_CORNER; vPath(g, 67, 3, 6, PATH_V)
+  // mb4(67,3) → boss(72,1)
+  hPath(g, 3, 67, 72, PATH_H); g[3][72] = PATH_CORNER; vPath(g, 72, 1, 3, PATH_V)
 
   // ── Void / starfield areas ─────────────────────────────────
   // Void on edges — the tower floats in space
   for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < 3; c++) {
+    for (let c = 0; c < 6; c++) {
       if (g[r][c] === ARCANE_TILE || g[r][c] === ARCANE_TILE_ALT) {
         g[r][c] = VOID_1
       }
     }
-    for (let c = 37; c < COLS; c++) {
+    for (let c = 68; c < COLS; c++) {
       if (g[r][c] === ARCANE_TILE || g[r][c] === ARCANE_TILE_ALT) {
         g[r][c] = VOID_1
       }
     }
   }
   // Some void patches inside for atmosphere
-  g[10][6] = VOID_1
-  g[10][7] = VOID_1
-  g[11][6] = VOID_1
-  g[11][7] = VOID_1
-  g[6][32] = VOID_1
-  g[6][33] = VOID_1
-  g[7][32] = VOID_1
-  g[7][33] = VOID_1
-
-  // Path to special nodes
-  vPath(g, 14, 20, 22, PATH_V)
-  hPath(g, 22, 12, 18, PATH_H)
+  g[10][11] = VOID_1
+  g[10][13] = VOID_1
+  g[11][11] = VOID_1
+  g[11][13] = VOID_1
+  g[6][59] = VOID_1
+  g[6][61] = VOID_1
+  g[7][59] = VOID_1
+  g[7][61] = VOID_1
 
   return g
 }
@@ -200,24 +158,24 @@ function buildDecorations(): DecorationPlacement[] {
 
   // Crystal pillars — blue-purple translucent
   const pillarSpots = [
-    [180, 120], [400, 80], [700, 100], [1000, 80],
-    [300, 300], [600, 250], [900, 280], [150, 500],
-    [800, 450], [1050, 400],
+    [331, 120], [734, 80], [1285, 100], [1836, 80],
+    [551, 300], [1102, 250], [1652, 280], [275, 500],
+    [1469, 450], [1928, 400],
   ]
   for (const [x, y] of pillarSpots) {
     decs.push({ tileIndex: CRYSTAL_PILLAR, x, y, flicker: true })
   }
 
   // Tall crystal pillars
-  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 250, y: 180 })
-  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 550, y: 140 })
-  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 850, y: 160 })
-  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 1100, y: 200 })
+  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 459, y: 180 })
+  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 1010, y: 140 })
+  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 1561, y: 160 })
+  decs.push({ tileIndex: CRYSTAL_PILLAR_TALL, x: 2020, y: 200 })
 
   // Runic circles — gold outlines on floor
   const runeCircleSpots = [
-    [320, 400], [540, 320], [720, 380], [940, 340],
-    [480, 550], [660, 500], [880, 520],
+    [588, 400], [992, 320], [1322, 380], [1726, 340],
+    [882, 550], [1212, 500], [1616, 520],
   ]
   for (const [x, y] of runeCircleSpots) {
     decs.push({ tileIndex: RUNIC_CIRCLE, x, y, pulse: true })
@@ -225,67 +183,56 @@ function buildDecorations(): DecorationPlacement[] {
 
   // Floating books
   const bookSpots = [
-    [200, 350], [400, 280], [600, 350], [800, 300],
-    [1000, 350], [350, 480], [750, 460],
+    [367, 350], [734, 280], [1102, 350], [1469, 300],
+    [1836, 350], [643, 480], [1377, 460],
   ]
   for (const [x, y] of bookSpots) {
     decs.push({ tileIndex: FLOATING_BOOK, x, y, sway: true })
   }
 
   // Enchanted braziers — purple fire
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 160, y: 440, flicker: true })
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 500, y: 400, flicker: true })
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 760, y: 360, flicker: true })
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 1020, y: 420, flicker: true })
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 380, y: 600, flicker: true })
-  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 900, y: 580, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 294, y: 440, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 918, y: 400, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 1395, y: 360, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 1873, y: 420, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 698, y: 600, flicker: true })
+  decs.push({ tileIndex: ENCHANTED_BRAZIER, x: 1652, y: 580, flicker: true })
 
   // Magic runes scattered
-  decs.push({ tileIndex: MAGIC_RUNE, x: 280, y: 250, pulse: true })
-  decs.push({ tileIndex: MAGIC_RUNE, x: 640, y: 200, pulse: true })
-  decs.push({ tileIndex: MAGIC_RUNE, x: 960, y: 240, pulse: true })
+  decs.push({ tileIndex: MAGIC_RUNE, x: 514, y: 250, pulse: true })
+  decs.push({ tileIndex: MAGIC_RUNE, x: 1175, y: 200, pulse: true })
+  decs.push({ tileIndex: MAGIC_RUNE, x: 1762, y: 240, pulse: true })
 
   // Arcane symbols
-  decs.push({ tileIndex: ARCANE_SYMBOL, x: 420, y: 160 })
-  decs.push({ tileIndex: ARCANE_SYMBOL, x: 780, y: 140 })
-  decs.push({ tileIndex: ARCANE_SYMBOL, x: 1080, y: 160 })
+  decs.push({ tileIndex: ARCANE_SYMBOL, x: 771, y: 160 })
+  decs.push({ tileIndex: ARCANE_SYMBOL, x: 1432, y: 140 })
+  decs.push({ tileIndex: ARCANE_SYMBOL, x: 1983, y: 160 })
 
   // Starfield patches
-  decs.push({ tileIndex: STARFIELD_PATCH, x: 40, y: 300, flicker: true })
-  decs.push({ tileIndex: STARFIELD_PATCH, x: 40, y: 500, flicker: true })
-  decs.push({ tileIndex: STARFIELD_PATCH, x: 1220, y: 300, flicker: true })
-  decs.push({ tileIndex: STARFIELD_PATCH, x: 1220, y: 500, flicker: true })
+  decs.push({ tileIndex: STARFIELD_PATCH, x: 73, y: 300, flicker: true })
+  decs.push({ tileIndex: STARFIELD_PATCH, x: 73, y: 500, flicker: true })
+  decs.push({ tileIndex: STARFIELD_PATCH, x: 2240, y: 300, flicker: true })
+  decs.push({ tileIndex: STARFIELD_PATCH, x: 2240, y: 500, flicker: true })
 
   return decs
 }
 
 // ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: straight up with slight curve
-    { cx: 660, cy: 600 },
-    // l2 → l3: zigzag right-up
-    { cx: 740, cy: 530 },
-    // l3 → mb1: left-up
-    { cx: 560, cy: 480 },
-    // mb1 → l4: right-up
-    { cx: 740, cy: 420 },
-    // l4 → l5: left-up
-    { cx: 520, cy: 370 },
-    // l5 → mb2: right-up
-    { cx: 700, cy: 310 },
-    // mb2 → l6: left-up
-    { cx: 580, cy: 260 },
-    // l6 → l7: right-up
-    { cx: 740, cy: 210 },
-    // l7 → mb3: left-up
-    { cx: 620, cy: 160 },
-    // mb3 → l8: up
-    { cx: 680, cy: 110 },
-    // l8 → mb4: right-up
-    { cx: 720, cy: 70 },
-    // mb4 → boss: final ascent to summit
-    { cx: 760, cy: 30 },
+    { cx: 230,  cy: 520 }, // l1 → l2   (going up)
+    { cx: 430,  cy: 405 }, // l2 → l3   (going up)
+    { cx: 625,  cy: 290 }, // l3 → mb1  (going up)
+    { cx: 810,  cy: 375 }, // mb1 → l4  (going down)
+    { cx: 995,  cy: 295 }, // l4 → l5   (going up)
+    { cx: 1180, cy: 170 }, // l5 → mb2  (going up)
+    { cx: 1355, cy: 255 }, // mb2 → l6  (going down)
+    { cx: 1530, cy: 180 }, // l6 → l7   (going up)
+    { cx: 1710, cy: 80  }, // l7 → mb3  (going up)
+    { cx: 1885, cy: 175 }, // mb3 → l8  (going down)
+    { cx: 2055, cy: 95  }, // l8 → mb4  (going up)
+    { cx: 2220, cy: 15  }, // mb4 → boss (going up)
   ]
 }
 
@@ -295,7 +242,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Magic sparkles — blue-gold dots floating/orbiting
     {
       particleFrame: 'particleSpark',
-      zone: { x: 100, y: 50, width: 1080, height: 620 },
+      zone: { x: 184, y: 50, width: 1983, height: 620 },
       tint: 0x4488ff,
       frequency: 500,
       lifespan: 4000,
@@ -307,7 +254,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Arcane pulses — purple brief flashes
     {
       particleFrame: 'particleDot',
-      zone: { x: 100, y: 100, width: 1080, height: 520 },
+      zone: { x: 184, y: 100, width: 1983, height: 520 },
       tint: 0x8844ff,
       frequency: 1500,
       lifespan: 1500,
@@ -339,28 +286,22 @@ export const WORLD5_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path ascends steeply — tower climb pattern (zigzag up)
+  // Path ascends left-to-right — tower staircase
   nodePositions: [
-    { x: 640, y: 660 },  // l1 — tower base
-    { x: 640, y: 580 },  // l2
-    { x: 740, y: 520 },  // l3
-    { x: 580, y: 460 },  // mb1
-    { x: 740, y: 400 },  // l4
-    { x: 540, y: 340 },  // l5
-    { x: 700, y: 280 },  // mb2
-    { x: 580, y: 240 },  // l6
-    { x: 740, y: 190 },  // l7
-    { x: 640, y: 140 },  // mb3
-    { x: 700, y: 90 },   // l8
-    { x: 760, y: 60 },   // mb4
-    { x: 840, y: 20 },   // boss — tower summit
+    { x: 130,  y: 620 }, // l1 — tower base (left)
+    { x: 330,  y: 500 }, // l2
+    { x: 530,  y: 390 }, // l3
+    { x: 720,  y: 270 }, // mb1
+    { x: 900,  y: 400 }, // l4
+    { x: 1090, y: 270 }, // l5
+    { x: 1270, y: 150 }, // mb2
+    { x: 1440, y: 280 }, // l6
+    { x: 1620, y: 160 }, // l7
+    { x: 1800, y: 80  }, // mb3
+    { x: 1970, y: 190 }, // l8
+    { x: 2140, y: 80  }, // mb4
+    { x: 2300, y: 30  }, // boss — Typemancer's throne (right)
   ],
-
-  specialNodes: {
-    tavern: { x: 540, y: 700 },
-    stable: { x: 680, y: 700 },
-    shop: { x: 820, y: 700 },
-  },
 
   pathSegments: buildPathSegments(),
   atmosphere: buildAtmosphere(),

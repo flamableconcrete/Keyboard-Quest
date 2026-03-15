@@ -3,46 +3,51 @@ import { AudioHelper } from '../utils/AudioHelper'
 import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { getLevelsForWorld } from '../data/levels'
+import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
-import { WORLD1_MAP } from '../data/maps/world1'
-import { WORLD2_MAP } from '../data/maps/world2'
-import { WORLD3_MAP } from '../data/maps/world3'
-import { WORLD4_MAP } from '../data/maps/world4'
-import { WORLD5_MAP } from '../data/maps/world5'
-import type { WorldMapData } from '../data/maps/types'
+import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
 interface NodePosition { x: number; y: number }
 
-const WORLD_NAMES: Record<number, string> = {
-  1: 'World 1 — The Heartland',
-  2: 'World 2 — The Shadowed Fen',
-  3: 'World 3 — The Ember Peaks',
-  4: 'World 4 — The Shrouded Wilds',
-  5: "World 5 — The Typemancer's Tower",
-}
-
 export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
-  private currentWorld!: number
   private avatar!: Phaser.GameObjects.Sprite
   private avatarShadow?: Phaser.GameObjects.Ellipse
   private isGliding = false
-  private mapRenderer?: MapRenderer
+  private mapRenderers: MapRenderer[] = []
+  private worldPaths: Phaser.Curves.Path[] = []
   private glowRect?: Phaser.GameObjects.Rectangle
   private currentNodeIndex = 0
   private avatarBasePos: NodePosition = { x: 0, y: 0 }
-  /** Composite bezier path for avatar path-following (used by Task 8). */
-  worldPath?: Phaser.Curves.Path
+  private isPanning = false
+  private panStartX = 0
+  private panCamStartX = 0
+  private readonly EDGE_SCROLL_THRESHOLD = 60
+  private readonly EDGE_SCROLL_MAX_SPEED = 12
+  private worldTitleText!: Phaser.GameObjects.Text
+
+  private readonly WORLD_NAMES = [
+    'World 1 — The Heartland',
+    'World 2 — The Shadowed Fen',
+    'World 3 — The Ember Peaks',
+    'World 4 — The Shrouded Wilds',
+    "World 5 — The Typemancer's Tower",
+  ]
+
+  private worldNameForIndex(idx: number): string {
+    return this.WORLD_NAMES[idx] ?? `World ${idx + 1}`
+  }
+
+
 
   constructor() { super('OverlandMap') }
 
-  init(data: { profileSlot: number; world?: number }) {
-    AudioHelper.playBGM(this, 'bgm_map');
+  init(data: { profileSlot: number }) {
+    AudioHelper.playBGM(this, 'bgm_map')
     this.profileSlot = data.profileSlot
     const profile = loadProfile(this.profileSlot)
     if (!profile) {
@@ -50,74 +55,170 @@ export class OverlandMapScene extends Phaser.Scene {
       return
     }
     this.profile = profile
-    this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 
-  /** Returns map data for the given world. */
-  private getMapData(world: number): WorldMapData {
-    switch (world) {
-      case 1: return WORLD1_MAP
-      case 2: return WORLD2_MAP
-      case 3: return WORLD3_MAP
-      case 4: return WORLD4_MAP
-      case 5: return WORLD5_MAP
-      default: return WORLD1_MAP
+  private readonly BLEND_COLORS = [0x88cc66, 0x334455, 0xcc5522, 0x336633, 0x220044]
+
+  private drawBlendZone(seamX: number, fromWorldIdx: number): void {
+    const gfx = this.add.graphics().setDepth(500)
+    const fromColor = this.BLEND_COLORS[fromWorldIdx]
+    const toColor = this.BLEND_COLORS[fromWorldIdx + 1]
+    const steps = 30
+    const stepWidth = 300 / steps
+
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps
+      // Lerp color channels
+      const fr = (fromColor >> 16) & 0xff, fg = (fromColor >> 8) & 0xff, fb = fromColor & 0xff
+      const tr = (toColor >> 16) & 0xff,   tg = (toColor >> 8) & 0xff,   tb = toColor & 0xff
+      const r = Math.round(fr + (tr - fr) * t)
+      const g = Math.round(fg + (tg - fg) * t)
+      const b = Math.round(fb + (tb - fb) * t)
+      const color = (r << 16) | (g << 8) | b
+      gfx.fillStyle(color, 0.45)
+      gfx.fillRect(seamX + s * stepWidth, 0, stepWidth + 1, 720)
     }
+  }
+
+  /** Draw a bezier path segment connecting each world's boss node to the next world's first node. */
+  private drawWorldTransitionPaths(): void {
+    const { worlds, xOffsets, worldTransitions } = UNIFIED_MAP
+    const gfx = this.add.graphics()
+    gfx.lineStyle(6, 0x665533, 0.6)
+
+    for (let i = 0; i < worldTransitions.length; i++) {
+      const fromWorld = worlds[i]
+      const toWorld = worlds[i + 1]
+      if (!fromWorld || !toWorld) continue
+
+      const fromNodes = fromWorld.nodePositions
+      const bossNode = fromNodes[fromNodes.length - 1]
+      const firstNode = toWorld.nodePositions[0]
+      if (!bossNode || !firstNode) continue
+
+      const fx = xOffsets[i] + bossNode.x
+      const fy = bossNode.y
+      const tx = xOffsets[i + 1] + firstNode.x
+      const ty = firstNode.y
+      const { cx, cy } = worldTransitions[i]
+
+      const bezier = new Phaser.Curves.QuadraticBezier(
+        new Phaser.Math.Vector2(fx, fy),
+        new Phaser.Math.Vector2(cx, cy),
+        new Phaser.Math.Vector2(tx, ty),
+      )
+      gfx.beginPath()
+      const points = bezier.getPoints(32)
+      gfx.moveTo(points[0].x, points[0].y)
+      for (let p = 1; p < points.length; p++) {
+        gfx.lineTo(points[p].x, points[p].y)
+      }
+      gfx.strokePath()
+    }
+  }
+
+  private buildUnifiedMap(): void {
+    const { worlds, xOffsets, widths } = UNIFIED_MAP
+
+    worlds.forEach((mapData, i) => {
+      const xOffset = xOffsets[i]
+      const renderer = new MapRenderer(this, mapData, xOffset)
+      renderer.renderTileLayers()
+      renderer.renderDecorations()
+      renderer.startAtmosphere()
+      renderer.startAnimatedTiles()
+      this.mapRenderers.push(renderer)
+
+      // Draw blend gradient at right edge of this world (except last world)
+      if (i < worlds.length - 1) {
+        this.drawBlendZone(xOffset + widths[i] - 150, i)
+      }
+    })
   }
 
   create() {
     this.cameras.main.fadeIn(300, 0, 0, 0)
     const { width } = this.scale
-    const mapData = this.getMapData(this.currentWorld)
 
-    // Tilemap-based rendering
-    this.mapRenderer = new MapRenderer(this, mapData)
-    this.mapRenderer.renderTileLayers()
-    this.mapRenderer.renderDecorations()
-    this.mapRenderer.startAtmosphere()
-    this.mapRenderer.startAnimatedTiles()
+    this.cameras.main.setBounds(0, 0, UNIFIED_MAP.totalWidth, 720)
 
-    // World title
-    this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
-      fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5).setDepth(2000)
+    // Camera will be snapped to avatar position after startPos is computed below
+
+    this.buildUnifiedMap()
+
+    UNIFIED_MAP.worlds.forEach((mapData, i) => {
+      const xOffset = UNIFIED_MAP.xOffsets[i]
+      const worldNum = i + 1
+      const levels = getLevelsForWorld(worldNum)
+      const positions = mapData.nodePositions.map(p => ({ x: p.x + xOffset, y: p.y }))
+
+      const completedIds = new Set<string>(
+        levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
+      )
+      const path = this.mapRenderers[i].renderPaths(levels, completedIds)
+      this.worldPaths.push(path)
+
+      this.drawNodes(levels, positions)
+    })
+
+    this.drawWorldTransitionPaths()
+    this.drawMasteryChest()
+    this.drawSettingsButton()
+    this.drawProfilesButton()
+
+    const currentWorldIdx = (this.profile.currentWorld ?? 1) - 1
+    this.worldTitleText = this.add.text(
+      this.scale.width / 2, 40,
+      this.worldNameForIndex(currentWorldIdx),
+      { fontSize: '28px', color: '#ffd700' }
+    ).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
       fontSize: '20px', color: '#ffffff'
-    }).setDepth(2000)
+    }).setDepth(2000).setScrollFactor(0)
 
     this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
       fontSize: '20px', color: '#ffd700'
-    }).setOrigin(1, 0).setDepth(2000)
+    }).setOrigin(1, 0).setDepth(2000).setScrollFactor(0)
 
-    // World navigation arrows
-    this.drawWorldArrows()
+    const { width: w, height: h } = this.scale
+    // Bottom-right row: Character, Shop, Stable, Tavern (right to left)
+    this.drawHudButton(w - 60, h - 60, '👤', 'CHARACTER', () => {
+      this.scene.pause()
+      this.scene.launch('Character', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 150, h - 60, '🛒', 'SHOP', () => {
+      this.scene.start('Shop', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 240, h - 60, '🐴', 'STABLE', () => {
+      this.scene.start('Stable', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 330, h - 60, '🍺', 'TAVERN', () => {
+      this.scene.start('Tavern', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(70, h - 60, '🧭', 'FIND HERO', () => {
+      this.panToAvatar()
+    }, '28px')
 
-    const levels = getLevelsForWorld(this.currentWorld)
-
-    // Bezier paths
-    const completedIds = new Set<string>(
-      levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
-    )
-    this.worldPath = this.mapRenderer!.renderPaths(levels, completedIds)
-
-    this.drawNodes(levels, mapData.nodePositions)
-    this.drawSpecialNodes(mapData.specialNodes)
-    this.drawMasteryChest()
-    this.drawSettingsButton()
-    this.drawProfilesButton()
-    this.drawCharacterButton()
-
-    let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
+    let startPos = {
+      x: UNIFIED_MAP.xOffsets[0] + (UNIFIED_MAP.worlds[0].nodePositions[0]?.x ?? 0),
+      y: UNIFIED_MAP.worlds[0].nodePositions[0]?.y ?? 0
+    }
     this.currentNodeIndex = 0
     if (this.profile.currentLevelNodeId) {
-      const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
-      if (idx !== -1 && mapData.nodePositions[idx]) {
-        startPos = mapData.nodePositions[idx]
-        this.currentNodeIndex = idx
-      } else if (mapData.specialNodes[this.profile.currentLevelNodeId]) {
-        startPos = mapData.specialNodes[this.profile.currentLevelNodeId]
+      for (let i = 0; i < UNIFIED_MAP.worlds.length; i++) {
+        const xOffset = UNIFIED_MAP.xOffsets[i]
+        const levels = getLevelsForWorld(i + 1)
+        const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
+        if (idx !== -1 && UNIFIED_MAP.worlds[i].nodePositions[idx]) {
+          startPos = {
+            x: UNIFIED_MAP.worlds[i].nodePositions[idx].x + xOffset,
+            y: UNIFIED_MAP.worlds[i].nodePositions[idx].y,
+          }
+          this.currentNodeIndex = idx
+          break
+        }
       }
     }
 
@@ -133,10 +234,43 @@ export class OverlandMapScene extends Phaser.Scene {
       ? this.profile.avatarConfig.id
       : (this.profile.avatarChoice || 'avatar_0')
     this.avatarBasePos = { x: startPos.x, y: startPos.y }
+
+    // Snap camera to center on the avatar so the player is visible immediately
+    const vw = this.scale.width
+    this.cameras.main.scrollX = Phaser.Math.Clamp(
+      startPos.x - vw / 2,
+      0,
+      UNIFIED_MAP.totalWidth - vw
+    )
+
 this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(1000)
     // Scale down the pixel art avatar slightly to fit the map nodes better
     this.avatar.setScale(0.75)
     this.avatar.setOrigin(0.5, 1) // Anchor at bottom center so feet touch the node
+
+    // ── Click-drag panning ───────────────────────────────────
+    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.isPanning = false
+      this.panStartX = ptr.x
+      this.panCamStartX = this.cameras.main.scrollX
+    })
+
+    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => {
+      if (!ptr.isDown) return
+      const dx = ptr.x - this.panStartX
+      if (!this.isPanning && Math.abs(dx) > 5) {
+        this.isPanning = true
+      }
+      if (this.isPanning) {
+        const vw = this.scale.width
+        this.cameras.main.scrollX = Phaser.Math.Clamp(
+          this.panCamStartX - dx,
+          0,
+          UNIFIED_MAP.totalWidth - vw
+        )
+      }
+    })
+
   }
 
   update(time: number) {
@@ -153,53 +287,46 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         this.avatarShadow.setScale(shadowScale, shadowScale);
       }
     }
-  }
 
-  private drawWorldArrows() {
-    const { height } = this.scale
-    const maxWorld = 5
+    // ── Edge scroll ──────────────────────────────────────────
+    const ptr = this.input.activePointer
+    if (ptr && ptr.isDown && this.isPanning) {
+      // Edge scroll is handled via drag, skip
+    } else if (ptr && ptr.x >= 0 && ptr.x <= this.scale.width) {
+      const px = ptr.x
+      const vw = this.scale.width
+      const threshold = this.EDGE_SCROLL_THRESHOLD
+      const maxSpeed = this.EDGE_SCROLL_MAX_SPEED
+      let scrollDelta = 0
 
-    // Previous world arrow
-    if (this.currentWorld > 1) {
-      const prev = this.add.text(30, height / 2, '◀', {
-        fontSize: '36px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
-      prev.on('pointerdown', () => {
-        this.profile.currentWorld = this.currentWorld - 1
-        saveProfile(this.profileSlot, this.profile)
-        this.cameras.main.fadeOut(300, 0, 0, 0)
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld - 1 })
-        })
-      })
-      this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
-        fontSize: '14px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setDepth(2000)
+      if (px < threshold) {
+        // Near left edge — scroll left
+        scrollDelta = -maxSpeed * (1 - px / threshold)
+      } else if (px > vw - threshold) {
+        // Near right edge — scroll right
+        scrollDelta = maxSpeed * ((px - (vw - threshold)) / threshold)
+      }
+
+      if (scrollDelta !== 0) {
+        this.cameras.main.scrollX = Phaser.Math.Clamp(
+          this.cameras.main.scrollX + scrollDelta,
+          0,
+          UNIFIED_MAP.totalWidth - vw
+        )
+      }
     }
 
-    // Next world arrow — only if world boss beaten
-    if (this.currentWorld < maxWorld) {
-      const bossLevel = getLevelsForWorld(this.currentWorld).find(l => l.isBoss)
-      const worldCleared = bossLevel ? !!this.profile.levelResults[bossLevel.id] : false
-      const { width, height: h } = this.scale
-      if (worldCleared) {
-        const next = this.add.text(width - 30, h / 2, '▶', {
-          fontSize: '36px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
-        next.on('pointerdown', () => {
-          this.profile.currentWorld = this.currentWorld + 1
-          saveProfile(this.profileSlot, this.profile)
-          this.cameras.main.fadeOut(300, 0, 0, 0)
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld + 1 })
-          })
-        })
-        this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
-          fontSize: '14px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setDepth(2000)
-      } else {
-        const { width: w } = this.scale
-        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5).setDepth(2000)
+    // Dynamic world title
+    if (this.worldTitleText) {
+      const visibleWorldIdx = worldIndexAtScrollX(
+        this.cameras.main.scrollX,
+        UNIFIED_MAP.xOffsets,
+        UNIFIED_MAP.totalWidth,
+        this.scale.width,
+      )
+      const name = this.worldNameForIndex(visibleWorldIdx)
+      if (this.worldTitleText.text !== name) {
+        this.worldTitleText.setText(name)
       }
     }
   }
@@ -275,7 +402,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           this.hideTooltip()
         })
 
-        nodeSprite.on('pointerdown', () => this.enterLevel(level, pos))
+        nodeSprite.on('pointerup', () => {
+          if (!this.isPanning) this.enterLevel(level, pos)
+        })
       }
 
       // Completion shimmer particles
@@ -330,48 +459,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private drawSpecialNodes(specialPositions: Record<string, NodePosition>) {
-    // Tavern
-    const tp = specialPositions['tavern']
-    this.add.ellipse(tp.x, tp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(tp.x, tp.y + 25, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
-    tavernNode.on('pointerdown', () => {
-      this.glideAvatarTo(tp, 'tavern', () => {
-        this.scene.start('Tavern', { profileSlot: this.profileSlot })
-      })
-    })
-
-    // Stable
-    const sp = specialPositions['stable']
-    this.add.ellipse(sp.x, sp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(sp.x, sp.y + 25, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
-    stableNode.on('pointerdown', () => {
-      this.glideAvatarTo(sp, 'stable', () => {
-        this.scene.start('Stable', { profileSlot: this.profileSlot })
-      })
-    })
-
-    // Shop
-    const shp = specialPositions['shop']
-    this.add.ellipse(shp.x, shp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const shopNode = this.add.sprite(shp.x, shp.y, 'map-common', COMMON_FRAMES.nodeTavern) // Reusing tavern icon, or nodeInventory
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    shopNode.setTint(0xffaa00) // Distinct color for shop
-    this.add.text(shp.x, shp.y + 25, 'SHOP', { fontSize: '12px', color: '#ffaa00' }).setOrigin(0.5).setDepth(2000)
-    shopNode.on('pointerdown', () => {
-      this.glideAvatarTo(shp, 'shop', () => {
-        this.scene.start('Shop', { profileSlot: this.profileSlot })
-      })
-    })
-  }
-
   private drawMasteryChest() {
     const { width } = this.scale
-    const world = this.currentWorld
+    const world = this.profile.currentWorld ?? 1
     const claimKey = `worldMastery_${world}`
 
     const masteryItems: Record<number, string> = {
@@ -390,17 +480,17 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     if (this.profile.worldMasteryRewards.includes(claimKey)) {
       // Already claimed — show greyed chest
-      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000)
-      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
-      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000)
+      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000).setScrollFactor(0)
+      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
       return
     }
 
     // Unclaimed — show gold pulsing chest
     const chest = this.add.rectangle(cx, cy, 50, 50, 0xffd700)
-      .setInteractive({ useHandCursor: true }).setDepth(2000)
-    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
-    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
+      .setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
+    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
 
     this.tweens.add({
       targets: chest,
@@ -414,20 +504,20 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       saveProfile(this.profileSlot, this.profile)
 
       const { width: w, height: h } = this.scale
-      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000)
-      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000)
+      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000).setScrollFactor(0)
+      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2 - 50, '✨ World Mastery Reward! ✨', {
         fontSize: '22px', color: '#ffd700'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2, `You earned: ${item}`, {
         fontSize: '20px', color: '#ffffff'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2 + 50, 'Click to continue', {
         fontSize: '16px', color: '#aaaaaa'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
 
       this.input.once('pointerdown', () => {
-        this.scene.restart({ profileSlot: this.profileSlot, world: this.currentWorld })
+        this.scene.restart({ profileSlot: this.profileSlot })
       })
     })
   }
@@ -462,9 +552,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawSettingsButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
+    const btn = this.add.text(width - 20, 55, '⚙ SETTINGS', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
@@ -474,9 +564,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawProfilesButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 55, '👥 PROFILES', {
+    const btn = this.add.text(width - 20, 90, '👥 PROFILES', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
@@ -484,82 +574,70 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private drawCharacterButton() {
-    const { width, height } = this.scale
-
-    // Position at bottom right, inset slightly
-    const cx = width - 60
-    const cy = height - 60
-
-    // Prominent golden outer ring (glow/pulse)
-    const glowRing = this.add.circle(cx, cy, 45, 0xffd700, 0.4).setDepth(1998)
-
-    // Fancy border
-    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999)
+  private drawHudButton(
+    cx: number,
+    cy: number,
+    icon: string,
+    tooltip: string,
+    onClick: () => void,
+    iconSize = '36px',
+  ): void {
+    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999).setScrollFactor(0)
     border.setStrokeStyle(4, 0xffffff)
 
-    // Dark interior background
-    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000)
+    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000).setScrollFactor(0)
 
-    // The icon itself
-    const icon = this.add.text(cx, cy, '👤', {
-      fontSize: '40px'
-    }).setOrigin(0.5).setDepth(2001)
+    const iconText = this.add.text(cx, cy, icon, { fontSize: iconSize })
+      .setOrigin(0.5).setDepth(2001).setScrollFactor(0)
 
-    // Group them for interaction
-    const btnZone = this.add.zone(cx, cy, 90, 90)
+    const zone = this.add.zone(cx, cy, 90, 90)
       .setInteractive({ useHandCursor: true })
-      .setDepth(2002)
+      .setDepth(2002).setScrollFactor(0)
 
-    // Enticing continuous pulse on the glow ring
-    this.tweens.add({
-      targets: glowRing,
-      scaleX: 1.15,
-      scaleY: 1.15,
-      alpha: 0.1,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    })
+    let tooltipObj: Phaser.GameObjects.Text | undefined
 
-    // Hover effects
-    btnZone.on('pointerover', () => {
+    zone.on('pointerover', () => {
       bg.setFillStyle(0x2a2a4e)
       border.setStrokeStyle(4, 0xffd700)
-      this.tweens.add({
-        targets: icon,
-        scaleX: 1.2,
-        scaleY: 1.2,
-        duration: 150
-      })
+      this.tweens.add({ targets: iconText, scaleX: 1.2, scaleY: 1.2, duration: 150 })
+      tooltipObj = this.add.text(cx, cy - 55, tooltip, {
+        fontSize: '12px', color: '#ffffff', backgroundColor: '#000000',
+        padding: { x: 6, y: 3 },
+      }).setOrigin(0.5).setDepth(2010).setScrollFactor(0)
     })
 
-    btnZone.on('pointerout', () => {
+    zone.on('pointerout', () => {
       bg.setFillStyle(0x1a1a2e)
       border.setStrokeStyle(4, 0xffffff)
-      this.tweens.add({
-        targets: icon,
-        scaleX: 1,
-        scaleY: 1,
-        duration: 150
-      })
+      this.tweens.add({ targets: iconText, scaleX: 1, scaleY: 1, duration: 150 })
+      tooltipObj?.destroy()
+      tooltipObj = undefined
     })
 
-    btnZone.on('pointerdown', () => {
-      // Small pop effect on click
+    zone.on('pointerdown', () => {
       this.tweens.add({
-        targets: [border, bg, icon],
-        scaleX: 0.9,
-        scaleY: 0.9,
+        targets: [border, bg, iconText],
+        scaleX: 0.9, scaleY: 0.9,
         duration: 50,
         yoyo: true,
-        onComplete: () => {
-          // Pause overworld map and launch character scene to keep map visible behind it
-          this.scene.pause()
-          this.scene.launch('Character', { profileSlot: this.profileSlot })
-        }
+        onComplete: onClick,
       })
+    })
+  }
+
+  /** Tween the camera to center on the avatar's current position. */
+  private panToAvatar(): void {
+    const vw = this.scale.width
+    const targetScrollX = Phaser.Math.Clamp(
+      this.avatarBasePos.x - vw / 2,
+      0,
+      UNIFIED_MAP.totalWidth - vw,
+    )
+    this.tweens.add({
+      targets: this.cameras.main,
+      scrollX: targetScrollX,
+      duration: 500,
+      ease: 'Sine.easeInOut',
     })
   }
 
@@ -609,9 +687,12 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.glideStartTime = this.time.now
 
     // Determine if we can use bezier path-following
-    const levels = getLevelsForWorld(this.currentWorld)
-    const targetLevelIdx = levels.findIndex(l => l.id === nodeId)
-    const canUsePath = this.worldPath && targetLevelIdx !== -1
+    const destLevel = ALL_LEVELS.find(l => l.id === nodeId)
+    const targetWorld = destLevel?.world ?? 1
+    const targetWorldPath = this.worldPaths[targetWorld - 1]
+    const worldLevels = getLevelsForWorld(targetWorld)
+    const targetLevelIdx = worldLevels.findIndex(l => l.id === nodeId)
+    const canUsePath = !!targetWorldPath && targetLevelIdx !== -1
 
     const finishGlide = () => {
       // Snap to final position (no bob)
@@ -621,6 +702,10 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       // Update tracking
       if (targetLevelIdx !== -1) {
         this.currentNodeIndex = targetLevelIdx
+      }
+      // Save current world when glide completes
+      if (destLevel) {
+        this.profile.currentWorld = destLevel.world
       }
       this.profile.currentLevelNodeId = nodeId
       saveProfile(this.profileSlot, this.profile)
@@ -632,7 +717,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     if (canUsePath) {
       // Bezier path-following between nodes
-      const numCurves = this.worldPath!.curves.length
+      const numCurves = targetWorldPath!.curves.length
       if (numCurves === 0) {
         this.glideDirectTo(pos, distance, finishGlide)
         return
@@ -650,7 +735,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         onUpdate: () => {
           const t = Phaser.Math.Linear(startT, endT, obj.val)
           const clampedT = Phaser.Math.Clamp(t, 0, 1)
-          const pt = this.worldPath!.getPoint(clampedT)
+          const pt = targetWorldPath!.getPoint(clampedT)
           if (pt) {
             this.avatarBasePos = { x: pt.x, y: pt.y }
             this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
@@ -687,9 +772,34 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private enterLevel(level: LevelConfig, pos: NodePosition) {
-    this.glideAvatarTo(pos, level.id, () => {
-      this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
-    })
+  private enterLevel(level: LevelConfig, pos: { x: number; y: number }) {
+    if (this.isGliding) return
+    this.isGliding = true
+
+    const cam = this.cameras.main
+    const vw = this.scale.width
+    const isOffScreen = pos.x < cam.scrollX || pos.x > cam.scrollX + vw
+
+    if (isOffScreen) {
+      // Tween camera to center on destination, then glide
+      const targetScrollX = Phaser.Math.Clamp(
+        pos.x - vw / 2,
+        0,
+        UNIFIED_MAP.totalWidth - vw,
+      )
+      this.tweens.add({
+        targets: cam,
+        scrollX: targetScrollX,
+        duration: 600,
+        ease: 'Sine.easeInOut',
+        onComplete: () => this.glideAvatarTo(pos, level.id, () => {
+          this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+        }),
+      })
+    } else {
+      this.glideAvatarTo(pos, level.id, () => {
+        this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+      })
+    }
   }
 }

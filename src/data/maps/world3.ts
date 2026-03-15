@@ -31,7 +31,7 @@ const LAVA_CRACK = 30
 const SCORCHED_GROUND = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 40
+const COLS = 79
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -72,11 +72,11 @@ function buildGround(): TileGrid {
 
   // Scatter variants
   const altPositions = [
-    [1, 6], [2, 18], [3, 30], [4, 10], [5, 24], [6, 36],
-    [7, 4], [8, 16], [9, 28], [10, 8], [11, 20], [12, 32],
-    [13, 2], [14, 14], [15, 26], [16, 38], [17, 12], [18, 22],
-    [19, 34], [20, 6], [21, 18], [22, 30], [1, 22], [3, 34],
-    [5, 8], [7, 20], [9, 32], [11, 14], [13, 26], [15, 38],
+    [1, 12], [2, 36], [3, 59], [4, 20], [5, 47], [6, 71],
+    [7, 8], [8, 32], [9, 55], [10, 16], [11, 40], [12, 63],
+    [13, 4], [14, 28], [15, 51], [16, 75], [17, 24], [18, 43],
+    [19, 67], [20, 12], [21, 36], [22, 59], [1, 43], [3, 67],
+    [5, 16], [7, 40], [9, 63], [11, 28], [13, 51], [15, 75],
   ]
   for (const [r, c] of altPositions) {
     if (r < ROWS && c < COLS) {
@@ -86,9 +86,9 @@ function buildGround(): TileGrid {
 
   // Ash stone patches
   const ashPatches = [
-    [2, 20], [2, 21], [3, 20], [3, 21],
-    [8, 6], [8, 7], [9, 6], [9, 7],
-    [15, 30], [15, 31], [16, 30], [16, 31],
+    [2, 40], [2, 41], [3, 40], [3, 41],
+    [8, 12], [8, 14], [9, 12], [9, 14],
+    [15, 59], [15, 61], [16, 59], [16, 61],
   ]
   for (const [r, c] of ashPatches) {
     if (r < ROWS && c < COLS) g[r][c] = ASH_STONE
@@ -96,97 +96,63 @@ function buildGround(): TileGrid {
 
   // Cracked earth areas
   const crackPatches = [
-    [6, 14], [6, 15], [7, 14],
-    [12, 24], [12, 25], [13, 24],
-    [18, 8], [18, 9],
+    [6, 28], [6, 30], [7, 28],
+    [12, 47], [12, 49], [13, 47],
+    [18, 16], [18, 18],
   ]
   for (const [r, c] of crackPatches) {
     if (r < ROWS && c < COLS) g[r][c] = CRACKED_EARTH
   }
 
-  // ── Path spirals upward from bottom-center ─────────────
-  // Segment 1: l1 (bottom-center) → l2 (right)
-  hPath(g, 19, 18, 24, PATH_H)
-
-  // Segment 2: l2 → l3 (up-right)
-  g[19][24] = PATH_CORNER
-  vPath(g, 24, 17, 19, PATH_V)
-  g[17][24] = PATH_CORNER
-  hPath(g, 17, 24, 30, PATH_H)
-
-  // Segment 3: l3 → mb1 (up)
-  g[17][30] = PATH_CORNER
-  vPath(g, 30, 14, 17, PATH_V)
-
-  // Segment 4: mb1 → l4 (left)
-  g[14][30] = PATH_CORNER
-  hPath(g, 14, 24, 30, PATH_H)
-  g[14][24] = PATH_CORNER
-  vPath(g, 24, 12, 14, PATH_V)
-
-  // Segment 5: l4 → l5 (left and up)
-  g[12][24] = PATH_CORNER
-  hPath(g, 12, 18, 24, PATH_H)
-  g[12][18] = PATH_CORNER
-  vPath(g, 18, 10, 12, PATH_V)
-
-  // Segment 6: l5 → mb2 (left)
-  g[10][18] = PATH_CORNER
-  hPath(g, 10, 12, 18, PATH_H)
-
-  // Segment 7: mb2 → l6 (up)
-  g[10][12] = PATH_CORNER
-  vPath(g, 12, 8, 10, PATH_V)
-  g[8][12] = PATH_CORNER
-  hPath(g, 8, 8, 12, PATH_H)
-
-  // Segment 8: l6 → l7 (right and up)
-  g[8][8] = PATH_CORNER
-  vPath(g, 8, 6, 8, PATH_V)
-  g[6][8] = PATH_CORNER
-  hPath(g, 6, 8, 14, PATH_H)
-
-  // Segment 9: l7 → mb3 (up-right)
-  g[6][14] = PATH_CORNER
-  vPath(g, 14, 4, 6, PATH_V)
-  g[4][14] = PATH_CORNER
-  hPath(g, 4, 14, 20, PATH_H)
-
-  // Segment 10: mb3 → l8 (up)
-  g[4][20] = PATH_CORNER
-  vPath(g, 20, 3, 4, PATH_V)
-
-  // Segment 11: l8 → boss (up-center)
-  g[3][20] = PATH_CORNER
-  hPath(g, 3, 18, 20, PATH_H)
-  g[3][18] = PATH_CORNER
-  vPath(g, 18, 1, 3, PATH_V)
+  // ── Path snakes left-to-right ─────────────────────────────
+  // l1(4,19) → l2(10,15)
+  hPath(g, 19, 4, 10, PATH_H); g[19][10] = PATH_CORNER; vPath(g, 10, 15, 19, PATH_V)
+  // l2(10,15) → l3(16,12)
+  hPath(g, 15, 10, 16, PATH_H); g[15][16] = PATH_CORNER; vPath(g, 16, 12, 15, PATH_V)
+  // l3(16,12) → mb1(22,8)
+  hPath(g, 12, 16, 22, PATH_H); g[12][22] = PATH_CORNER; vPath(g, 22, 8, 12, PATH_V)
+  // mb1(22,8) → l4(28,13)
+  hPath(g, 8, 22, 28, PATH_H); g[8][28] = PATH_CORNER; vPath(g, 28, 8, 13, PATH_V)
+  // l4(28,13) → l5(33,17)
+  hPath(g, 13, 28, 33, PATH_H); g[13][33] = PATH_CORNER; vPath(g, 33, 13, 17, PATH_V)
+  // l5(33,17) → mb2(39,11)
+  hPath(g, 17, 33, 39, PATH_H); g[17][39] = PATH_CORNER; vPath(g, 39, 11, 17, PATH_V)
+  // mb2(39,11) → l6(44,16)
+  hPath(g, 11, 39, 44, PATH_H); g[11][44] = PATH_CORNER; vPath(g, 44, 11, 16, PATH_V)
+  // l6(44,16) → l7(50,11)
+  hPath(g, 16, 44, 50, PATH_H); g[16][50] = PATH_CORNER; vPath(g, 50, 11, 16, PATH_V)
+  // l7(50,11) → mb3(56,6)
+  hPath(g, 11, 50, 56, PATH_H); g[11][56] = PATH_CORNER; vPath(g, 56, 6, 11, PATH_V)
+  // mb3(56,6) → l8(61,10)
+  hPath(g, 6, 56, 61, PATH_H); g[6][61] = PATH_CORNER; vPath(g, 61, 6, 10, PATH_V)
+  // l8(61,10) → l9(66,6)
+  hPath(g, 10, 61, 66, PATH_H); g[10][66] = PATH_CORNER; vPath(g, 66, 6, 10, PATH_V)
+  // l9(66,6) → mb4(71,3)
+  hPath(g, 6, 66, 71, PATH_H); g[6][71] = PATH_CORNER; vPath(g, 71, 3, 6, PATH_V)
+  // mb4(71,3) → boss(76,1)
+  hPath(g, 3, 71, 76, PATH_H); g[3][76] = PATH_CORNER; vPath(g, 76, 1, 3, PATH_V)
 
   // ── Lava flows ─────────────────────────────────────────────
   // Central lava river
   for (let r = 10; r <= 16; r++) {
-    for (let c = 14; c <= 16; c++) {
+    for (let c = 28; c <= 32; c++) {
       if (g[r][c] === VOLCANIC_ROCK || g[r][c] === VOLCANIC_ROCK_ALT) {
         g[r][c] = LAVA_1
       }
     }
   }
   // Lava pool near top
-  g[5][20] = LAVA_1
-  g[5][21] = LAVA_1
-  g[5][22] = LAVA_1
-  g[6][21] = LAVA_1
-  g[6][22] = LAVA_1
+  g[5][40] = LAVA_1
+  g[5][41] = LAVA_1
+  g[5][43] = LAVA_1
+  g[6][41] = LAVA_1
+  g[6][43] = LAVA_1
 
   // Small lava pool bottom-left
-  g[18][4] = LAVA_1
-  g[18][5] = LAVA_1
-  g[19][4] = LAVA_1
-  g[19][5] = LAVA_1
-
-  // Path down to special nodes
-  vPath(g, 20, 19, 21, PATH_V)
-  hPath(g, 21, 16, 24, PATH_H)
+  if (g[18][8] !== PATH_H && g[18][8] !== PATH_V && g[18][8] !== PATH_CORNER) g[18][8] = LAVA_1
+  if (g[18][10] !== PATH_H && g[18][10] !== PATH_V && g[18][10] !== PATH_CORNER) g[18][10] = LAVA_1
+  if (g[19][8] !== PATH_H && g[19][8] !== PATH_V && g[19][8] !== PATH_CORNER) g[19][8] = LAVA_1
+  if (g[19][10] !== PATH_H && g[19][10] !== PATH_V && g[19][10] !== PATH_CORNER) g[19][10] = LAVA_1
 
   return g
 }
@@ -201,24 +167,24 @@ function buildDecorations(): DecorationPlacement[] {
 
   // Obsidian spires — tall black pointed shapes
   const spireSpots = [
-    [60, 100], [220, 60], [400, 130], [700, 80],
-    [1000, 100], [1200, 60], [150, 300], [500, 250],
-    [850, 180], [1100, 300],
+    [117, 100], [430, 60], [781, 130], [1367, 80],
+    [1953, 100], [2344, 60], [293, 300], [977, 250],
+    [1660, 180], [2148, 300],
   ]
   for (const [x, y] of spireSpots) {
     decs.push({ tileIndex: OBSIDIAN_SPIRE, x, y })
   }
 
   // Tall spires
-  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 300, y: 80 })
-  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 900, y: 60 })
-  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 1150, y: 120 })
+  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 586, y: 80 })
+  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 1758, y: 60 })
+  decs.push({ tileIndex: OBSIDIAN_SPIRE_TALL, x: 2246, y: 120 })
 
   // Smoldering stumps
   const stumpSpots = [
-    [100, 500], [300, 420], [500, 380], [700, 300],
-    [900, 450], [1050, 350], [200, 620], [600, 600],
-    [850, 580], [1100, 550],
+    [195, 500], [586, 420], [977, 380], [1367, 300],
+    [1758, 450], [2051, 350], [391, 620], [1172, 600],
+    [1660, 580], [2148, 550],
   ]
   for (const [x, y] of stumpSpots) {
     decs.push({ tileIndex: SMOLDERING_STUMP, x, y, flicker: true })
@@ -226,61 +192,48 @@ function buildDecorations(): DecorationPlacement[] {
 
   // Ember vents
   const ventSpots = [
-    [180, 400], [450, 350], [680, 270], [950, 380],
-    [350, 550], [750, 520],
+    [352, 400], [879, 350], [1328, 270], [1855, 380],
+    [684, 550], [1465, 520],
   ]
   for (const [x, y] of ventSpots) {
     decs.push({ tileIndex: EMBER_VENT, x, y, flicker: true })
   }
 
   // Boulders
-  decs.push({ tileIndex: BOULDER, x: 50, y: 650 })
-  decs.push({ tileIndex: BOULDER, x: 400, y: 660 })
-  decs.push({ tileIndex: BOULDER, x: 1000, y: 640 })
-  decs.push({ tileIndex: BOULDER, x: 1200, y: 660 })
+  decs.push({ tileIndex: BOULDER, x: 98, y: 650 })
+  decs.push({ tileIndex: BOULDER, x: 781, y: 660 })
+  decs.push({ tileIndex: BOULDER, x: 1953, y: 640 })
+  decs.push({ tileIndex: BOULDER, x: 2344, y: 660 })
 
   // Lava cracks
-  decs.push({ tileIndex: LAVA_CRACK, x: 450, y: 450, flicker: true })
-  decs.push({ tileIndex: LAVA_CRACK, x: 650, y: 400, flicker: true })
-  decs.push({ tileIndex: LAVA_CRACK, x: 800, y: 480, flicker: true })
+  decs.push({ tileIndex: LAVA_CRACK, x: 879, y: 450, flicker: true })
+  decs.push({ tileIndex: LAVA_CRACK, x: 1270, y: 400, flicker: true })
+  decs.push({ tileIndex: LAVA_CRACK, x: 1563, y: 480, flicker: true })
 
   // Scorched ground patches
-  decs.push({ tileIndex: SCORCHED_GROUND, x: 250, y: 500 })
-  decs.push({ tileIndex: SCORCHED_GROUND, x: 550, y: 480 })
-  decs.push({ tileIndex: SCORCHED_GROUND, x: 900, y: 520 })
+  decs.push({ tileIndex: SCORCHED_GROUND, x: 488, y: 500 })
+  decs.push({ tileIndex: SCORCHED_GROUND, x: 1074, y: 480 })
+  decs.push({ tileIndex: SCORCHED_GROUND, x: 1758, y: 520 })
 
   return decs
 }
 
-// ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: curve right
-    { cx: 640, cy: 620 },
-    // l2 → l3: up-right curve
-    { cx: 850, cy: 560 },
-    // l3 → mb1: upward
-    { cx: 980, cy: 480 },
-    // mb1 → l4: arc left
-    { cx: 850, cy: 420 },
-    // l4 → l5: left and up
-    { cx: 680, cy: 370 },
-    // l5 → mb2: leftward
-    { cx: 500, cy: 340 },
-    // mb2 → l6: up-left
-    { cx: 350, cy: 280 },
-    // l6 → l7: curve right
-    { cx: 340, cy: 220 },
-    // l7 → mb3: up-right
-    { cx: 520, cy: 170 },
-    // mb3 → l8: upward
-    { cx: 620, cy: 120 },
-    // l8 → l9: curve left
-    { cx: 600, cy: 60 },
-    // l9 → mb4: right upward
-    { cx: 720, cy: 40 },
-    // mb4 → boss: final climb
-    { cx: 800, cy: 20 },
+    { cx: 230,  cy: 505 }, // l1 → l2   (going up)
+    { cx: 415,  cy: 390 }, // l2 → l3   (going up)
+    { cx: 610,  cy: 270 }, // l3 → mb1  (going up)
+    { cx: 795,  cy: 365 }, // mb1 → l4  (going down)
+    { cx: 970,  cy: 505 }, // l4 → l5   (going down)
+    { cx: 1160, cy: 405 }, // l5 → mb2  (going up)
+    { cx: 1340, cy: 470 }, // mb2 → l6  (going down)
+    { cx: 1510, cy: 380 }, // l6 → l7   (going up)
+    { cx: 1690, cy: 230 }, // l7 → mb3  (going up)
+    { cx: 1860, cy: 300 }, // mb3 → l8  (going down)
+    { cx: 2020, cy: 215 }, // l8 → l9   (going up)
+    { cx: 2185, cy: 105 }, // l9 → mb4  (going up)
+    { cx: 2350, cy: 30  }, // mb4 → boss (going up)
   ]
 }
 
@@ -290,7 +243,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Floating embers — orange-red dots rising
     {
       particleFrame: 'particleDot',
-      zone: { x: 0, y: 200, width: 1280, height: 520 },
+      zone: { x: 0, y: 200, width: 2500, height: 520 },
       tint: 0xff6600,
       frequency: 600,
       lifespan: 4000,
@@ -302,7 +255,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Ash fall — gray dots falling
     {
       particleFrame: 'particleDust',
-      zone: { x: 0, y: -20, width: 1280, height: 100 },
+      zone: { x: 0, y: -20, width: 2500, height: 100 },
       tint: 0x888888,
       frequency: 400,
       lifespan: 6000,
@@ -334,29 +287,23 @@ export const WORLD3_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path spirals upward from bottom-center
+  // Path snakes left-to-right (volcanic peaks)
   nodePositions: [
-    { x: 580, y: 610 },  // l1 — bottom-center start
-    { x: 740, y: 580 },  // l2
-    { x: 940, y: 540 },  // l3
-    { x: 940, y: 450 },  // mb1
-    { x: 780, y: 400 },  // l4
-    { x: 600, y: 340 },  // l5
-    { x: 420, y: 320 },  // mb2
-    { x: 280, y: 270 },  // l6
-    { x: 400, y: 210 },  // l7
-    { x: 560, y: 150 },  // mb3
-    { x: 640, y: 100 },  // l8
-    { x: 680, y: 60 },   // l9
-    { x: 760, y: 30 },   // mb4
-    { x: 860, y: 20 },   // boss — summit
+    { x: 140,  y: 600 }, // l1 — volcanic foothills (left)
+    { x: 320,  y: 490 }, // l2
+    { x: 510,  y: 370 }, // l3
+    { x: 710,  y: 250 }, // mb1
+    { x: 880,  y: 400 }, // l4
+    { x: 1060, y: 530 }, // l5
+    { x: 1260, y: 360 }, // mb2
+    { x: 1420, y: 500 }, // l6
+    { x: 1600, y: 340 }, // l7
+    { x: 1780, y: 200 }, // mb3
+    { x: 1940, y: 320 }, // l8
+    { x: 2100, y: 190 }, // l9
+    { x: 2270, y: 100 }, // mb4
+    { x: 2430, y: 40  }, // boss — volcanic summit (right)
   ],
-
-  specialNodes: {
-    tavern: { x: 640, y: 670 },
-    stable: { x: 780, y: 670 },
-    shop: { x: 920, y: 670 },
-  },
 
   pathSegments: buildPathSegments(),
   atmosphere: buildAtmosphere(),

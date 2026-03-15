@@ -32,7 +32,7 @@ const TWISTED_ROOT = 30
 const FERN = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 40
+const COLS = 79
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -73,11 +73,11 @@ function buildGround(): TileGrid {
 
   // Scatter variants
   const altPositions = [
-    [1, 4], [2, 16], [3, 28], [4, 8], [5, 20], [6, 32],
-    [7, 12], [8, 24], [9, 36], [10, 6], [11, 18], [12, 30],
-    [13, 10], [14, 22], [15, 34], [16, 2], [17, 14], [18, 26],
-    [19, 38], [20, 8], [21, 20], [22, 32], [1, 30], [3, 12],
-    [5, 36], [7, 8], [9, 24], [11, 16], [13, 38], [15, 4],
+    [1, 8], [2, 32], [3, 55], [4, 16], [5, 40], [6, 63],
+    [7, 24], [8, 47], [9, 71], [10, 12], [11, 36], [12, 59],
+    [13, 20], [14, 43], [15, 67], [16, 4], [17, 28], [18, 51],
+    [19, 75], [20, 16], [21, 40], [22, 63], [1, 59], [3, 24],
+    [5, 71], [7, 16], [9, 47], [11, 32], [13, 75], [15, 8],
   ]
   for (const [r, c] of altPositions) {
     if (r < ROWS && c < COLS) {
@@ -87,10 +87,10 @@ function buildGround(): TileGrid {
 
   // Tangled root patches
   const rootPatches = [
-    [4, 3], [4, 4], [5, 3], [5, 4],
-    [10, 28], [10, 29], [11, 28], [11, 29],
-    [16, 14], [16, 15], [17, 14], [17, 15],
-    [8, 36], [8, 37], [9, 36],
+    [4, 6], [4, 8], [5, 6], [5, 8],
+    [10, 55], [10, 57], [11, 55], [11, 57],
+    [16, 28], [16, 30], [17, 28], [17, 30],
+    [8, 71], [8, 73], [9, 71],
   ]
   for (const [r, c] of rootPatches) {
     if (r < ROWS && c < COLS) g[r][c] = TANGLED_ROOTS
@@ -98,92 +98,54 @@ function buildGround(): TileGrid {
 
   // Overgrown stone patches
   const stonePatches = [
-    [6, 20], [6, 21], [7, 20],
-    [14, 8], [14, 9],
-    [18, 32], [18, 33],
+    [6, 40], [6, 41], [7, 40],
+    [14, 16], [14, 18],
+    [18, 63], [18, 65],
   ]
   for (const [r, c] of stonePatches) {
     if (r < ROWS && c < COLS) g[r][c] = OVERGROWN_STONE
   }
 
-  // ── Path weaves horizontally through middle ────────────
-  // Segment 1: l1 (far left) → l2 (right)
-  hPath(g, 14, 2, 8, PATH_H)
-
-  // Segment 2: l2 → l3 (up then right)
-  g[14][8] = PATH_CORNER
-  vPath(g, 8, 11, 14, PATH_V)
-  g[11][8] = PATH_CORNER
-  hPath(g, 11, 8, 14, PATH_H)
-
-  // Segment 3: l3 → mb1 (right then down)
-  g[11][14] = PATH_CORNER
-  vPath(g, 14, 11, 14, PATH_V)
-  g[14][14] = PATH_CORNER
-  hPath(g, 14, 14, 18, PATH_H)
-
-  // Segment 4: mb1 → l4 (up)
-  g[14][18] = PATH_CORNER
-  vPath(g, 18, 10, 14, PATH_V)
-  g[10][18] = PATH_CORNER
-  hPath(g, 10, 18, 22, PATH_H)
-
-  // Segment 5: l4 → l5 (down-right)
-  g[10][22] = PATH_CORNER
-  vPath(g, 22, 10, 13, PATH_V)
-  g[13][22] = PATH_CORNER
-  hPath(g, 13, 22, 26, PATH_H)
-
-  // Segment 6: l5 → mb2 (up-right)
-  g[13][26] = PATH_CORNER
-  vPath(g, 26, 10, 13, PATH_V)
-  g[10][26] = PATH_CORNER
-  hPath(g, 10, 26, 30, PATH_H)
-
-  // Segment 7: mb2 → l6 (down-right)
-  g[10][30] = PATH_CORNER
-  vPath(g, 30, 10, 14, PATH_V)
-  g[14][30] = PATH_CORNER
-  hPath(g, 14, 30, 34, PATH_H)
-
-  // Segment 8: l6 → l7 (up-right)
-  g[14][34] = PATH_CORNER
-  vPath(g, 34, 11, 14, PATH_V)
-  g[11][34] = PATH_CORNER
-  hPath(g, 11, 34, 37, PATH_H)
-
-  // Segment 9: l7 → mb3 (down)
-  g[11][37] = PATH_CORNER
-  vPath(g, 37, 11, 15, PATH_V)
-
-  // Segment 10: mb3 → l8 (left and up)
-  g[15][37] = PATH_CORNER
-  hPath(g, 15, 34, 37, PATH_H)
-  g[15][34] = PATH_CORNER
-  vPath(g, 34, 8, 15, PATH_V) // long climb
-
-  // Segment 11: l8 → boss (right)
-  g[8][34] = PATH_CORNER
-  hPath(g, 8, 34, 38, PATH_H)
-  g[8][38] = PATH_CORNER
-  vPath(g, 38, 5, 8, PATH_V)
+  // ── Path snakes left-to-right ─────────────────────────────
+  // l1(4,14) → l2(10,10)
+  hPath(g, 14, 4, 10, PATH_H); g[14][10] = PATH_CORNER; vPath(g, 10, 10, 14, PATH_V)
+  // l2(10,10) → l3(16,14)
+  hPath(g, 10, 10, 16, PATH_H); g[10][16] = PATH_CORNER; vPath(g, 16, 10, 14, PATH_V)
+  // l3(16,14) → mb1(22,9)
+  hPath(g, 14, 16, 22, PATH_H); g[14][22] = PATH_CORNER; vPath(g, 22, 9, 14, PATH_V)
+  // mb1(22,9) → l4(28,14)
+  hPath(g, 9, 22, 28, PATH_H); g[9][28] = PATH_CORNER; vPath(g, 28, 9, 14, PATH_V)
+  // l4(28,14) → l5(33,9)
+  hPath(g, 14, 28, 33, PATH_H); g[14][33] = PATH_CORNER; vPath(g, 33, 9, 14, PATH_V)
+  // l5(33,9) → mb2(39,14)
+  hPath(g, 9, 33, 39, PATH_H); g[9][39] = PATH_CORNER; vPath(g, 39, 9, 14, PATH_V)
+  // mb2(39,14) → l6(45,9)
+  hPath(g, 14, 39, 45, PATH_H); g[14][45] = PATH_CORNER; vPath(g, 45, 9, 14, PATH_V)
+  // l6(45,9) → l7(50,14)
+  hPath(g, 9, 45, 50, PATH_H); g[9][50] = PATH_CORNER; vPath(g, 50, 9, 14, PATH_V)
+  // l7(50,14) → mb3(56,8)
+  hPath(g, 14, 50, 56, PATH_H); g[14][56] = PATH_CORNER; vPath(g, 56, 8, 14, PATH_V)
+  // mb3(56,8) → l8(61,13)
+  hPath(g, 8, 56, 61, PATH_H); g[8][61] = PATH_CORNER; vPath(g, 61, 8, 13, PATH_V)
+  // l8(61,13) → l9(67,8)
+  hPath(g, 13, 61, 67, PATH_H); g[13][67] = PATH_CORNER; vPath(g, 67, 8, 13, PATH_V)
+  // l9(67,8) → mb4(72,5)
+  hPath(g, 8, 67, 72, PATH_H); g[8][72] = PATH_CORNER; vPath(g, 72, 5, 8, PATH_V)
+  // mb4(72,5) → boss(77,3)
+  hPath(g, 5, 72, 77, PATH_H); g[5][77] = PATH_CORNER; vPath(g, 77, 3, 5, PATH_V)
 
   // Deep moss pools
   for (let r = 18; r <= 20; r++) {
-    for (let c = 8; c <= 12; c++) {
+    for (let c = 16; c <= 24; c++) {
       if (g[r][c] === FOREST_FLOOR || g[r][c] === FOREST_FLOOR_ALT) {
         g[r][c] = DEEP_MOSS
       }
     }
   }
-  g[6][30] = DEEP_MOSS
-  g[6][31] = DEEP_MOSS
-  g[7][30] = DEEP_MOSS
-  g[7][31] = DEEP_MOSS
-
-  // Path to special nodes
-  vPath(g, 20, 14, 20, PATH_V)
-  hPath(g, 20, 16, 24, PATH_H)
+  g[6][59] = DEEP_MOSS
+  g[6][61] = DEEP_MOSS
+  g[7][59] = DEEP_MOSS
+  g[7][61] = DEEP_MOSS
 
   return g
 }
@@ -202,69 +164,69 @@ function buildDecorations(): DecorationPlacement[] {
   }
 
   // Ancient twisted trees
-  placeAncientTree(40, 120)
-  placeAncientTree(200, 80)
-  placeAncientTree(400, 100)
-  placeAncientTree(600, 60)
-  placeAncientTree(800, 100)
-  placeAncientTree(1000, 80)
-  placeAncientTree(1200, 120)
+  placeAncientTree(78, 120)
+  placeAncientTree(391, 80)
+  placeAncientTree(781, 100)
+  placeAncientTree(1172, 60)
+  placeAncientTree(1563, 100)
+  placeAncientTree(1953, 80)
+  placeAncientTree(2344, 120)
 
   // Bottom trees
-  placeAncientTree(60, 680)
-  placeAncientTree(240, 660)
-  placeAncientTree(500, 680)
-  placeAncientTree(900, 660)
-  placeAncientTree(1150, 680)
+  placeAncientTree(117, 680)
+  placeAncientTree(469, 660)
+  placeAncientTree(977, 680)
+  placeAncientTree(1758, 660)
+  placeAncientTree(2246, 680)
 
   // Mid trees
-  placeAncientTree(150, 350)
-  placeAncientTree(450, 280)
-  placeAncientTree(700, 350)
-  placeAncientTree(950, 300)
+  placeAncientTree(293, 350)
+  placeAncientTree(879, 280)
+  placeAncientTree(1367, 350)
+  placeAncientTree(1855, 300)
 
   // Giant red mushrooms
   const mushroomSpots = [
-    [120, 450], [280, 380], [480, 500], [640, 420],
-    [820, 480], [1020, 400], [360, 600], [700, 580],
-    [1100, 520],
+    [234, 450], [547, 380], [938, 500], [1250, 420],
+    [1602, 480], [1992, 400], [703, 600], [1367, 580],
+    [2148, 520],
   ]
   for (const [x, y] of mushroomSpots) {
     decs.push({ tileIndex: MUSHROOM_RED, x, y, pulse: true })
   }
 
   // Mushroom clusters
-  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 180, y: 520 })
-  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 560, y: 450 })
-  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 880, y: 550 })
-  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 1060, y: 480 })
+  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 352, y: 520 })
+  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 1094, y: 450 })
+  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 1719, y: 550 })
+  decs.push({ tileIndex: MUSHROOM_CLUSTER, x: 2070, y: 480 })
 
   // Glowing moss patches
   const mossSpots = [
-    [100, 400], [300, 320], [500, 360], [700, 280],
-    [900, 340], [1100, 380], [250, 550], [650, 520],
+    [195, 400], [586, 320], [977, 360], [1367, 280],
+    [1758, 340], [2148, 380], [488, 550], [1270, 520],
   ]
   for (const [x, y] of mossSpots) {
     decs.push({ tileIndex: GLOWING_MOSS, x, y, flicker: true })
   }
 
   // Spider webs
-  decs.push({ tileIndex: SPIDER_WEB, x: 200, y: 200 })
-  decs.push({ tileIndex: SPIDER_WEB, x: 500, y: 160 })
-  decs.push({ tileIndex: SPIDER_WEB, x: 800, y: 200 })
-  decs.push({ tileIndex: SPIDER_WEB, x: 1100, y: 180 })
+  decs.push({ tileIndex: SPIDER_WEB, x: 391, y: 200 })
+  decs.push({ tileIndex: SPIDER_WEB, x: 977, y: 160 })
+  decs.push({ tileIndex: SPIDER_WEB, x: 1563, y: 200 })
+  decs.push({ tileIndex: SPIDER_WEB, x: 2148, y: 180 })
 
   // Twisted roots
-  decs.push({ tileIndex: TWISTED_ROOT, x: 80, y: 550 })
-  decs.push({ tileIndex: TWISTED_ROOT, x: 400, y: 580 })
-  decs.push({ tileIndex: TWISTED_ROOT, x: 750, y: 600 })
-  decs.push({ tileIndex: TWISTED_ROOT, x: 1050, y: 560 })
+  decs.push({ tileIndex: TWISTED_ROOT, x: 156, y: 550 })
+  decs.push({ tileIndex: TWISTED_ROOT, x: 781, y: 580 })
+  decs.push({ tileIndex: TWISTED_ROOT, x: 1465, y: 600 })
+  decs.push({ tileIndex: TWISTED_ROOT, x: 2051, y: 560 })
 
   // Ferns
   const fernSpots = [
-    [60, 300], [200, 250], [380, 200], [560, 300],
-    [740, 250], [920, 200], [1100, 280], [160, 620],
-    [440, 640], [800, 620], [1180, 600],
+    [117, 300], [391, 250], [742, 200], [1094, 300],
+    [1445, 250], [1797, 200], [2148, 280], [313, 620],
+    [859, 640], [1563, 620], [2305, 600],
   ]
   for (const [x, y] of fernSpots) {
     decs.push({ tileIndex: FERN, x, y, sway: true })
@@ -273,35 +235,22 @@ function buildDecorations(): DecorationPlacement[] {
   return decs
 }
 
-// ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: slight curve up
-    { cx: 160, cy: 420 },
-    // l2 → l3: rightward wave
-    { cx: 340, cy: 350 },
-    // l3 → mb1: dip down
-    { cx: 470, cy: 440 },
-    // mb1 → l4: up-right
-    { cx: 600, cy: 340 },
-    // l4 → l5: down-right
-    { cx: 720, cy: 420 },
-    // l5 → mb2: up-right
-    { cx: 840, cy: 340 },
-    // mb2 → l6: down-right
-    { cx: 960, cy: 420 },
-    // l6 → l7: up-right
-    { cx: 1100, cy: 340 },
-    // l7 → mb3: dip down-right
-    { cx: 1180, cy: 440 },
-    // mb3 → l8: left and up
-    { cx: 1100, cy: 300 },
-    // l8 → l9: curve up
-    { cx: 1100, cy: 240 },
-    // l9 → mb4: right curve
-    { cx: 1140, cy: 180 },
-    // mb4 → boss: final right
-    { cx: 1220, cy: 140 },
+    { cx: 235,  cy: 345 }, // l1 → l2   (going up)
+    { cx: 425,  cy: 430 }, // l2 → l3   (going down)
+    { cx: 610,  cy: 340 }, // l3 → mb1  (going up)
+    { cx: 790,  cy: 415 }, // mb1 → l4  (going down)
+    { cx: 975,  cy: 335 }, // l4 → l5   (going up)
+    { cx: 1165, cy: 420 }, // l5 → mb2  (going down)
+    { cx: 1345, cy: 335 }, // mb2 → l6  (going up)
+    { cx: 1520, cy: 405 }, // l6 → l7   (going down)
+    { cx: 1700, cy: 315 }, // l7 → mb3  (going up)
+    { cx: 1875, cy: 380 }, // mb3 → l8  (going down)
+    { cx: 2045, cy: 295 }, // l8 → l9   (going up)
+    { cx: 2215, cy: 165 }, // l9 → mb4  (going up)
+    { cx: 2380, cy: 75  }, // mb4 → boss (going up)
   ]
 }
 
@@ -311,7 +260,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Falling leaves — green leaf shapes drifting down
     {
       particleFrame: 'particleLeaf',
-      zone: { x: 0, y: -20, width: 1280, height: 100 },
+      zone: { x: 0, y: -20, width: 2500, height: 100 },
       tint: 0x44aa22,
       frequency: 800,
       lifespan: 7000,
@@ -323,7 +272,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Spore puffs — yellow-green dots bursting up
     {
       particleFrame: 'particleDot',
-      zone: { x: 0, y: 500, width: 1280, height: 220 },
+      zone: { x: 0, y: 500, width: 2500, height: 220 },
       tint: 0xaacc44,
       frequency: 1000,
       lifespan: 3000,
@@ -355,29 +304,23 @@ export const WORLD4_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path weaves horizontally through the middle
+  // Path snakes left-to-right (forest winding)
   nodePositions: [
-    { x: 80, y: 450 },   // l1 — far left entrance
-    { x: 240, y: 380 },  // l2
-    { x: 420, y: 360 },  // l3
-    { x: 560, y: 440 },  // mb1
-    { x: 680, y: 340 },  // l4
-    { x: 800, y: 420 },  // l5
-    { x: 920, y: 340 },  // mb2
-    { x: 1050, y: 430 }, // l6
-    { x: 1160, y: 360 }, // l7
-    { x: 1180, y: 470 }, // mb3
-    { x: 1080, y: 280 }, // l8
-    { x: 1060, y: 210 }, // l9
-    { x: 1120, y: 150 }, // mb4
-    { x: 1260, y: 120 }, // boss
+    { x: 140,  y: 450 }, // l1 — forest entrance (left)
+    { x: 330,  y: 320 }, // l2
+    { x: 520,  y: 460 }, // l3
+    { x: 700,  y: 300 }, // mb1
+    { x: 880,  y: 450 }, // l4
+    { x: 1070, y: 300 }, // l5
+    { x: 1260, y: 460 }, // mb2
+    { x: 1430, y: 290 }, // l6
+    { x: 1610, y: 440 }, // l7
+    { x: 1790, y: 270 }, // mb3
+    { x: 1960, y: 410 }, // l8
+    { x: 2130, y: 260 }, // l9
+    { x: 2300, y: 150 }, // mb4
+    { x: 2460, y: 80  }, // boss (right)
   ],
-
-  specialNodes: {
-    tavern: { x: 620, y: 640 },
-    stable: { x: 760, y: 640 },
-    shop: { x: 900, y: 640 },
-  },
 
   pathSegments: buildPathSegments(),
   atmosphere: buildAtmosphere(),

@@ -13,6 +13,7 @@ const TILE_SIZE = 32
 export class MapRenderer {
   private scene: Phaser.Scene
   private mapData: WorldMapData
+  private xOffset: number
 
   /** All tile images created by renderTileLayers */
   private tileImages: Phaser.GameObjects.Image[] = []
@@ -25,9 +26,10 @@ export class MapRenderer {
   /** Particle emitters */
   private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = []
 
-  constructor(scene: Phaser.Scene, mapData: WorldMapData) {
+  constructor(scene: Phaser.Scene, mapData: WorldMapData, xOffset = 0) {
     this.scene = scene
     this.mapData = mapData
+    this.xOffset = xOffset
   }
 
   // ---------------------------------------------------------------------------
@@ -58,12 +60,12 @@ export class MapRenderer {
     completedIds: Set<string>,
   ): Phaser.Curves.Path {
     const { nodePositions, pathSegments } = this.mapData
+    const ox = this.xOffset  // shorthand
     const gfx = this.scene.add.graphics()
     this.pathGraphics.push(gfx)
 
-    // Build a single composite path for avatar movement
     const first = nodePositions[0] ?? { x: 0, y: 0 }
-    const compositePath = new Phaser.Curves.Path(first.x, first.y)
+    const compositePath = new Phaser.Curves.Path(ox + first.x, first.y)
 
     for (let i = 0; i < levels.length - 1; i++) {
       const from = nodePositions[i]
@@ -72,21 +74,20 @@ export class MapRenderer {
 
       const segment = pathSegments[i]
       const isCompleted = completedIds.has(levels[i].id)
-
-      // Style: completed segments are brighter
       const color = isCompleted ? 0xaa8844 : 0x665533
       const alpha = isCompleted ? 1 : 0.6
 
       gfx.lineStyle(6, color, alpha)
 
+      const fx = ox + from.x, fy = from.y
+      const tx = ox + to.x,   ty = to.y
+
       if (segment?.cx !== undefined && segment?.cy !== undefined) {
-        // Quadratic bezier via control point
         const bezier = new Phaser.Curves.QuadraticBezier(
-          new Phaser.Math.Vector2(from.x, from.y),
-          new Phaser.Math.Vector2(segment.cx, segment.cy),
-          new Phaser.Math.Vector2(to.x, to.y),
+          new Phaser.Math.Vector2(fx, fy),
+          new Phaser.Math.Vector2(ox + segment.cx, segment.cy),
+          new Phaser.Math.Vector2(tx, ty),
         )
-        // Draw the curve
         gfx.beginPath()
         const points = bezier.getPoints(32)
         gfx.moveTo(points[0].x, points[0].y)
@@ -94,17 +95,13 @@ export class MapRenderer {
           gfx.lineTo(points[p].x, points[p].y)
         }
         gfx.strokePath()
-
-        // Add to composite path
-        compositePath.quadraticBezierTo(to.x, to.y, segment.cx, segment.cy)
+        compositePath.quadraticBezierTo(tx, ty, ox + segment.cx, segment.cy)
       } else {
-        // Straight line
         gfx.beginPath()
-        gfx.moveTo(from.x, from.y)
-        gfx.lineTo(to.x, to.y)
+        gfx.moveTo(fx, fy)
+        gfx.lineTo(tx, ty)
         gfx.strokePath()
-
-        compositePath.lineTo(to.x, to.y)
+        compositePath.lineTo(tx, ty)
       }
     }
 
@@ -168,7 +165,7 @@ export class MapRenderer {
         if (tileIndex < 0) continue // -1 = empty
 
         const img = this.scene.add.image(
-          col * TILE_SIZE,
+          this.xOffset + col * TILE_SIZE,
           row * TILE_SIZE,
           tilesetKey,
           tileIndex,
@@ -187,7 +184,7 @@ export class MapRenderer {
   ): Phaser.GameObjects.Image {
     const { tilesetKey } = this.mapData
 
-    const img = this.scene.add.image(deco.x, deco.y, tilesetKey, deco.tileIndex)
+    const img = this.scene.add.image(this.xOffset + deco.x, deco.y, tilesetKey, deco.tileIndex)
     img.setOrigin(0, 0)
 
     if (deco.depthOffset !== undefined) {
@@ -265,7 +262,7 @@ export class MapRenderer {
       emitZone: {
         type: 'random',
         source: new Phaser.Geom.Rectangle(
-          cfg.zone.x,
+          this.xOffset + cfg.zone.x,
           cfg.zone.y,
           cfg.zone.width,
           cfg.zone.height,

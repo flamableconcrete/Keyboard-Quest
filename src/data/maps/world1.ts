@@ -29,7 +29,7 @@ const COTTAGE_TOP = 30
 const COTTAGE_BOTTOM = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 40
+const COLS = 69
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -72,49 +72,49 @@ function buildGround(): TileGrid {
 
   // Scatter grass variants for visual variety
   const altPositions = [
-    [1, 5],
-    [2, 12],
-    [3, 25],
-    [4, 8],
-    [5, 30],
-    [6, 3],
-    [7, 18],
-    [8, 35],
-    [9, 10],
-    [10, 22],
-    [11, 7],
-    [12, 14],
-    [13, 28],
-    [14, 2],
-    [15, 36],
-    [16, 20],
-    [17, 9],
-    [18, 33],
-    [19, 15],
-    [20, 26],
-    [1, 20],
-    [3, 38],
-    [5, 16],
-    [7, 31],
-    [9, 4],
-    [11, 27],
-    [13, 11],
-    [15, 23],
-    [17, 37],
-    [19, 6],
-    [21, 19],
-    [2, 30],
-    [4, 17],
-    [6, 34],
-    [8, 1],
-    [10, 13],
-    [12, 39],
-    [14, 24],
-    [16, 8],
-    [18, 21],
-    [20, 32],
-    [22, 10],
-    [22, 35],
+    [1, 9],   // was [1, 5]
+    [2, 21],  // was [2, 12]
+    [3, 43],  // was [3, 25]
+    [4, 14],  // was [4, 8]
+    [5, 52],  // was [5, 30]
+    [6, 5],   // was [6, 3]
+    [7, 31],  // was [7, 18]
+    [8, 60],  // was [8, 35]
+    [9, 17],  // was [9, 10]
+    [10, 38], // was [10, 22]
+    [11, 12], // was [11, 7]
+    [12, 24], // was [12, 14]
+    [13, 48], // was [13, 28]
+    [14, 3],  // was [14, 2]
+    [15, 62], // was [15, 36]
+    [16, 35], // was [16, 20]
+    [17, 16], // was [17, 9]
+    [18, 57], // was [18, 33]
+    [19, 26], // was [19, 15]
+    [20, 45], // was [20, 26]
+    [1, 35],  // was [1, 20]
+    [3, 66],  // was [3, 38]
+    [5, 28],  // was [5, 16]
+    [7, 53],  // was [7, 31]
+    [9, 7],   // was [9, 4]
+    [11, 47], // was [11, 27]
+    [13, 19], // was [13, 11]
+    [15, 40], // was [15, 23]
+    [17, 64], // was [17, 37]
+    [19, 10], // was [19, 6]
+    [21, 33], // was [21, 19]
+    [2, 52],  // was [2, 30]
+    [4, 29],  // was [4, 17]
+    [6, 59],  // was [6, 34]
+    [8, 2],   // was [8, 1]
+    [10, 22], // was [10, 13]
+    [12, 67], // was [12, 39]
+    [14, 41], // was [14, 24]
+    [16, 14], // was [16, 8]
+    [18, 36], // was [18, 21]
+    [20, 55], // was [20, 32]
+    [22, 17], // was [22, 10]
+    [22, 60], // was [22, 35]
   ]
   for (const [r, c] of altPositions) {
     if (r < ROWS && c < COLS) {
@@ -125,82 +125,83 @@ function buildGround(): TileGrid {
   // ── Dirt paths connecting node areas ──────────────────────
   // Path from starting village (bottom-left) winding to upper-right
 
-  // Segment 1: l1 area → l2 area (row ~18, cols 4–8)
-  hPath(g, 18, 4, 8, PATH_H)
+  // Segment 1: l1 area → l2 area
+  hPath(g, 18, 7, 14, PATH_H)
   // Corner turn upward
-  g[18][8] = PATH_CORNER
-  vPath(g, 8, 16, 18, PATH_V)
+  g[18][14] = PATH_CORNER
+  vPath(g, 14, 16, 18, PATH_V)
 
-  // Segment 2: l2 → l3 (row ~16, cols 8–11)
-  g[16][8] = PATH_CORNER
-  hPath(g, 16, 8, 12, PATH_H)
+  // Segment 2: l2 → l3
+  g[16][14] = PATH_CORNER
+  hPath(g, 16, 14, 21, PATH_H)
 
-  // Segment 3: l3 → mb1 (row ~15, cols 12–15)
-  g[16][12] = PATH_CORNER
-  vPath(g, 12, 15, 16, PATH_V)
-  g[15][12] = PATH_CORNER
-  hPath(g, 15, 12, 16, PATH_H)
+  // Segment 3: l3 → mb1
+  g[16][21] = PATH_CORNER
+  vPath(g, 21, 15, 16, PATH_V)
+  g[15][21] = PATH_CORNER
+  hPath(g, 15, 21, 28, PATH_H)
 
-  // Segment 4: mb1 → l4 (row ~14, cols 16–19)
-  g[15][16] = PATH_CORNER
-  vPath(g, 16, 13, 15, PATH_V)
-  g[13][16] = PATH_CORNER
-  hPath(g, 13, 16, 20, PATH_H)
+  // Segment 4: mb1 → l4
+  g[15][28] = PATH_CORNER
+  vPath(g, 28, 13, 15, PATH_V)
+  g[13][28] = PATH_CORNER
+  hPath(g, 13, 28, 35, PATH_H)
 
-  // Segment 5: l4 → l5 (row ~12, cols 20–23)
-  g[13][20] = PATH_CORNER
-  vPath(g, 20, 11, 13, PATH_V)
-  g[11][20] = PATH_CORNER
-  hPath(g, 11, 20, 24, PATH_H)
+  // Segment 5: l4 → l5
+  g[13][35] = PATH_CORNER
+  vPath(g, 35, 11, 13, PATH_V)
+  g[11][35] = PATH_CORNER
+  hPath(g, 11, 35, 41, PATH_H)
 
-  // Segment 6: l5 → mb2 (row ~10, cols 24–26)
-  g[11][24] = PATH_CORNER
-  vPath(g, 24, 10, 11, PATH_V)
-  g[10][24] = PATH_CORNER
-  hPath(g, 10, 24, 27, PATH_H)
+  // Segment 6: l5 → mb2
+  g[11][41] = PATH_CORNER
+  vPath(g, 41, 10, 11, PATH_V)
+  g[10][41] = PATH_CORNER
+  hPath(g, 10, 41, 47, PATH_H)
 
-  // Segment 7: mb2 → l6 (double-back left, row ~8, cols 22–27)
-  g[10][27] = PATH_CORNER
-  vPath(g, 27, 8, 10, PATH_V)
-  g[8][27] = PATH_CORNER
-  hPath(g, 8, 22, 27, PATH_H)
+  // Segment 7: mb2 → l6 (double-back left)
+  g[10][47] = PATH_CORNER
+  vPath(g, 47, 8, 10, PATH_V)
+  g[8][47] = PATH_CORNER
+  hPath(g, 8, 38, 47, PATH_H)
 
-  // Segment 8: l6 → l7 (row ~7, cols 22–26)
-  g[8][22] = PATH_CORNER
-  vPath(g, 22, 7, 8, PATH_V)
-  g[7][22] = PATH_CORNER
-  hPath(g, 7, 22, 26, PATH_H)
+  // Segment 8: l6 → l7
+  g[8][38] = PATH_CORNER
+  vPath(g, 38, 7, 8, PATH_V)
+  g[7][38] = PATH_CORNER
+  hPath(g, 7, 38, 45, PATH_H)
 
-  // Segment 9: l7 → mb3 (row ~9, cols 26–30)
-  g[7][26] = PATH_CORNER
-  vPath(g, 26, 7, 9, PATH_V)
-  g[9][26] = PATH_CORNER
-  hPath(g, 9, 26, 30, PATH_H)
+  // Segment 9: l7 → mb3
+  g[7][45] = PATH_CORNER
+  vPath(g, 45, 7, 9, PATH_V)
+  g[9][45] = PATH_CORNER
+  hPath(g, 9, 45, 52, PATH_H)
 
-  // Segment 10: mb3 → l8 (row ~7, cols 30–34)
-  g[9][30] = PATH_CORNER
-  vPath(g, 30, 7, 9, PATH_V)
-  g[7][30] = PATH_CORNER
-  hPath(g, 7, 30, 34, PATH_H)
+  // Segment 10: mb3 → l8
+  g[9][52] = PATH_CORNER
+  vPath(g, 52, 7, 9, PATH_V)
+  g[7][52] = PATH_CORNER
+  hPath(g, 7, 52, 59, PATH_H)
 
-  // Segment 11: l8 → boss (row ~5, cols 34–37)
-  g[7][34] = PATH_CORNER
-  vPath(g, 34, 5, 7, PATH_V)
-  g[5][34] = PATH_CORNER
-  hPath(g, 5, 34, 37, PATH_H)
+  // Segment 11: l8 → boss
+  g[7][59] = PATH_CORNER
+  vPath(g, 59, 5, 7, PATH_V)
+  g[5][59] = PATH_CORNER
+  hPath(g, 5, 59, 64, PATH_H)
 
   // ── Small pond (bottom-center area) ──────────────────────
-  g[20][18] = WATER
-  g[20][19] = WATER
-  g[20][20] = WATER
-  g[21][18] = WATER
-  g[21][19] = WATER
-  g[21][20] = WATER
-  g[21][21] = WATER
+  g[20][31] = WATER
+  g[20][33] = WATER
+  g[20][35] = WATER
+  g[20][36] = WATER
+  g[21][31] = WATER
+  g[21][33] = WATER
+  g[21][35] = WATER
+  g[21][36] = WATER
 
   // Path from main trail down to special nodes row (row ~20)
-  vPath(g, 15, 18, 20, PATH_V)
-  hPath(g, 20, 14, 23, PATH_H)
+  vPath(g, 26, 18, 20, PATH_V)
+  hPath(g, 20, 24, 40, PATH_H)
 
   return g
 }
@@ -221,90 +222,90 @@ function buildDecorations(): DecorationPlacement[] {
   }
 
   // Scattered oak trees along the map edges and between paths
-  placeTree(40, 80)
-  placeTree(100, 120)
-  placeTree(200, 60)
-  placeTree(320, 100)
-  placeTree(500, 80)
-  placeTree(680, 60)
-  placeTree(900, 100)
-  placeTree(1100, 60)
-  placeTree(1200, 120)
+  placeTree(69, 80)
+  placeTree(172, 120)
+  placeTree(344, 60)
+  placeTree(547, 100)
+  placeTree(859, 80)
+  placeTree(1169, 60)
+  placeTree(1547, 100)
+  placeTree(1891, 60)
+  placeTree(2063, 120)
 
   // Trees along the bottom
-  placeTree(20, 660)
-  placeTree(160, 680)
-  placeTree(880, 660)
-  placeTree(1000, 680)
-  placeTree(1200, 650)
+  placeTree(34, 660)
+  placeTree(275, 680)
+  placeTree(1513, 660)
+  placeTree(1719, 680)
+  placeTree(2063, 650)
 
   // Mid-area trees for depth
-  placeTree(50, 400)
-  placeTree(180, 320)
-  placeTree(440, 350)
-  placeTree(600, 200)
-  placeTree(780, 150)
-  placeTree(1020, 350)
-  placeTree(1150, 300)
+  placeTree(86, 400)
+  placeTree(309, 320)
+  placeTree(756, 350)
+  placeTree(1031, 200)
+  placeTree(1341, 150)
+  placeTree(1753, 350)
+  placeTree(1977, 300)
 
   // Wildflowers scattered across meadow
   const flowerSpots = [
-    [80, 500],
-    [200, 450],
-    [350, 380],
-    [520, 350],
-    [660, 320],
-    [800, 200],
-    [950, 180],
-    [1100, 150],
-    [300, 620],
-    [750, 600],
-    [1050, 580],
-    [130, 250],
-    [420, 200],
-    [560, 500],
-    [900, 450],
+    [138, 500],
+    [344, 450],
+    [602, 380],
+    [894, 350],
+    [1134, 320],
+    [1375, 200],
+    [1633, 180],
+    [1891, 150],
+    [516, 620],
+    [1289, 600],
+    [1805, 580],
+    [223, 250],
+    [722, 200],
+    [963, 500],
+    [1547, 450],
   ]
   for (const [x, y] of flowerSpots) {
     decs.push({ tileIndex: WILDFLOWER, x, y, pulse: true })
   }
 
   // Hay bales near the starting village
-  decs.push({ tileIndex: HAY_BALE, x: 100, y: 620 })
-  decs.push({ tileIndex: HAY_BALE, x: 180, y: 600 })
-  decs.push({ tileIndex: HAY_BALE, x: 60, y: 570 })
+  decs.push({ tileIndex: HAY_BALE, x: 172, y: 620 })
+  decs.push({ tileIndex: HAY_BALE, x: 309, y: 600 })
+  decs.push({ tileIndex: HAY_BALE, x: 103, y: 570 })
 
   // Fences around the village area
-  decs.push({ tileIndex: FENCE, x: 70, y: 550 })
-  decs.push({ tileIndex: FENCE, x: 102, y: 550 })
-  decs.push({ tileIndex: FENCE, x: 134, y: 550 })
-  decs.push({ tileIndex: FENCE, x: 166, y: 550 })
+  decs.push({ tileIndex: FENCE, x: 120, y: 550 })
+  decs.push({ tileIndex: FENCE, x: 175, y: 550 })
+  decs.push({ tileIndex: FENCE, x: 230, y: 550 })
+  decs.push({ tileIndex: FENCE, x: 285, y: 550 })
 
   // Cottages — starting village
   decs.push({
     tileIndex: COTTAGE_TOP,
-    x: 60,
+    x: 103,
     y: 480,
     depthOffset: -16,
   })
-  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 60, y: 512 })
+  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 103, y: 512 })
 
   decs.push({
     tileIndex: COTTAGE_TOP,
-    x: 200,
+    x: 344,
     y: 460,
     depthOffset: -16,
   })
-  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 200, y: 492 })
+  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 344, y: 492 })
 
   // Cottage near mid-map
   decs.push({
     tileIndex: COTTAGE_TOP,
-    x: 640,
+    x: 1100,
     y: 500,
     depthOffset: -16,
   })
-  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 640, y: 532 })
+  decs.push({ tileIndex: COTTAGE_BOTTOM, x: 1100, y: 532 })
 
   return decs
 }
@@ -313,27 +314,27 @@ function buildDecorations(): DecorationPlacement[] {
 function buildPathSegments(): PathSegment[] {
   return [
     // l1 → l2: gentle curve upward
-    { cx: 190, cy: 580 },
+    { cx: 327,  cy: 580 },
     // l2 → l3: slight curve
-    { cx: 310, cy: 500 },
+    { cx: 533,  cy: 500 },
     // l3 → mb1: curve right
-    { cx: 430, cy: 470 },
+    { cx: 739,  cy: 470 },
     // mb1 → l4: slight S-curve
-    { cx: 560, cy: 460 },
+    { cx: 963,  cy: 460 },
     // l4 → l5: gentle rise
-    { cx: 680, cy: 390 },
+    { cx: 1169, cy: 390 },
     // l5 → mb2: short hop
-    { cx: 790, cy: 350 },
+    { cx: 1358, cy: 350 },
     // mb2 → l6: double-back left and up
-    { cx: 800, cy: 280 },
+    { cx: 1375, cy: 280 },
     // l6 → l7: rightward curve
-    { cx: 770, cy: 250 },
+    { cx: 1323, cy: 250 },
     // l7 → mb3: curve down-right
-    { cx: 890, cy: 280 },
+    { cx: 1530, cy: 280 },
     // mb3 → l8: curve upward
-    { cx: 1000, cy: 250 },
+    { cx: 1719, cy: 250 },
     // l8 → boss: final ascent
-    { cx: 1110, cy: 200 },
+    { cx: 1908, cy: 200 },
   ]
 }
 
@@ -343,7 +344,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // Pollen / butterfly particles — yellow-ish, floating upward
     {
       particleFrame: 'particleDot',
-      zone: { x: 0, y: 200, width: 1280, height: 520 },
+      zone: { x: 0, y: 200, width: 2200, height: 520 },
       tint: 0xfff4a0,
       frequency: 800,
       lifespan: 6000,
@@ -355,7 +356,7 @@ function buildAtmosphere(): AtmosphereEmitter[] {
     // White ambient dots — subtle floating particles
     {
       particleFrame: 'particleDot',
-      zone: { x: 0, y: 0, width: 1280, height: 720 },
+      zone: { x: 0, y: 0, width: 2200, height: 720 },
       tint: 0xffffff,
       frequency: 1200,
       lifespan: 4000,
@@ -388,25 +389,19 @@ export const WORLD1_MAP: WorldMapData = {
   decorations: buildDecorations(),
 
   nodePositions: [
-    { x: 140, y: 590 }, // l1 — starting village
-    { x: 260, y: 530 }, // l2
-    { x: 370, y: 500 }, // l3
-    { x: 500, y: 460 }, // mb1
-    { x: 620, y: 430 }, // l4
-    { x: 740, y: 380 }, // l5
-    { x: 840, y: 340 }, // mb2
-    { x: 710, y: 280 }, // l6
-    { x: 830, y: 250 }, // l7
-    { x: 940, y: 290 }, // mb3
-    { x: 1060, y: 240 }, // l8
-    { x: 1160, y: 190 }, // boss
+    { x: 241,  y: 590 }, // l1 — starting village
+    { x: 447,  y: 530 }, // l2
+    { x: 636,  y: 500 }, // l3
+    { x: 859,  y: 460 }, // mb1
+    { x: 1066, y: 430 }, // l4
+    { x: 1272, y: 380 }, // l5
+    { x: 1444, y: 340 }, // mb2
+    { x: 1220, y: 280 }, // l6
+    { x: 1427, y: 250 }, // l7
+    { x: 1616, y: 290 }, // mb3
+    { x: 1822, y: 240 }, // l8
+    { x: 1994, y: 190 }, // boss
   ],
-
-  specialNodes: {
-    tavern: { x: 580, y: 630 },
-    stable: { x: 710, y: 630 },
-    shop: { x: 840, y: 630 },
-  },
 
   pathSegments: buildPathSegments(),
   atmosphere: buildAtmosphere(),
