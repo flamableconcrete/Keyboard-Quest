@@ -23,6 +23,11 @@ export class OverlandMapScene extends Phaser.Scene {
   private glowRect?: Phaser.GameObjects.Rectangle
   private currentNodeIndex = 0
   private avatarBasePos: NodePosition = { x: 0, y: 0 }
+  private isPanning = false
+  private panStartX = 0
+  private panCamStartX = 0
+  private readonly EDGE_SCROLL_THRESHOLD = 60
+  private readonly EDGE_SCROLL_MAX_SPEED = 12
 
   /** @deprecated — Task 11 will rewrite glideAvatarTo to use worldPaths array */
   private get worldPath(): Phaser.Curves.Path | undefined {
@@ -89,6 +94,17 @@ export class OverlandMapScene extends Phaser.Scene {
     const { width } = this.scale
 
     this.cameras.main.setBounds(0, 0, UNIFIED_MAP.totalWidth, 720)
+
+    // Snap camera to current world on load
+    const snapWorldIdx = (this.profile.currentWorld ?? 1) - 1
+    const snapOffset = UNIFIED_MAP.xOffsets[snapWorldIdx] ?? 0
+    const snapWidth = UNIFIED_MAP.widths[snapWorldIdx] ?? 1280
+    const vw = this.scale.width
+    this.cameras.main.scrollX = Phaser.Math.Clamp(
+      snapOffset + snapWidth / 2 - vw / 2,
+      0,
+      UNIFIED_MAP.totalWidth - vw
+    )
 
     this.buildUnifiedMap()
 
@@ -163,6 +179,34 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     // Scale down the pixel art avatar slightly to fit the map nodes better
     this.avatar.setScale(0.75)
     this.avatar.setOrigin(0.5, 1) // Anchor at bottom center so feet touch the node
+
+    // ── Click-drag panning ───────────────────────────────────
+    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.isPanning = false
+      this.panStartX = ptr.x
+      this.panCamStartX = this.cameras.main.scrollX
+    })
+
+    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => {
+      if (!ptr.isDown) return
+      const dx = ptr.x - this.panStartX
+      if (!this.isPanning && Math.abs(dx) > 5) {
+        this.isPanning = true
+      }
+      if (this.isPanning) {
+        const vw = this.scale.width
+        this.cameras.main.scrollX = Phaser.Math.Clamp(
+          this.panCamStartX - dx,
+          0,
+          UNIFIED_MAP.totalWidth - vw
+        )
+      }
+    })
+
+    this.input.on('pointerup', () => {
+      // isPanning stays true until next pointerdown so node click is suppressed
+      // Reset on next frame via pointerdown
+    })
   }
 
   update(time: number) {
@@ -177,6 +221,35 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         this.avatarShadow.setPosition(this.avatarBasePos.x, this.avatarBasePos.y + 2);
         const shadowScale = 1 - (bobOffset * 0.05);
         this.avatarShadow.setScale(shadowScale, shadowScale);
+      }
+    }
+
+    // ── Edge scroll ──────────────────────────────────────────
+    const ptr = this.input.activePointer
+    if (ptr && ptr.isDown && this.isPanning) {
+      // Edge scroll is handled via drag, skip
+    } else if (ptr) {
+      const px = ptr.x
+      const vw = this.scale.width
+      const threshold = this.EDGE_SCROLL_THRESHOLD
+      const maxSpeed = this.EDGE_SCROLL_MAX_SPEED
+      let scrollDelta = 0
+
+      if (px < threshold) {
+        // Near left edge — scroll left
+        scrollDelta = -maxSpeed * (1 - px / threshold)
+      } else if (px > vw - threshold) {
+        // Near right edge — scroll right
+        scrollDelta = maxSpeed * ((px - (vw - threshold)) / threshold)
+      }
+
+      if (scrollDelta !== 0) {
+        const vwVal = this.scale.width
+        this.cameras.main.scrollX = Phaser.Math.Clamp(
+          this.cameras.main.scrollX + scrollDelta,
+          0,
+          UNIFIED_MAP.totalWidth - vwVal
+        )
       }
     }
   }
@@ -252,7 +325,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           this.hideTooltip()
         })
 
-        nodeSprite.on('pointerdown', () => this.enterLevel(level, pos))
+        nodeSprite.on('pointerup', () => {
+          if (!this.isPanning) this.enterLevel(level, pos)
+        })
       }
 
       // Completion shimmer particles
