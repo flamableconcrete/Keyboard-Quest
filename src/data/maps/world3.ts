@@ -104,63 +104,33 @@ function buildGround(): TileGrid {
     if (r < ROWS && c < COLS) g[r][c] = CRACKED_EARTH
   }
 
-  // ── Path spirals upward from bottom-center ─────────────
-  // Segment 1: l1 (bottom-center) → l2 (right)
-  hPath(g, 19, 36, 47, PATH_H)
-
-  // Segment 2: l2 → l3 (up-right)
-  g[19][47] = PATH_CORNER
-  vPath(g, 47, 17, 19, PATH_V)
-  g[17][47] = PATH_CORNER
-  hPath(g, 17, 47, 59, PATH_H)
-
-  // Segment 3: l3 → mb1 (up)
-  g[17][59] = PATH_CORNER
-  vPath(g, 59, 14, 17, PATH_V)
-
-  // Segment 4: mb1 → l4 (left)
-  g[14][59] = PATH_CORNER
-  hPath(g, 14, 47, 59, PATH_H)
-  g[14][47] = PATH_CORNER
-  vPath(g, 47, 12, 14, PATH_V)
-
-  // Segment 5: l4 → l5 (left and up)
-  g[12][47] = PATH_CORNER
-  hPath(g, 12, 36, 47, PATH_H)
-  g[12][36] = PATH_CORNER
-  vPath(g, 36, 10, 12, PATH_V)
-
-  // Segment 6: l5 → mb2 (left)
-  g[10][36] = PATH_CORNER
-  hPath(g, 10, 24, 36, PATH_H)
-
-  // Segment 7: mb2 → l6 (up)
-  g[10][24] = PATH_CORNER
-  vPath(g, 24, 8, 10, PATH_V)
-  g[8][24] = PATH_CORNER
-  hPath(g, 8, 16, 24, PATH_H)
-
-  // Segment 8: l6 → l7 (right and up)
-  g[8][16] = PATH_CORNER
-  vPath(g, 16, 6, 8, PATH_V)
-  g[6][16] = PATH_CORNER
-  hPath(g, 6, 16, 28, PATH_H)
-
-  // Segment 9: l7 → mb3 (up-right)
-  g[6][28] = PATH_CORNER
-  vPath(g, 28, 4, 6, PATH_V)
-  g[4][28] = PATH_CORNER
-  hPath(g, 4, 28, 40, PATH_H)
-
-  // Segment 10: mb3 → l8 (up)
-  g[4][40] = PATH_CORNER
-  vPath(g, 40, 3, 4, PATH_V)
-
-  // Segment 11: l8 → boss (up-center)
-  g[3][40] = PATH_CORNER
-  hPath(g, 3, 36, 40, PATH_H)
-  g[3][36] = PATH_CORNER
-  vPath(g, 36, 1, 3, PATH_V)
+  // ── Path snakes left-to-right ─────────────────────────────
+  // l1(4,19) → l2(10,15)
+  hPath(g, 19, 4, 10, PATH_H); g[19][10] = PATH_CORNER; vPath(g, 10, 15, 19, PATH_V)
+  // l2(10,15) → l3(16,12)
+  hPath(g, 15, 10, 16, PATH_H); g[15][16] = PATH_CORNER; vPath(g, 16, 12, 15, PATH_V)
+  // l3(16,12) → mb1(22,8)
+  hPath(g, 12, 16, 22, PATH_H); g[12][22] = PATH_CORNER; vPath(g, 22, 8, 12, PATH_V)
+  // mb1(22,8) → l4(28,13)
+  hPath(g, 8, 22, 28, PATH_H); g[8][28] = PATH_CORNER; vPath(g, 28, 8, 13, PATH_V)
+  // l4(28,13) → l5(33,17)
+  hPath(g, 13, 28, 33, PATH_H); g[13][33] = PATH_CORNER; vPath(g, 33, 13, 17, PATH_V)
+  // l5(33,17) → mb2(39,11)
+  hPath(g, 17, 33, 39, PATH_H); g[17][39] = PATH_CORNER; vPath(g, 39, 11, 17, PATH_V)
+  // mb2(39,11) → l6(44,16)
+  hPath(g, 11, 39, 44, PATH_H); g[11][44] = PATH_CORNER; vPath(g, 44, 11, 16, PATH_V)
+  // l6(44,16) → l7(50,11)
+  hPath(g, 16, 44, 50, PATH_H); g[16][50] = PATH_CORNER; vPath(g, 50, 11, 16, PATH_V)
+  // l7(50,11) → mb3(56,6)
+  hPath(g, 11, 50, 56, PATH_H); g[11][56] = PATH_CORNER; vPath(g, 56, 6, 11, PATH_V)
+  // mb3(56,6) → l8(61,10)
+  hPath(g, 6, 56, 61, PATH_H); g[6][61] = PATH_CORNER; vPath(g, 61, 6, 10, PATH_V)
+  // l8(61,10) → l9(66,6)
+  hPath(g, 10, 61, 66, PATH_H); g[10][66] = PATH_CORNER; vPath(g, 66, 6, 10, PATH_V)
+  // l9(66,6) → mb4(71,3)
+  hPath(g, 6, 66, 71, PATH_H); g[6][71] = PATH_CORNER; vPath(g, 71, 3, 6, PATH_V)
+  // mb4(71,3) → boss(76,1)
+  hPath(g, 3, 71, 76, PATH_H); g[3][76] = PATH_CORNER; vPath(g, 76, 1, 3, PATH_V)
 
   // ── Lava flows ─────────────────────────────────────────────
   // Central lava river
@@ -183,10 +153,6 @@ function buildGround(): TileGrid {
   g[18][10] = LAVA_1
   g[19][8] = LAVA_1
   g[19][10] = LAVA_1
-
-  // Path down to special nodes
-  vPath(g, 40, 19, 21, PATH_V)
-  hPath(g, 21, 32, 47, PATH_H)
 
   return g
 }
@@ -252,35 +218,22 @@ function buildDecorations(): DecorationPlacement[] {
   return decs
 }
 
-// ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: curve right
-    { cx: 1250, cy: 620 },
-    // l2 → l3: up-right curve
-    { cx: 1660, cy: 560 },
-    // l3 → mb1: upward
-    { cx: 1914, cy: 480 },
-    // mb1 → l4: arc left
-    { cx: 1660, cy: 420 },
-    // l4 → l5: left and up
-    { cx: 1328, cy: 370 },
-    // l5 → mb2: leftward
-    { cx: 977, cy: 340 },
-    // mb2 → l6: up-left
-    { cx: 684, cy: 280 },
-    // l6 → l7: curve right
-    { cx: 664, cy: 220 },
-    // l7 → mb3: up-right
-    { cx: 1016, cy: 170 },
-    // mb3 → l8: upward
-    { cx: 1211, cy: 120 },
-    // l8 → l9: curve left
-    { cx: 1172, cy: 60 },
-    // l9 → mb4: right upward
-    { cx: 1406, cy: 40 },
-    // mb4 → boss: final climb
-    { cx: 1563, cy: 20 },
+    { cx: 230,  cy: 505 }, // l1 → l2   (going up)
+    { cx: 415,  cy: 390 }, // l2 → l3   (going up)
+    { cx: 610,  cy: 270 }, // l3 → mb1  (going up)
+    { cx: 795,  cy: 365 }, // mb1 → l4  (going down)
+    { cx: 970,  cy: 505 }, // l4 → l5   (going down)
+    { cx: 1160, cy: 405 }, // l5 → mb2  (going up)
+    { cx: 1340, cy: 470 }, // mb2 → l6  (going down)
+    { cx: 1510, cy: 380 }, // l6 → l7   (going up)
+    { cx: 1690, cy: 230 }, // l7 → mb3  (going up)
+    { cx: 1860, cy: 300 }, // mb3 → l8  (going down)
+    { cx: 2020, cy: 215 }, // l8 → l9   (going up)
+    { cx: 2185, cy: 105 }, // l9 → mb4  (going up)
+    { cx: 2350, cy: 30  }, // mb4 → boss (going up)
   ]
 }
 
@@ -334,22 +287,22 @@ export const WORLD3_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path spirals upward from bottom-center
+  // Path snakes left-to-right (volcanic peaks)
   nodePositions: [
-    { x: 1133, y: 610 },  // l1 — bottom-center start
-    { x: 1445, y: 580 },  // l2
-    { x: 1836, y: 540 },  // l3
-    { x: 1836, y: 450 },  // mb1
-    { x: 1523, y: 400 },  // l4
-    { x: 1172, y: 340 },  // l5
-    { x: 820, y: 320 },   // mb2
-    { x: 547, y: 270 },   // l6
-    { x: 781, y: 210 },   // l7
-    { x: 1094, y: 150 },  // mb3
-    { x: 1250, y: 100 },  // l8
-    { x: 1328, y: 60 },   // l9
-    { x: 1484, y: 30 },   // mb4
-    { x: 1680, y: 20 },   // boss — summit
+    { x: 140,  y: 600 }, // l1 — volcanic foothills (left)
+    { x: 320,  y: 490 }, // l2
+    { x: 510,  y: 370 }, // l3
+    { x: 710,  y: 250 }, // mb1
+    { x: 880,  y: 400 }, // l4
+    { x: 1060, y: 530 }, // l5
+    { x: 1260, y: 360 }, // mb2
+    { x: 1420, y: 500 }, // l6
+    { x: 1600, y: 340 }, // l7
+    { x: 1780, y: 200 }, // mb3
+    { x: 1940, y: 320 }, // l8
+    { x: 2100, y: 190 }, // l9
+    { x: 2270, y: 100 }, // mb4
+    { x: 2430, y: 40  }, // boss — volcanic summit (right)
   ],
 
   pathSegments: buildPathSegments(),
