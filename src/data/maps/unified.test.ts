@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  NODE_H_SPACING,
-  WORLD_MARGIN,
-  TILE_SIZE,
   computeWorldWidth,
   computeWorldWidths,
   computeWorldXOffsets,

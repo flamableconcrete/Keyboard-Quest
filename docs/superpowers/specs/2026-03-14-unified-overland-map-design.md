@@ -131,6 +131,7 @@ Tavern Stable  Shop  Character
 ```
 
 **Styling** (same as current character button, minus the glow ring):
+
 - Dark circle background
 - Gold border with stroke
 - Hover: background lightens, border turns gold, icon scales up slightly
