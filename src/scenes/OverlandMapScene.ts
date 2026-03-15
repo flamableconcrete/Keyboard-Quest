@@ -197,7 +197,7 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawHudButton(w - 330, h - 60, '🍺', 'TAVERN', () => {
       this.scene.start('Tavern', { profileSlot: this.profileSlot })
     })
-    this.drawHudButton(60, h - 60, '🧭', 'FIND HERO', () => {
+    this.drawHudButton(70, h - 60, '🧭', 'FIND HERO', () => {
       this.panToAvatar()
     })
 
