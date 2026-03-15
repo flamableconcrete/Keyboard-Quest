@@ -7,6 +7,11 @@ import {
   computeTileCols,
   worldIndexAtScrollX,
 } from './unified'
+import { WORLD2_MAP } from './world2'
+import { WORLD3_MAP } from './world3'
+import { WORLD4_MAP } from './world4'
+import { WORLD5_MAP } from './world5'
+import type { WorldMapData } from './types'
 
 const LEVEL_COUNTS = [12, 15, 14, 14, 13]
 
@@ -76,5 +81,42 @@ describe('worldIndexAtScrollX', () => {
   it('clamps to valid range', () => {
     expect(worldIndexAtScrollX(-100, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(0)
     expect(worldIndexAtScrollX(99999, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(4)
+  })
+})
+
+describe('world map nodePositions layout constraints', () => {
+  const worlds: [string, WorldMapData, number][] = [
+    ['world2', WORLD2_MAP, 2650],
+    ['world3', WORLD3_MAP, 2500],
+    ['world4', WORLD4_MAP, 2500],
+    ['world5', WORLD5_MAP, 2350],
+  ]
+
+  worlds.forEach(([name, map, maxWidth]) => {
+    describe(name, () => {
+      it('x values strictly increase (left-to-right, no crossings)', () => {
+        for (let i = 1; i < map.nodePositions.length; i++) {
+          expect(map.nodePositions[i].x).toBeGreaterThan(map.nodePositions[i - 1].x)
+        }
+      })
+
+      it('y values stay within canvas bounds [30, 680]', () => {
+        for (const pos of map.nodePositions) {
+          expect(pos.y).toBeGreaterThanOrEqual(30)
+          expect(pos.y).toBeLessThanOrEqual(680)
+        }
+      })
+
+      it('x values stay within world pixel width', () => {
+        for (const pos of map.nodePositions) {
+          expect(pos.x).toBeGreaterThan(0)
+          expect(pos.x).toBeLessThan(maxWidth)
+        }
+      })
+
+      it('pathSegments count equals nodePositions.length - 1', () => {
+        expect(map.pathSegments.length).toBe(map.nodePositions.length - 1)
+      })
+    })
   })
 })
