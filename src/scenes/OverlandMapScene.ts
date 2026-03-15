@@ -715,6 +715,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   }
 
   private enterLevel(level: LevelConfig, pos: { x: number; y: number }) {
+    if (this.isGliding) return
+    this.isGliding = true
+
     const cam = this.cameras.main
     const vw = this.scale.width
     const isOffScreen = pos.x < cam.scrollX || pos.x > cam.scrollX + vw
