@@ -159,35 +159,37 @@ function buildGround(): TileGrid {
   g[10][41] = PATH_CORNER
   hPath(g, 10, 41, 47, PATH_H)
 
-  // Segment 7: mb2 → l6 (double-back left)
+  // Segment 7: mb2 → l6 (right and up)
   g[10][47] = PATH_CORNER
-  vPath(g, 47, 8, 10, PATH_V)
-  g[8][47] = PATH_CORNER
-  hPath(g, 8, 38, 47, PATH_H)
+  hPath(g, 10, 47, 49, PATH_H)
+  g[10][49] = PATH_CORNER
+  vPath(g, 49, 9, 10, PATH_V)
 
   // Segment 8: l6 → l7
-  g[8][38] = PATH_CORNER
-  vPath(g, 38, 7, 8, PATH_V)
-  g[7][38] = PATH_CORNER
-  hPath(g, 7, 38, 45, PATH_H)
+  g[9][49] = PATH_CORNER
+  hPath(g, 9, 49, 53, PATH_H)
+  g[9][53] = PATH_CORNER
+  vPath(g, 53, 8, 9, PATH_V)
 
   // Segment 9: l7 → mb3
-  g[7][45] = PATH_CORNER
-  vPath(g, 45, 7, 9, PATH_V)
-  g[9][45] = PATH_CORNER
-  hPath(g, 9, 45, 52, PATH_H)
+  g[8][53] = PATH_CORNER
+  hPath(g, 8, 53, 56, PATH_H)
+  g[8][56] = PATH_CORNER
+  vPath(g, 56, 7, 8, PATH_V)
 
   // Segment 10: mb3 → l8
-  g[9][52] = PATH_CORNER
-  vPath(g, 52, 7, 9, PATH_V)
-  g[7][52] = PATH_CORNER
-  hPath(g, 7, 52, 59, PATH_H)
+  g[7][56] = PATH_CORNER
+  hPath(g, 7, 56, 59, PATH_H)
+  g[7][59] = PATH_CORNER
+  vPath(g, 59, 6, 7, PATH_V)
 
   // Segment 11: l8 → boss
-  g[7][59] = PATH_CORNER
-  vPath(g, 59, 5, 7, PATH_V)
-  g[5][59] = PATH_CORNER
-  hPath(g, 5, 59, 64, PATH_H)
+  g[6][59] = PATH_CORNER
+  hPath(g, 6, 59, 62, PATH_H)
+  g[6][62] = PATH_CORNER
+  vPath(g, 62, 5, 6, PATH_V)
+  g[5][62] = PATH_CORNER
+  hPath(g, 5, 62, 65, PATH_H)
 
   // ── Small pond (bottom-center area) ──────────────────────
   g[20][31] = WATER
@@ -325,16 +327,16 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1169, cy: 390 },
     // l5 → mb2: short hop
     { cx: 1358, cy: 350 },
-    // mb2 → l6: double-back left and up
-    { cx: 1375, cy: 280 },
-    // l6 → l7: rightward curve
-    { cx: 1323, cy: 250 },
-    // l7 → mb3: curve down-right
-    { cx: 1530, cy: 280 },
+    // mb2 → l6: rightward curve
+    { cx: 1507, cy: 320 },
+    // l6 → l7: gentle rise
+    { cx: 1630, cy: 285 },
+    // l7 → mb3: curve right
+    { cx: 1735, cy: 260 },
     // mb3 → l8: curve upward
-    { cx: 1719, cy: 250 },
+    { cx: 1830, cy: 235 },
     // l8 → boss: final ascent
-    { cx: 1908, cy: 200 },
+    { cx: 1937, cy: 205 },
   ]
 }
 
@@ -396,10 +398,10 @@ export const WORLD1_MAP: WorldMapData = {
     { x: 1066, y: 430 }, // l4
     { x: 1272, y: 380 }, // l5
     { x: 1444, y: 340 }, // mb2
-    { x: 1220, y: 280 }, // l6
-    { x: 1427, y: 250 }, // l7
-    { x: 1616, y: 290 }, // mb3
-    { x: 1822, y: 240 }, // l8
+    { x: 1570, y: 300 }, // l6
+    { x: 1690, y: 270 }, // l7
+    { x: 1780, y: 250 }, // mb3
+    { x: 1880, y: 220 }, // l8
     { x: 1994, y: 190 }, // boss
   ],
 

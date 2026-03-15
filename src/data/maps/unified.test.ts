@@ -7,6 +7,7 @@ import {
   computeTileCols,
   worldIndexAtScrollX,
 } from './unified'
+import { WORLD1_MAP } from './world1'
 import { WORLD2_MAP } from './world2'
 import { WORLD3_MAP } from './world3'
 import { WORLD4_MAP } from './world4'
@@ -86,6 +87,7 @@ describe('worldIndexAtScrollX', () => {
 
 describe('world map nodePositions layout constraints', () => {
   const worlds: [string, WorldMapData, number][] = [
+    ['world1', WORLD1_MAP, 2200],
     ['world2', WORLD2_MAP, 2650],
     ['world3', WORLD3_MAP, 2500],
     ['world4', WORLD4_MAP, 2500],

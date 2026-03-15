@@ -118,8 +118,8 @@ function buildGround(): TileGrid {
   hPath(g, 3, 56, 62, PATH_H); g[3][62] = PATH_CORNER; vPath(g, 62, 3, 6, PATH_V)
   // l8(62,6) → mb4(67,3)
   hPath(g, 6, 62, 67, PATH_H); g[6][67] = PATH_CORNER; vPath(g, 67, 3, 6, PATH_V)
-  // mb4(67,3) → boss(72,1)
-  hPath(g, 3, 67, 72, PATH_H); g[3][72] = PATH_CORNER; vPath(g, 72, 1, 3, PATH_V)
+  // mb4(67,3) → boss(72,11)
+  hPath(g, 3, 67, 72, PATH_H); g[3][72] = PATH_CORNER; vPath(g, 72, 3, 11, PATH_V)
 
   // ── Void / starfield areas ─────────────────────────────────
   // Void on edges — the tower floats in space
@@ -232,7 +232,7 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1710, cy: 80  }, // l7 → mb3  (going up)
     { cx: 1885, cy: 175 }, // mb3 → l8  (going down)
     { cx: 2055, cy: 95  }, // l8 → mb4  (going up)
-    { cx: 2220, cy: 15  }, // mb4 → boss (going up)
+    { cx: 2220, cy: 220 }, // mb4 → boss (going down to center)
   ]
 }
 
@@ -300,7 +300,7 @@ export const WORLD5_MAP: WorldMapData = {
     { x: 1800, y: 80  }, // mb3
     { x: 1970, y: 190 }, // l8
     { x: 2140, y: 80  }, // mb4
-    { x: 2300, y: 30  }, // boss — Typemancer's throne (right)
+    { x: 2300, y: 360 }, // boss — Typemancer's throne (centered)
   ],
 
   pathSegments: buildPathSegments(),
