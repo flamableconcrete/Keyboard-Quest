@@ -149,10 +149,10 @@ function buildGround(): TileGrid {
   g[6][43] = LAVA_1
 
   // Small lava pool bottom-left
-  g[18][8] = LAVA_1
-  g[18][10] = LAVA_1
-  g[19][8] = LAVA_1
-  g[19][10] = LAVA_1
+  if (g[18][8] !== PATH_H && g[18][8] !== PATH_V && g[18][8] !== PATH_CORNER) g[18][8] = LAVA_1
+  if (g[18][10] !== PATH_H && g[18][10] !== PATH_V && g[18][10] !== PATH_CORNER) g[18][10] = LAVA_1
+  if (g[19][8] !== PATH_H && g[19][8] !== PATH_V && g[19][8] !== PATH_CORNER) g[19][8] = LAVA_1
+  if (g[19][10] !== PATH_H && g[19][10] !== PATH_V && g[19][10] !== PATH_CORNER) g[19][10] = LAVA_1
 
   return g
 }
