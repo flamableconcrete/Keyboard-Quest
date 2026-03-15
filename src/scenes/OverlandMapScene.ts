@@ -126,21 +126,36 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawMasteryChest()
     this.drawSettingsButton()
     this.drawProfilesButton()
-    this.drawCharacterButton()
 
     // World title placeholder — Task 10 replaces this with dynamic title
     this.add.text(width / 2, 40, 'Keyboard Quest', {
       fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5).setDepth(2000)
+    }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
       fontSize: '20px', color: '#ffffff'
-    }).setDepth(2000)
+    }).setDepth(2000).setScrollFactor(0)
 
     this.add.text(width - 20, 20, `Gold: ${this.profile.gold ?? 0}`, {
       fontSize: '20px', color: '#ffd700'
-    }).setOrigin(1, 0).setDepth(2000)
+    }).setOrigin(1, 0).setDepth(2000).setScrollFactor(0)
+
+    const { width: w, height: h } = this.scale
+    // Bottom-right row: Character, Shop, Stable, Tavern (right to left)
+    this.drawHudButton(w - 60, h - 60, '👤', 'CHARACTER', () => {
+      this.scene.pause()
+      this.scene.launch('Character', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 150, h - 60, '🛒', 'SHOP', () => {
+      this.scene.start('Shop', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 240, h - 60, '🐴', 'STABLE', () => {
+      this.scene.start('Stable', { profileSlot: this.profileSlot })
+    })
+    this.drawHudButton(w - 330, h - 60, '🍺', 'TAVERN', () => {
+      this.scene.start('Tavern', { profileSlot: this.profileSlot })
+    })
 
     let startPos = {
       x: UNIFIED_MAP.xOffsets[0] + (UNIFIED_MAP.worlds[0].nodePositions[0]?.x ?? 0),
@@ -472,7 +487,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     const { width } = this.scale
     const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
@@ -484,7 +499,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     const { width } = this.scale
     const btn = this.add.text(width - 20, 55, '👥 PROFILES', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000)
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
     btn.on('pointerout', () => btn.setColor('#aaaaaa'))
     btn.on('pointerdown', () => {
@@ -492,81 +507,52 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private drawCharacterButton() {
-    const { width, height } = this.scale
-
-    // Position at bottom right, inset slightly
-    const cx = width - 60
-    const cy = height - 60
-
-    // Prominent golden outer ring (glow/pulse)
-    const glowRing = this.add.circle(cx, cy, 45, 0xffd700, 0.4).setDepth(1998)
-
-    // Fancy border
-    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999)
+  private drawHudButton(
+    cx: number,
+    cy: number,
+    icon: string,
+    tooltip: string,
+    onClick: () => void,
+  ): void {
+    const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999).setScrollFactor(0)
     border.setStrokeStyle(4, 0xffffff)
 
-    // Dark interior background
-    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000)
+    const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000).setScrollFactor(0)
 
-    // The icon itself
-    const icon = this.add.text(cx, cy, '👤', {
-      fontSize: '40px'
-    }).setOrigin(0.5).setDepth(2001)
+    const iconText = this.add.text(cx, cy, icon, { fontSize: '36px' })
+      .setOrigin(0.5).setDepth(2001).setScrollFactor(0)
 
-    // Group them for interaction
-    const btnZone = this.add.zone(cx, cy, 90, 90)
+    const zone = this.add.zone(cx, cy, 90, 90)
       .setInteractive({ useHandCursor: true })
-      .setDepth(2002)
+      .setDepth(2002).setScrollFactor(0)
 
-    // Enticing continuous pulse on the glow ring
-    this.tweens.add({
-      targets: glowRing,
-      scaleX: 1.15,
-      scaleY: 1.15,
-      alpha: 0.1,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    })
+    let tooltipObj: Phaser.GameObjects.Text | undefined
 
-    // Hover effects
-    btnZone.on('pointerover', () => {
+    zone.on('pointerover', () => {
       bg.setFillStyle(0x2a2a4e)
       border.setStrokeStyle(4, 0xffd700)
-      this.tweens.add({
-        targets: icon,
-        scaleX: 1.2,
-        scaleY: 1.2,
-        duration: 150
-      })
+      this.tweens.add({ targets: iconText, scaleX: 1.2, scaleY: 1.2, duration: 150 })
+      tooltipObj = this.add.text(cx, cy - 55, tooltip, {
+        fontSize: '12px', color: '#ffffff', backgroundColor: '#000000',
+        padding: { x: 6, y: 3 },
+      }).setOrigin(0.5).setDepth(2010).setScrollFactor(0)
     })
 
-    btnZone.on('pointerout', () => {
+    zone.on('pointerout', () => {
       bg.setFillStyle(0x1a1a2e)
       border.setStrokeStyle(4, 0xffffff)
-      this.tweens.add({
-        targets: icon,
-        scaleX: 1,
-        scaleY: 1,
-        duration: 150
-      })
+      this.tweens.add({ targets: iconText, scaleX: 1, scaleY: 1, duration: 150 })
+      tooltipObj?.destroy()
+      tooltipObj = undefined
     })
 
-    btnZone.on('pointerdown', () => {
-      // Small pop effect on click
+    zone.on('pointerdown', () => {
       this.tweens.add({
-        targets: [border, bg, icon],
-        scaleX: 0.9,
-        scaleY: 0.9,
+        targets: [border, bg, iconText],
+        scaleX: 0.9, scaleY: 0.9,
         duration: 50,
         yoyo: true,
-        onComplete: () => {
-          // Pause overworld map and launch character scene to keep map visible behind it
-          this.scene.pause()
-          this.scene.launch('Character', { profileSlot: this.profileSlot })
-        }
+        onComplete: onClick,
       })
     })
   }
