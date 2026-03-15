@@ -29,6 +29,7 @@ export class OverlandMapScene extends Phaser.Scene {
   private readonly EDGE_SCROLL_THRESHOLD = 60
   private readonly EDGE_SCROLL_MAX_SPEED = 12
   private worldTitleText!: Phaser.GameObjects.Text
+  private allNodes: { level: LevelConfig; pos: NodePosition }[] = []
 
   private readonly WORLD_NAMES = [
     'World 1 — The Heartland',
@@ -146,6 +147,7 @@ export class OverlandMapScene extends Phaser.Scene {
 
     this.buildUnifiedMap()
 
+    this.allNodes = []
     UNIFIED_MAP.worlds.forEach((mapData, i) => {
       const xOffset = UNIFIED_MAP.xOffsets[i]
       const worldNum = i + 1
@@ -159,6 +161,12 @@ export class OverlandMapScene extends Phaser.Scene {
       this.worldPaths.push(path)
 
       this.drawNodes(levels, positions)
+
+      levels.forEach((level, idx) => {
+        if (positions[idx]) {
+          this.allNodes.push({ level, pos: positions[idx] })
+        }
+      })
     })
 
     this.drawWorldTransitionPaths()
@@ -207,18 +215,10 @@ export class OverlandMapScene extends Phaser.Scene {
     }
     this.currentNodeIndex = 0
     if (this.profile.currentLevelNodeId) {
-      for (let i = 0; i < UNIFIED_MAP.worlds.length; i++) {
-        const xOffset = UNIFIED_MAP.xOffsets[i]
-        const levels = getLevelsForWorld(i + 1)
-        const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
-        if (idx !== -1 && UNIFIED_MAP.worlds[i].nodePositions[idx]) {
-          startPos = {
-            x: UNIFIED_MAP.worlds[i].nodePositions[idx].x + xOffset,
-            y: UNIFIED_MAP.worlds[i].nodePositions[idx].y,
-          }
-          this.currentNodeIndex = idx
-          break
-        }
+      const unifiedIdx = this.allNodes.findIndex(n => n.level.id === this.profile.currentLevelNodeId)
+      if (unifiedIdx !== -1) {
+        startPos = { ...this.allNodes[unifiedIdx].pos }
+        this.currentNodeIndex = unifiedIdx
       }
     }
 
@@ -271,6 +271,11 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }
     })
 
+    // ── Arrow-key navigation between nodes ───────────────────
+    this.input.keyboard!.on('keydown-LEFT', () => this.moveToAdjacentNode(-1))
+    this.input.keyboard!.on('keydown-RIGHT', () => this.moveToAdjacentNode(1))
+    this.input.keyboard!.on('keydown-ENTER', () => this.enterCurrentNode())
+    this.input.keyboard!.on('keydown-SPACE', () => this.enterCurrentNode())
   }
 
   update(time: number) {
@@ -358,8 +363,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         : unlocked && !gated ? 0xffffff
         : 0x444444
 
-      // 2.5x larger for world bosses
-      const baseScale = level.isBoss ? 3.75 : 1.5
+      // 6x for final boss, 2.5x for other world bosses
+      const baseScale = level.id === 'w5_boss' ? 9 : level.isBoss ? 3.75 : 1.5
 
       // Base oval
       this.add.ellipse(pos.x, pos.y + (16 * (baseScale / 1.5)), 64 * (baseScale / 1.5), 24 * (baseScale / 1.5), 0x8b6b3a).setDepth(998)
@@ -673,8 +678,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   }
 
   private glideAvatarTo(pos: NodePosition, nodeId: string, onComplete: () => void) {
-    if (this.isGliding) return
-
     const distance = Phaser.Math.Distance.Between(this.avatar.x, this.avatar.y, pos.x, pos.y)
 
     if (distance < 1) {
@@ -694,14 +697,23 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     const targetLevelIdx = worldLevels.findIndex(l => l.id === nodeId)
     const canUsePath = !!targetWorldPath && targetLevelIdx !== -1
 
+    // Compute unified index for the destination node
+    const unifiedIdx = this.allNodes.findIndex(n => n.level.id === nodeId)
+
+    // Compute the per-world index of the current node for bezier path following
+    const currentLevel = this.allNodes[this.currentNodeIndex]?.level
+    const currentWorld = currentLevel?.world ?? 1
+    const currentWorldLevels = getLevelsForWorld(currentWorld)
+    const currentWorldLevelIdx = currentWorldLevels.findIndex(l => l.id === currentLevel?.id)
+
     const finishGlide = () => {
       // Snap to final position (no bob)
       this.avatarBasePos = { x: pos.x, y: pos.y }
       this.avatar.setPosition(pos.x, pos.y)
       this.syncShadow()
       // Update tracking
-      if (targetLevelIdx !== -1) {
-        this.currentNodeIndex = targetLevelIdx
+      if (unifiedIdx !== -1) {
+        this.currentNodeIndex = unifiedIdx
       }
       // Save current world when glide completes
       if (destLevel) {
@@ -715,7 +727,10 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       onComplete()
     }
 
-    if (canUsePath) {
+    // Only use bezier path when both nodes are in the same world
+    const sameWorld = currentWorld === targetWorld
+
+    if (canUsePath && sameWorld) {
       // Bezier path-following between nodes
       const numCurves = targetWorldPath!.curves.length
       if (numCurves === 0) {
@@ -723,7 +738,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         return
       }
 
-      const startT = this.currentNodeIndex / numCurves
+      const startT = currentWorldLevelIdx / numCurves
       const endT = targetLevelIdx / numCurves
       const obj = { val: 0 }
 
@@ -770,6 +785,49 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       },
       onComplete,
     })
+  }
+
+  /** Move the hero to the next or previous unlocked node. */
+  private moveToAdjacentNode(direction: -1 | 1): void {
+    if (this.isGliding) return
+
+    let nextIdx = this.currentNodeIndex + direction
+    // Skip over locked/gated nodes in the given direction
+    while (nextIdx >= 0 && nextIdx < this.allNodes.length) {
+      const node = this.allNodes[nextIdx]
+      if (this.isUnlocked(node.level.id) && this.meetsGate(node.level)) break
+      nextIdx += direction
+    }
+    if (nextIdx < 0 || nextIdx >= this.allNodes.length) return
+
+    const { level, pos } = this.allNodes[nextIdx]
+    this.isGliding = true
+
+    const cam = this.cameras.main
+    const vw = this.scale.width
+    const isOffScreen = pos.x < cam.scrollX || pos.x > cam.scrollX + vw
+
+    if (isOffScreen) {
+      const targetScrollX = Phaser.Math.Clamp(pos.x - vw / 2, 0, UNIFIED_MAP.totalWidth - vw)
+      this.tweens.add({
+        targets: cam,
+        scrollX: targetScrollX,
+        duration: 400,
+        ease: 'Sine.easeInOut',
+        onComplete: () => this.glideAvatarTo(pos, level.id, () => { this.isGliding = false }),
+      })
+    } else {
+      this.glideAvatarTo(pos, level.id, () => { this.isGliding = false })
+    }
+  }
+
+  /** Enter the level the hero is currently standing on. */
+  private enterCurrentNode(): void {
+    if (this.isGliding) return
+    const node = this.allNodes[this.currentNodeIndex]
+    if (!node) return
+    if (!this.isUnlocked(node.level.id) || !this.meetsGate(node.level)) return
+    this.enterLevel(node.level, node.pos)
   }
 
   private enterLevel(level: LevelConfig, pos: { x: number; y: number }) {
