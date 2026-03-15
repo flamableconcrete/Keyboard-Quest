@@ -18,7 +18,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { icon: '⚔️', label: 'Hero', scene: 'CharacterScene' },
+  { icon: '⚔️', label: 'Hero', scene: 'Character' },
   { icon: '🛒', label: 'Shop', scene: 'Shop' },
   { icon: '🍺', label: 'Tavern', scene: 'Tavern' },
   { icon: '🐴', label: 'Stable', scene: 'Stable' },
