@@ -106,67 +106,33 @@ function buildGround(): TileGrid {
     if (r < ROWS && c < COLS) g[r][c] = OVERGROWN_STONE
   }
 
-  // ── Path weaves horizontally through middle ────────────
-  // Segment 1: l1 (far left) → l2 (right)
-  hPath(g, 14, 4, 16, PATH_H)
-
-  // Segment 2: l2 → l3 (up then right)
-  g[14][16] = PATH_CORNER
-  vPath(g, 16, 11, 14, PATH_V)
-  g[11][16] = PATH_CORNER
-  hPath(g, 11, 16, 28, PATH_H)
-
-  // Segment 3: l3 → mb1 (right then down)
-  g[11][28] = PATH_CORNER
-  vPath(g, 28, 11, 14, PATH_V)
-  g[14][28] = PATH_CORNER
-  hPath(g, 14, 28, 36, PATH_H)
-
-  // Segment 4: mb1 → l4 (up)
-  g[14][36] = PATH_CORNER
-  vPath(g, 36, 10, 14, PATH_V)
-  g[10][36] = PATH_CORNER
-  hPath(g, 10, 36, 43, PATH_H)
-
-  // Segment 5: l4 → l5 (down-right)
-  g[10][43] = PATH_CORNER
-  vPath(g, 43, 10, 13, PATH_V)
-  g[13][43] = PATH_CORNER
-  hPath(g, 13, 43, 51, PATH_H)
-
-  // Segment 6: l5 → mb2 (up-right)
-  g[13][51] = PATH_CORNER
-  vPath(g, 51, 10, 13, PATH_V)
-  g[10][51] = PATH_CORNER
-  hPath(g, 10, 51, 59, PATH_H)
-
-  // Segment 7: mb2 → l6 (down-right)
-  g[10][59] = PATH_CORNER
-  vPath(g, 59, 10, 14, PATH_V)
-  g[14][59] = PATH_CORNER
-  hPath(g, 14, 59, 67, PATH_H)
-
-  // Segment 8: l6 → l7 (up-right)
-  g[14][67] = PATH_CORNER
-  vPath(g, 67, 11, 14, PATH_V)
-  g[11][67] = PATH_CORNER
-  hPath(g, 11, 67, 73, PATH_H)
-
-  // Segment 9: l7 → mb3 (down)
-  g[11][73] = PATH_CORNER
-  vPath(g, 73, 11, 15, PATH_V)
-
-  // Segment 10: mb3 → l8 (left and up)
-  g[15][73] = PATH_CORNER
-  hPath(g, 15, 67, 73, PATH_H)
-  g[15][67] = PATH_CORNER
-  vPath(g, 67, 8, 15, PATH_V) // long climb
-
-  // Segment 11: l8 → boss (right)
-  g[8][67] = PATH_CORNER
-  hPath(g, 8, 67, 75, PATH_H)
-  g[8][75] = PATH_CORNER
-  vPath(g, 75, 5, 8, PATH_V)
+  // ── Path snakes left-to-right ─────────────────────────────
+  // l1(4,14) → l2(10,10)
+  hPath(g, 14, 4, 10, PATH_H); g[14][10] = PATH_CORNER; vPath(g, 10, 10, 14, PATH_V)
+  // l2(10,10) → l3(16,14)
+  hPath(g, 10, 10, 16, PATH_H); g[10][16] = PATH_CORNER; vPath(g, 16, 10, 14, PATH_V)
+  // l3(16,14) → mb1(22,9)
+  hPath(g, 14, 16, 22, PATH_H); g[14][22] = PATH_CORNER; vPath(g, 22, 9, 14, PATH_V)
+  // mb1(22,9) → l4(28,14)
+  hPath(g, 9, 22, 28, PATH_H); g[9][28] = PATH_CORNER; vPath(g, 28, 9, 14, PATH_V)
+  // l4(28,14) → l5(33,9)
+  hPath(g, 14, 28, 33, PATH_H); g[14][33] = PATH_CORNER; vPath(g, 33, 9, 14, PATH_V)
+  // l5(33,9) → mb2(39,14)
+  hPath(g, 9, 33, 39, PATH_H); g[9][39] = PATH_CORNER; vPath(g, 39, 9, 14, PATH_V)
+  // mb2(39,14) → l6(45,9)
+  hPath(g, 14, 39, 45, PATH_H); g[14][45] = PATH_CORNER; vPath(g, 45, 9, 14, PATH_V)
+  // l6(45,9) → l7(50,14)
+  hPath(g, 9, 45, 50, PATH_H); g[9][50] = PATH_CORNER; vPath(g, 50, 9, 14, PATH_V)
+  // l7(50,14) → mb3(56,8)
+  hPath(g, 14, 50, 56, PATH_H); g[14][56] = PATH_CORNER; vPath(g, 56, 8, 14, PATH_V)
+  // mb3(56,8) → l8(61,13)
+  hPath(g, 8, 56, 61, PATH_H); g[8][61] = PATH_CORNER; vPath(g, 61, 8, 13, PATH_V)
+  // l8(61,13) → l9(67,8)
+  hPath(g, 13, 61, 67, PATH_H); g[13][67] = PATH_CORNER; vPath(g, 67, 8, 13, PATH_V)
+  // l9(67,8) → mb4(72,5)
+  hPath(g, 8, 67, 72, PATH_H); g[8][72] = PATH_CORNER; vPath(g, 72, 5, 8, PATH_V)
+  // mb4(72,5) → boss(77,3)
+  hPath(g, 5, 72, 77, PATH_H); g[5][77] = PATH_CORNER; vPath(g, 77, 3, 5, PATH_V)
 
   // Deep moss pools
   for (let r = 18; r <= 20; r++) {
@@ -180,10 +146,6 @@ function buildGround(): TileGrid {
   g[6][61] = DEEP_MOSS
   g[7][59] = DEEP_MOSS
   g[7][61] = DEEP_MOSS
-
-  // Path to special nodes
-  vPath(g, 40, 14, 20, PATH_V)
-  hPath(g, 20, 32, 47, PATH_H)
 
   return g
 }
@@ -273,35 +235,22 @@ function buildDecorations(): DecorationPlacement[] {
   return decs
 }
 
-// ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: slight curve up
-    { cx: 313, cy: 420 },
-    // l2 → l3: rightward wave
-    { cx: 664, cy: 350 },
-    // l3 → mb1: dip down
-    { cx: 918, cy: 440 },
-    // mb1 → l4: up-right
-    { cx: 1172, cy: 340 },
-    // l4 → l5: down-right
-    { cx: 1406, cy: 420 },
-    // l5 → mb2: up-right
-    { cx: 1641, cy: 340 },
-    // mb2 → l6: down-right
-    { cx: 1875, cy: 420 },
-    // l6 → l7: up-right
-    { cx: 2148, cy: 340 },
-    // l7 → mb3: dip down-right
-    { cx: 2305, cy: 440 },
-    // mb3 → l8: left and up
-    { cx: 2148, cy: 300 },
-    // l8 → l9: curve up
-    { cx: 2148, cy: 240 },
-    // l9 → mb4: right curve
-    { cx: 2227, cy: 180 },
-    // mb4 → boss: final right
-    { cx: 2383, cy: 140 },
+    { cx: 235,  cy: 345 }, // l1 → l2   (going up)
+    { cx: 425,  cy: 430 }, // l2 → l3   (going down)
+    { cx: 610,  cy: 340 }, // l3 → mb1  (going up)
+    { cx: 790,  cy: 415 }, // mb1 → l4  (going down)
+    { cx: 975,  cy: 335 }, // l4 → l5   (going up)
+    { cx: 1165, cy: 420 }, // l5 → mb2  (going down)
+    { cx: 1345, cy: 335 }, // mb2 → l6  (going up)
+    { cx: 1520, cy: 405 }, // l6 → l7   (going down)
+    { cx: 1700, cy: 315 }, // l7 → mb3  (going up)
+    { cx: 1875, cy: 380 }, // mb3 → l8  (going down)
+    { cx: 2045, cy: 295 }, // l8 → l9   (going up)
+    { cx: 2215, cy: 165 }, // l9 → mb4  (going up)
+    { cx: 2380, cy: 75  }, // mb4 → boss (going up)
   ]
 }
 
@@ -355,22 +304,22 @@ export const WORLD4_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path weaves horizontally through the middle
+  // Path snakes left-to-right (forest winding)
   nodePositions: [
-    { x: 156, y: 450 },   // l1 — far left entrance
-    { x: 469, y: 380 },   // l2
-    { x: 820, y: 360 },   // l3
-    { x: 1094, y: 440 },  // mb1
-    { x: 1328, y: 340 },  // l4
-    { x: 1563, y: 420 },  // l5
-    { x: 1797, y: 340 },  // mb2
-    { x: 2051, y: 430 },  // l6
-    { x: 2266, y: 360 },  // l7
-    { x: 2305, y: 470 },  // mb3
-    { x: 2109, y: 280 },  // l8
-    { x: 2070, y: 210 },  // l9
-    { x: 2188, y: 150 },  // mb4
-    { x: 2461, y: 120 },  // boss
+    { x: 140,  y: 450 }, // l1 — forest entrance (left)
+    { x: 330,  y: 320 }, // l2
+    { x: 520,  y: 460 }, // l3
+    { x: 700,  y: 300 }, // mb1
+    { x: 880,  y: 450 }, // l4
+    { x: 1070, y: 300 }, // l5
+    { x: 1260, y: 460 }, // mb2
+    { x: 1430, y: 290 }, // l6
+    { x: 1610, y: 440 }, // l7
+    { x: 1790, y: 270 }, // mb3
+    { x: 1960, y: 410 }, // l8
+    { x: 2130, y: 260 }, // l9
+    { x: 2300, y: 150 }, // mb4
+    { x: 2460, y: 80  }, // boss (right)
   ],
 
   pathSegments: buildPathSegments(),
