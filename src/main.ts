@@ -32,6 +32,7 @@ import { SettingsScene } from './scenes/SettingsScene'
 import { ShopScene } from './scenes/ShopScene'
 import { TrophyRoomScene } from './scenes/TrophyRoomScene'
 import { MobileLevelIntroScene } from './scenes/MobileLevelIntroScene'
+import { MobileOverlandMapScene } from './scenes/MobileOverlandMapScene'
 import { PauseScene } from './scenes/PauseScene'
 import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
@@ -61,7 +62,7 @@ const game = new Phaser.Game({
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
     DungeonTrapDisarmLevel, DungeonPlatformerLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, WoodlandFestivalLevel, SillyChallengeLevel, GuildRecruitmentLevel,
-    BossBattleScene, CharacterScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, ShopScene, TrophyRoomScene, MobileLevelIntroScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss, PauseScene
+    BossBattleScene, CharacterScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, ShopScene, TrophyRoomScene, MobileLevelIntroScene, MobileOverlandMapScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss, PauseScene
   ],
 });
 

@@ -137,6 +137,10 @@ export class OverlandMapScene extends Phaser.Scene {
   }
 
   create() {
+    if (this.registry.get('isMobile')) {
+      this.scene.start('MobileOverlandMap', { profileSlot: this.profileSlot });
+      return;
+    }
     this.cameras.main.fadeIn(300, 0, 0, 0)
     const { width } = this.scale
 
