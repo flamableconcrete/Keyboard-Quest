@@ -29,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
 export class MobileOverlandMapScene extends Phaser.Scene {
   private profileSlot!: number;
   private profile!: ProfileData;
+  private isDragging = false;
 
   constructor() {
     super('MobileOverlandMap');
@@ -42,7 +43,14 @@ export class MobileOverlandMapScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
+    // Background covers full scrollable area (set to correct height after content is built)
+    const bg = this.add.rectangle(width / 2, 0, width, height, 0x1a1a2e).setOrigin(0.5, 0);
+
+    // Header background for readability over scrolling content
+    this.add.rectangle(width / 2, 0, width, 55, 0x1a1a2e)
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(9);
 
     this.add.text(20, 20, `${this.profile.playerName}`, {
       fontSize: '20px',
@@ -60,6 +68,9 @@ export class MobileOverlandMapScene extends Phaser.Scene {
 
     const viewableHeight = height - NAV_BAR_HEIGHT;
     const totalHeight = Math.max(contentHeight + CONTENT_TOP + 40, viewableHeight);
+
+    // Resize background to cover full scrollable area
+    bg.setSize(width, totalHeight);
     this.cameras.main.setBounds(0, 0, width, totalHeight);
     this.cameras.main.setViewport(0, 0, width, viewableHeight);
 
@@ -140,11 +151,13 @@ export class MobileOverlandMapScene extends Phaser.Scene {
 
     if (isUnlocked) {
       card.setInteractive({ useHandCursor: true });
-      card.on('pointerdown', () => {
-        this.scene.start('LevelIntro', {
-          level,
-          profileSlot: this.profileSlot,
-        });
+      card.on('pointerup', () => {
+        if (!this.isDragging) {
+          this.scene.start('LevelIntro', {
+            level,
+            profileSlot: this.profileSlot,
+          });
+        }
       });
     }
   }
@@ -152,20 +165,19 @@ export class MobileOverlandMapScene extends Phaser.Scene {
   private setupTouchScroll(viewableHeight: number, totalHeight: number) {
     let dragStartY = 0;
     let cameraStartY = 0;
-    let isDragging = false;
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.y >= viewableHeight) return;
       dragStartY = pointer.y;
       cameraStartY = this.cameras.main.scrollY;
-      isDragging = false;
+      this.isDragging = false;
     });
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!pointer.isDown) return;
       const dy = dragStartY - pointer.y;
-      if (Math.abs(dy) > 5) isDragging = true;
-      if (isDragging) {
+      if (Math.abs(dy) > 5) this.isDragging = true;
+      if (this.isDragging) {
         const newY = Phaser.Math.Clamp(
           cameraStartY + dy,
           0,

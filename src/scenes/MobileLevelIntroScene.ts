@@ -46,16 +46,21 @@ export class MobileLevelIntroScene extends Phaser.Scene {
     const bubbleX = width / 2;
     const bubbleY = height * 0.65;
 
-    this.add.rectangle(bubbleX, bubbleY, bubbleWidth, 120, 0x2a2a4e)
-      .setStrokeStyle(2, 0x4e4e6a);
-
-    this.add.text(bubbleX, bubbleY, taunt, {
+    // Create text first to measure height, then size bubble to fit
+    const tauntText = this.add.text(bubbleX, bubbleY, taunt, {
       fontSize: '18px',
       color: '#ffffff',
       fontFamily: 'monospace',
       wordWrap: { width: bubbleWidth - 40 },
       align: 'center',
     }).setOrigin(0.5);
+
+    const bubbleHeight = Math.max(120, tauntText.height + 40);
+    this.add.rectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 0x2a2a4e)
+      .setStrokeStyle(2, 0x4e4e6a);
+
+    // Re-add text on top of bubble (rectangle was added after text)
+    tauntText.setDepth(1);
 
     // Back to Map button — goes directly to MobileOverlandMap
     const backBtn = this.add.text(width / 2, height * 0.88, '← Back to Map', {
