@@ -197,6 +197,9 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawHudButton(w - 330, h - 60, '🍺', 'TAVERN', () => {
       this.scene.start('Tavern', { profileSlot: this.profileSlot })
     })
+    this.drawHudButton(60, h - 60, '🧭', 'FIND HERO', () => {
+      this.panToAvatar()
+    })
 
     let startPos = {
       x: UNIFIED_MAP.xOffsets[0] + (UNIFIED_MAP.worlds[0].nodePositions[0]?.x ?? 0),
@@ -618,6 +621,22 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         yoyo: true,
         onComplete: onClick,
       })
+    })
+  }
+
+  /** Tween the camera to center on the avatar's current position. */
+  private panToAvatar(): void {
+    const vw = this.scale.width
+    const targetScrollX = Phaser.Math.Clamp(
+      this.avatarBasePos.x - vw / 2,
+      0,
+      UNIFIED_MAP.totalWidth - vw,
+    )
+    this.tweens.add({
+      targets: this.cameras.main,
+      scrollX: targetScrollX,
+      duration: 500,
+      ease: 'Sine.easeInOut',
     })
   }
 
