@@ -6,7 +6,7 @@ import { loadProfile, saveProfile } from '../utils/profile'
 import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
-import { UNIFIED_MAP } from '../data/maps/unified'
+import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
@@ -28,6 +28,19 @@ export class OverlandMapScene extends Phaser.Scene {
   private panCamStartX = 0
   private readonly EDGE_SCROLL_THRESHOLD = 60
   private readonly EDGE_SCROLL_MAX_SPEED = 12
+  private worldTitleText!: Phaser.GameObjects.Text
+
+  private readonly WORLD_NAMES = [
+    'World 1 — The Heartland',
+    'World 2 — The Shadowed Fen',
+    'World 3 — The Ember Peaks',
+    'World 4 — The Shrouded Wilds',
+    "World 5 — The Typemancer's Tower",
+  ]
+
+  private worldNameForIndex(idx: number): string {
+    return this.WORLD_NAMES[idx] ?? `World ${idx + 1}`
+  }
 
   /** @deprecated — Task 11 will rewrite glideAvatarTo to use worldPaths array */
   private get worldPath(): Phaser.Curves.Path | undefined {
@@ -127,10 +140,12 @@ export class OverlandMapScene extends Phaser.Scene {
     this.drawSettingsButton()
     this.drawProfilesButton()
 
-    // World title placeholder — Task 10 replaces this with dynamic title
-    this.add.text(width / 2, 40, 'Keyboard Quest', {
-      fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+    const currentWorldIdx = (this.profile.currentWorld ?? 1) - 1
+    this.worldTitleText = this.add.text(
+      this.scale.width / 2, 40,
+      this.worldNameForIndex(currentWorldIdx),
+      { fontSize: '28px', color: '#ffd700' }
+    ).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
@@ -260,6 +275,20 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
           0,
           UNIFIED_MAP.totalWidth - vw
         )
+      }
+    }
+
+    // Dynamic world title
+    if (this.worldTitleText) {
+      const visibleWorldIdx = worldIndexAtScrollX(
+        this.cameras.main.scrollX,
+        UNIFIED_MAP.xOffsets,
+        UNIFIED_MAP.totalWidth,
+        this.scale.width,
+      )
+      const name = this.worldNameForIndex(visibleWorldIdx)
+      if (this.worldTitleText.text !== name) {
+        this.worldTitleText.setText(name)
       }
     }
   }
@@ -413,17 +442,17 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     if (this.profile.worldMasteryRewards.includes(claimKey)) {
       // Already claimed — show greyed chest
-      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000)
-      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
-      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000)
+      this.add.rectangle(cx, cy, 50, 50, 0x555555).setDepth(2000).setScrollFactor(0)
+      this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+      this.add.text(cx, cy + 32, 'Claimed', { fontSize: '14px', color: '#888888' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
       return
     }
 
     // Unclaimed — show gold pulsing chest
     const chest = this.add.rectangle(cx, cy, 50, 50, 0xffd700)
-      .setInteractive({ useHandCursor: true }).setDepth(2000)
-    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000)
-    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
+      .setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
+    this.add.text(cx, cy, '🏆', { fontSize: '24px' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+    this.add.text(cx, cy + 32, 'Mastery!', { fontSize: '14px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
 
     this.tweens.add({
       targets: chest,
@@ -437,17 +466,17 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       saveProfile(this.profileSlot, this.profile)
 
       const { width: w, height: h } = this.scale
-      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000)
-      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000)
+      this.add.rectangle(w / 2, h / 2, 402, 202, 0xffd700).setDepth(3000).setScrollFactor(0)
+      this.add.rectangle(w / 2, h / 2, 400, 200, 0x1a1a2e).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2 - 50, '✨ World Mastery Reward! ✨', {
         fontSize: '22px', color: '#ffd700'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2, `You earned: ${item}`, {
         fontSize: '20px', color: '#ffffff'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
       this.add.text(w / 2, h / 2 + 50, 'Click to continue', {
         fontSize: '16px', color: '#aaaaaa'
-      }).setOrigin(0.5).setDepth(3000)
+      }).setOrigin(0.5).setDepth(3000).setScrollFactor(0)
 
       this.input.once('pointerdown', () => {
         this.scene.restart({ profileSlot: this.profileSlot })
