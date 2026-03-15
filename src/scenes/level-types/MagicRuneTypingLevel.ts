@@ -140,7 +140,8 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
     this.cameras.main.flash(80, 120, 0, 0)
   }
 
-  update() {
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
     // Rotate magic circle slightly
     this.runeContainer.rotation += 0.005
   }
