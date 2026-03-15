@@ -130,7 +130,10 @@ export class AvatarCustomizerScene extends Phaser.Scene {
       if (this.returnTo === 'Settings') {
         this.scene.start('Settings', { profileSlot: this.slot })
       } else {
-        this.scene.start('ProfileSelect')
+        const returnScene = (this.returnTo === 'OverlandMap' && this.registry.get('isMobile'))
+          ? 'MobileOverlandMap'
+          : this.returnTo
+        this.scene.start(returnScene, { profileSlot: this.slot })
       }
     })
   }

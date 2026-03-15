@@ -39,6 +39,7 @@ export class CharacterScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     generateAllItemTextures(this)
 
@@ -48,8 +49,8 @@ export class CharacterScene extends Phaser.Scene {
       .on('pointerdown', () => this.closeScene())
 
     // Main modal panel
-    const panelWidth = 1000
-    const panelHeight = 600
+    const panelWidth = mobile ? width - 40 : 1000
+    const panelHeight = mobile ? height - 40 : 600
     const panelX = width / 2
     const panelY = height / 2
     this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x1a1a2e)
@@ -59,7 +60,7 @@ export class CharacterScene extends Phaser.Scene {
     // Close Button (top right of modal)
     this.add
       .text(panelX + panelWidth / 2 - 20, panelY - panelHeight / 2 + 20, 'X', {
-        fontSize: '24px',
+        fontSize: mobile ? '18px' : '24px',
         color: '#ff4444',
         fontStyle: 'bold',
       })
@@ -584,22 +585,27 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private closeScene() {
-    if (this.avatarDirty) {
-      // Restart OverlandMap so it picks up the new avatar
-      this.scene.stop('OverlandMap')
-
-      if (this.originalAvatarId && this.textures.exists(this.originalAvatarId)) {
-        this.textures.remove(this.originalAvatarId)
-      }
-      if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
-        this.textures.remove(this.profile.avatarConfig.id)
-      }
-
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+    const mobile = this.registry.get('isMobile')
+    if (mobile) {
+      this.scene.start('MobileOverlandMap', { profileSlot: this.profileSlot })
     } else {
-      this.scene.resume('OverlandMap')
+      if (this.avatarDirty) {
+        // Restart OverlandMap so it picks up the new avatar
+        this.scene.stop('OverlandMap')
+
+        if (this.originalAvatarId && this.textures.exists(this.originalAvatarId)) {
+          this.textures.remove(this.originalAvatarId)
+        }
+        if (this.profile.avatarConfig && this.textures.exists(this.profile.avatarConfig.id)) {
+          this.textures.remove(this.profile.avatarConfig.id)
+        }
+
+        this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+      } else {
+        this.scene.resume('OverlandMap')
+      }
+      this.scene.stop()
     }
-    this.scene.stop()
   }
 
   private getEffectString(effect: ItemData['effect']): string {

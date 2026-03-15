@@ -21,6 +21,7 @@ export class SettingsScene extends Phaser.Scene {
   private renderSettings() {
     this.children.removeAll(true)
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
     const profile = loadProfile(this.profileSlot)!
 
     // Background
@@ -33,15 +34,16 @@ export class SettingsScene extends Phaser.Scene {
 
     // Back button
     const back = this.add.text(60, 40, '← BACK', {
-      fontSize: '22px', color: '#aaaaff'
+      fontSize: mobile ? '18px' : '22px', color: '#aaaaff'
     }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
     back.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+      const target = this.registry.get('isMobile') ? 'MobileOverlandMap' : 'OverlandMap'
+      this.scene.start(target, { profileSlot: this.profileSlot })
     })
 
     // Render Tabs
     const tabs = ['Profile', 'Gameplay', 'Audio', 'Debug'] as const
-    const tabWidth = 140
+    const tabWidth = mobile ? 100 : 140
     const startX = width / 2 - (tabs.length * tabWidth) / 2 + tabWidth / 2
 
     tabs.forEach((tab, index) => {

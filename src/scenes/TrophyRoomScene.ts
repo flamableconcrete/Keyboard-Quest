@@ -20,6 +20,7 @@ export class TrophyRoomScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     // Semi-transparent modal background
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
@@ -27,8 +28,8 @@ export class TrophyRoomScene extends Phaser.Scene {
       .on('pointerdown', () => this.closeScene())
 
     // Main modal panel
-    const panelWidth = 1000
-    const panelHeight = 550
+    const panelWidth = mobile ? width - 40 : 1000
+    const panelHeight = mobile ? height - 40 : 550
     const panelX = width / 2
     const panelY = height / 2
     this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x1a1a2e)
@@ -38,7 +39,7 @@ export class TrophyRoomScene extends Phaser.Scene {
     // Close Button (top right of modal)
     this.add
       .text(panelX + panelWidth / 2 - 20, panelY - panelHeight / 2 + 20, 'X', {
-        fontSize: '24px',
+        fontSize: mobile ? '18px' : '24px',
         color: '#ff4444',
         fontStyle: 'bold',
       })
@@ -49,14 +50,14 @@ export class TrophyRoomScene extends Phaser.Scene {
     // Title
     this.add
       .text(panelX, panelY - panelHeight / 2 + 40, '🏆 TROPHY ROOM', {
-        fontSize: '28px',
+        fontSize: mobile ? '22px' : '28px',
         color: '#ffd700',
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
 
     // --- Pedestals ---
-    const pedestalSpacing = 185
+    const pedestalSpacing = mobile ? (panelWidth - 100) / 5 : 185
     const startX = panelX - panelWidth / 2 + 120
     const pedestalY = panelY + 60
 
@@ -77,7 +78,7 @@ export class TrophyRoomScene extends Phaser.Scene {
         const item = getItem(masteryItemId)
         this.add
           .text(x, pedestalY + 65, item?.name ?? '???', {
-            fontSize: '12px',
+            fontSize: mobile ? '10px' : '12px',
             color: '#ffd700',
           })
           .setOrigin(0.5)
@@ -92,7 +93,7 @@ export class TrophyRoomScene extends Phaser.Scene {
 
         this.add
           .text(x, pedestalY + 65, '???', {
-            fontSize: '12px',
+            fontSize: mobile ? '10px' : '12px',
             color: '#555555',
           })
           .setOrigin(0.5)
@@ -101,7 +102,7 @@ export class TrophyRoomScene extends Phaser.Scene {
       // World label
       this.add
         .text(x, pedestalY + 85, `World ${world}`, {
-          fontSize: '14px',
+          fontSize: mobile ? '12px' : '14px',
           color: '#ffffff',
         })
         .setOrigin(0.5)
@@ -109,7 +110,12 @@ export class TrophyRoomScene extends Phaser.Scene {
   }
 
   private closeScene() {
-    this.scene.resume('OverlandMap')
-    this.scene.stop()
+    const mobile = this.registry.get('isMobile')
+    if (mobile) {
+      this.scene.start('MobileOverlandMap', { profileSlot: this.profileSlot })
+    } else {
+      this.scene.resume('OverlandMap')
+      this.scene.stop()
+    }
   }
 }

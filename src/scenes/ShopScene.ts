@@ -18,25 +18,27 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     generateAllItemTextures(this)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
 
     this.add.text(width / 2, 40, 'THE MERCHANTS TENT', {
-      fontSize: '32px', color: '#ffd700', fontStyle: 'bold'
+      fontSize: mobile ? '24px' : '32px', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(0.5)
 
     this.add.text(width - 40, 40, `Gold: ${this.profile.gold ?? 0}`, {
-      fontSize: '24px', color: '#ffd700', fontStyle: 'bold'
+      fontSize: mobile ? '18px' : '24px', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(1, 0.5)
 
     const back = this.add.text(60, 40, '← BACK', {
-      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
+      fontSize: mobile ? '22px' : '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
     }).setInteractive({ useHandCursor: true })
 
     back.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+      const target = this.registry.get('isMobile') ? 'MobileOverlandMap' : 'OverlandMap'
+      this.scene.start(target, { profileSlot: this.profileSlot })
     })
 
     const categories: ('weapon' | 'armor' | 'accessory')[] = ['weapon', 'armor', 'accessory']

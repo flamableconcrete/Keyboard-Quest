@@ -18,13 +18,14 @@ export class StableScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale
+    const mobile = this.registry.get('isMobile')
 
     generateAllCompanionTextures(this)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a1a)
 
     this.add.text(width / 2, 40, 'The Creature Stable', {
-      fontSize: '32px', color: '#aaffaa'
+      fontSize: mobile ? '24px' : '32px', color: '#aaffaa'
     }).setOrigin(0.5)
 
     this.add.text(width / 2, 85, 'Your Animal Companions', {
@@ -88,10 +89,11 @@ export class StableScene extends Phaser.Scene {
     })
 
     const back = this.add.text(60, 40, '← BACK', {
-      fontSize: '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
+      fontSize: mobile ? '22px' : '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
     }).setInteractive({ useHandCursor: true })
     back.on('pointerdown', () => {
-      this.scene.start('OverlandMap', { profileSlot: this.profileSlot })
+      const target = this.registry.get('isMobile') ? 'MobileOverlandMap' : 'OverlandMap'
+      this.scene.start(target, { profileSlot: this.profileSlot })
     })
   }
 
