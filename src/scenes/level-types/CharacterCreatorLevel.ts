@@ -70,4 +70,7 @@ export class CharacterCreatorLevel extends Phaser.Scene {
       })
     })
   }
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
+  }
 }

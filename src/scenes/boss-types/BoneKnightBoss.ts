@@ -274,7 +274,9 @@ export class BoneKnightBoss extends Phaser.Scene {
         }
     }
 
-    update() {
+    update(_time: number, delta: number) {
+        this.goldManager?.update(delta)
+
         if (this.finished) return
         
         // Update the active shield text to show progress

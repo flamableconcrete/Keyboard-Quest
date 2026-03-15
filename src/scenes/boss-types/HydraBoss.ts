@@ -362,7 +362,8 @@ export class HydraBoss extends Phaser.Scene {
     })
   }
 
-  update() {
+  update(_time: number, delta: number) {
+    this.goldManager?.update(delta)
     if (this.regrowTimer && !this.finished) {
       const progress = this.regrowTimer.getProgress()
       const barWidth = 200
