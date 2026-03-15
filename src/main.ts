@@ -47,14 +47,16 @@ import { DiceLichBoss } from './scenes/boss-types/DiceLichBoss'
 import { AncientDragonBoss } from './scenes/boss-types/AncientDragonBoss'
 import { TypemancerBoss } from './scenes/boss-types/TypemancerBoss'
 
+const mobile = window.innerWidth < 768;
+
 const game = new Phaser.Game({
   type: Phaser.AUTO,
-  width: 1280,
-  height: 720,
+  width: mobile ? window.innerWidth : 1280,
+  height: mobile ? window.innerHeight : 720,
   backgroundColor: '#1a1a2e',
   parent: 'app',
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: mobile ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   scene: [

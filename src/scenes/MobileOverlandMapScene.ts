@@ -72,10 +72,9 @@ export class MobileOverlandMapScene extends Phaser.Scene {
     // Resize background to cover full scrollable area
     bg.setSize(width, totalHeight);
     this.cameras.main.setBounds(0, 0, width, totalHeight);
-    this.cameras.main.setViewport(0, 0, width, viewableHeight);
 
     this.setupTouchScroll(viewableHeight, totalHeight);
-    this.buildNavBar(width, height);
+    this.buildNavBar(width, viewableHeight);
   }
 
   private buildLevelList(screenWidth: number): number {
@@ -188,8 +187,8 @@ export class MobileOverlandMapScene extends Phaser.Scene {
     });
   }
 
-  private buildNavBar(screenWidth: number, screenHeight: number) {
-    const barY = screenHeight - NAV_BAR_HEIGHT;
+  private buildNavBar(screenWidth: number, viewableHeight: number) {
+    const barY = viewableHeight;
     const itemWidth = screenWidth / NAV_ITEMS.length;
 
     this.add.rectangle(screenWidth / 2, barY + NAV_BAR_HEIGHT / 2, screenWidth, NAV_BAR_HEIGHT, 0x0d0d1a)
