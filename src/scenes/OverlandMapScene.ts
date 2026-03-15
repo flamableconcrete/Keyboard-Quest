@@ -199,7 +199,7 @@ export class OverlandMapScene extends Phaser.Scene {
     })
     this.drawHudButton(70, h - 60, '🧭', 'FIND HERO', () => {
       this.panToAvatar()
-    })
+    }, '28px')
 
     let startPos = {
       x: UNIFIED_MAP.xOffsets[0] + (UNIFIED_MAP.worlds[0].nodePositions[0]?.x ?? 0),
@@ -552,7 +552,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawSettingsButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 20, '⚙ SETTINGS', {
+    const btn = this.add.text(width - 20, 55, '⚙ SETTINGS', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
     }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
@@ -564,7 +564,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
   private drawProfilesButton() {
     const { width } = this.scale
-    const btn = this.add.text(width - 20, 55, '👥 PROFILES', {
+    const btn = this.add.text(width - 20, 90, '👥 PROFILES', {
       fontSize: '18px', color: '#aaaaaa', backgroundColor: '#222222', padding: { x: 8, y: 4 }
     }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(2000).setScrollFactor(0)
     btn.on('pointerover', () => btn.setColor('#ffffff'))
@@ -580,13 +580,14 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     icon: string,
     tooltip: string,
     onClick: () => void,
+    iconSize = '36px',
   ): void {
     const border = this.add.circle(cx, cy, 38, 0xd4af37).setDepth(1999).setScrollFactor(0)
     border.setStrokeStyle(4, 0xffffff)
 
     const bg = this.add.circle(cx, cy, 34, 0x1a1a2e).setDepth(2000).setScrollFactor(0)
 
-    const iconText = this.add.text(cx, cy, icon, { fontSize: '36px' })
+    const iconText = this.add.text(cx, cy, icon, { fontSize: iconSize })
       .setOrigin(0.5).setDepth(2001).setScrollFactor(0)
 
     const zone = this.add.zone(cx, cy, 90, 90)
