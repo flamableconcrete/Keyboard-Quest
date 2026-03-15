@@ -92,13 +92,13 @@ export const UNIFIED_MAP: UnifiedMapConfig = {
   widths: WIDTHS,
   totalWidth: computeTotalMapWidth(LEVEL_COUNTS),
   worldTransitions: [
-    // W1→W2: W1 boss (1994,190) → W2 l1 unified (2381+2200=4581, 590)
-    { cx: 3288, cy: 390 },
-    // W2→W3: W2 boss unified (787+2200=2987, 20) → W3 l1 unified (1133+4850=5983, 610)
-    { cx: 4485, cy: 315 },
-    // W3→W4: W3 boss unified (1680+4850=6530, 20) → W4 l1 unified (156+7350=7506, 450)
-    { cx: 7018, cy: 235 },
-    // W4→W5: W4 boss unified (2461+7350=9811, 120) → W5 l1 unified (1175+9850=11025, 660)
-    { cx: 10418, cy: 390 },
+    // W1→W2: W1 boss (1994,190) → W2 l1 unified (2350,560)
+    { cx: 2172, cy: 375 },
+    // W2→W3: W2 boss unified (4720,80) → W3 l1 unified (4990,600)
+    { cx: 4855, cy: 340 },
+    // W3→W4: W3 boss unified (7280,40) → W4 l1 unified (7490,450)
+    { cx: 7385, cy: 245 },
+    // W4→W5: W4 boss unified (9810,80) → W5 l1 unified (9980,620)
+    { cx: 9895, cy: 350 },
   ],
 }
