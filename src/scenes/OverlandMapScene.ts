@@ -42,10 +42,7 @@ export class OverlandMapScene extends Phaser.Scene {
     return this.WORLD_NAMES[idx] ?? `World ${idx + 1}`
   }
 
-  /** @deprecated — Task 11 will rewrite glideAvatarTo to use worldPaths array */
-  private get worldPath(): Phaser.Curves.Path | undefined {
-    return this.worldPaths[0]
-  }
+
 
   constructor() { super('OverlandMap') }
 
@@ -632,10 +629,12 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.glideStartTime = this.time.now
 
     // Determine if we can use bezier path-following
-    const targetLevel = ALL_LEVELS.find(l => l.id === nodeId)
-    const levels = targetLevel ? getLevelsForWorld(targetLevel.world) : []
-    const targetLevelIdx = levels.findIndex(l => l.id === nodeId)
-    const canUsePath = this.worldPath && targetLevelIdx !== -1
+    const destLevel = ALL_LEVELS.find(l => l.id === nodeId)
+    const targetWorld = destLevel?.world ?? 1
+    const targetWorldPath = this.worldPaths[targetWorld - 1]
+    const worldLevels = getLevelsForWorld(targetWorld)
+    const targetLevelIdx = worldLevels.findIndex(l => l.id === nodeId)
+    const canUsePath = !!targetWorldPath && targetLevelIdx !== -1
 
     const finishGlide = () => {
       // Snap to final position (no bob)
@@ -645,6 +644,10 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       // Update tracking
       if (targetLevelIdx !== -1) {
         this.currentNodeIndex = targetLevelIdx
+      }
+      // Save current world when glide completes
+      if (destLevel) {
+        this.profile.currentWorld = destLevel.world
       }
       this.profile.currentLevelNodeId = nodeId
       saveProfile(this.profileSlot, this.profile)
@@ -656,7 +659,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     if (canUsePath) {
       // Bezier path-following between nodes
-      const numCurves = this.worldPath!.curves.length
+      const numCurves = targetWorldPath!.curves.length
       if (numCurves === 0) {
         this.glideDirectTo(pos, distance, finishGlide)
         return
@@ -674,7 +677,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         onUpdate: () => {
           const t = Phaser.Math.Linear(startT, endT, obj.val)
           const clampedT = Phaser.Math.Clamp(t, 0, 1)
-          const pt = this.worldPath!.getPoint(clampedT)
+          const pt = targetWorldPath!.getPoint(clampedT)
           if (pt) {
             this.avatarBasePos = { x: pt.x, y: pt.y }
             this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
@@ -711,9 +714,31 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private enterLevel(level: LevelConfig, pos: NodePosition) {
-    this.glideAvatarTo(pos, level.id, () => {
-      this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
-    })
+  private enterLevel(level: LevelConfig, pos: { x: number; y: number }) {
+    const cam = this.cameras.main
+    const vw = this.scale.width
+    const isOffScreen = pos.x < cam.scrollX || pos.x > cam.scrollX + vw
+
+    if (isOffScreen) {
+      // Tween camera to center on destination, then glide
+      const targetScrollX = Phaser.Math.Clamp(
+        pos.x - vw / 2,
+        0,
+        UNIFIED_MAP.totalWidth - vw,
+      )
+      this.tweens.add({
+        targets: cam,
+        scrollX: targetScrollX,
+        duration: 600,
+        ease: 'Sine.easeInOut',
+        onComplete: () => this.glideAvatarTo(pos, level.id, () => {
+          this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+        }),
+      })
+    } else {
+      this.glideAvatarTo(pos, level.id, () => {
+        this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+      })
+    }
   }
 }
