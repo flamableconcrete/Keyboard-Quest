@@ -3,46 +3,36 @@ import { AudioHelper } from '../utils/AudioHelper'
 import Phaser from 'phaser'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { getLevelsForWorld } from '../data/levels'
+import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
 import { checkWorldMastery } from '../utils/scoring'
 import { MapRenderer } from '../utils/mapRenderer'
-import { WORLD1_MAP } from '../data/maps/world1'
-import { WORLD2_MAP } from '../data/maps/world2'
-import { WORLD3_MAP } from '../data/maps/world3'
-import { WORLD4_MAP } from '../data/maps/world4'
-import { WORLD5_MAP } from '../data/maps/world5'
-import type { WorldMapData } from '../data/maps/types'
+import { UNIFIED_MAP } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 
 interface NodePosition { x: number; y: number }
 
-const WORLD_NAMES: Record<number, string> = {
-  1: 'World 1 — The Heartland',
-  2: 'World 2 — The Shadowed Fen',
-  3: 'World 3 — The Ember Peaks',
-  4: 'World 4 — The Shrouded Wilds',
-  5: "World 5 — The Typemancer's Tower",
-}
-
 export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
-  private currentWorld!: number
   private avatar!: Phaser.GameObjects.Sprite
   private avatarShadow?: Phaser.GameObjects.Ellipse
   private isGliding = false
-  private mapRenderer?: MapRenderer
+  private mapRenderers: MapRenderer[] = []
+  private worldPaths: Phaser.Curves.Path[] = []
   private glowRect?: Phaser.GameObjects.Rectangle
   private currentNodeIndex = 0
   private avatarBasePos: NodePosition = { x: 0, y: 0 }
-  /** Composite bezier path for avatar path-following (used by Task 8). */
-  worldPath?: Phaser.Curves.Path
+
+  /** @deprecated — Task 11 will rewrite glideAvatarTo to use worldPaths array */
+  private get worldPath(): Phaser.Curves.Path | undefined {
+    return this.worldPaths[0]
+  }
 
   constructor() { super('OverlandMap') }
 
-  init(data: { profileSlot: number; world?: number }) {
-    AudioHelper.playBGM(this, 'bgm_map');
+  init(data: { profileSlot: number }) {
+    AudioHelper.playBGM(this, 'bgm_map')
     this.profileSlot = data.profileSlot
     const profile = loadProfile(this.profileSlot)
     if (!profile) {
@@ -50,35 +40,80 @@ export class OverlandMapScene extends Phaser.Scene {
       return
     }
     this.profile = profile
-    this.currentWorld = data.world ?? this.profile.currentWorld ?? 1
   }
 
-  /** Returns map data for the given world. */
-  private getMapData(world: number): WorldMapData {
-    switch (world) {
-      case 1: return WORLD1_MAP
-      case 2: return WORLD2_MAP
-      case 3: return WORLD3_MAP
-      case 4: return WORLD4_MAP
-      case 5: return WORLD5_MAP
-      default: return WORLD1_MAP
+  private readonly BLEND_COLORS = [0x88cc66, 0x334455, 0xcc5522, 0x336633, 0x220044]
+
+  private drawBlendZone(seamX: number, fromWorldIdx: number): void {
+    const gfx = this.add.graphics().setDepth(500)
+    const fromColor = this.BLEND_COLORS[fromWorldIdx]
+    const toColor = this.BLEND_COLORS[fromWorldIdx + 1]
+    const steps = 30
+    const stepWidth = 300 / steps
+
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps
+      // Lerp color channels
+      const fr = (fromColor >> 16) & 0xff, fg = (fromColor >> 8) & 0xff, fb = fromColor & 0xff
+      const tr = (toColor >> 16) & 0xff,   tg = (toColor >> 8) & 0xff,   tb = toColor & 0xff
+      const r = Math.round(fr + (tr - fr) * t)
+      const g = Math.round(fg + (tg - fg) * t)
+      const b = Math.round(fb + (tb - fb) * t)
+      const color = (r << 16) | (g << 8) | b
+      gfx.fillStyle(color, 0.45)
+      gfx.fillRect(seamX + s * stepWidth, 0, stepWidth + 1, 720)
     }
+  }
+
+  private buildUnifiedMap(): void {
+    const { worlds, xOffsets, widths } = UNIFIED_MAP
+
+    worlds.forEach((mapData, i) => {
+      const xOffset = xOffsets[i]
+      const renderer = new MapRenderer(this, mapData, xOffset)
+      renderer.renderTileLayers()
+      renderer.renderDecorations()
+      renderer.startAtmosphere()
+      renderer.startAnimatedTiles()
+      this.mapRenderers.push(renderer)
+
+      // Draw blend gradient at right edge of this world (except last world)
+      if (i < worlds.length - 1) {
+        this.drawBlendZone(xOffset + widths[i] - 150, i)
+      }
+    })
   }
 
   create() {
     this.cameras.main.fadeIn(300, 0, 0, 0)
     const { width } = this.scale
-    const mapData = this.getMapData(this.currentWorld)
 
-    // Tilemap-based rendering
-    this.mapRenderer = new MapRenderer(this, mapData)
-    this.mapRenderer.renderTileLayers()
-    this.mapRenderer.renderDecorations()
-    this.mapRenderer.startAtmosphere()
-    this.mapRenderer.startAnimatedTiles()
+    this.cameras.main.setBounds(0, 0, UNIFIED_MAP.totalWidth, 720)
 
-    // World title
-    this.add.text(width / 2, 40, WORLD_NAMES[this.currentWorld] ?? `World ${this.currentWorld}`, {
+    this.buildUnifiedMap()
+
+    UNIFIED_MAP.worlds.forEach((mapData, i) => {
+      const xOffset = UNIFIED_MAP.xOffsets[i]
+      const worldNum = i + 1
+      const levels = getLevelsForWorld(worldNum)
+      const positions = mapData.nodePositions.map(p => ({ x: p.x + xOffset, y: p.y }))
+
+      const completedIds = new Set<string>(
+        levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
+      )
+      const path = this.mapRenderers[i].renderPaths(levels, completedIds)
+      this.worldPaths.push(path)
+
+      this.drawNodes(levels, positions)
+    })
+
+    this.drawMasteryChest()
+    this.drawSettingsButton()
+    this.drawProfilesButton()
+    this.drawCharacterButton()
+
+    // World title placeholder — Task 10 replaces this with dynamic title
+    this.add.text(width / 2, 40, 'Keyboard Quest', {
       fontSize: '28px', color: '#ffd700'
     }).setOrigin(0.5).setDepth(2000)
 
@@ -91,33 +126,24 @@ export class OverlandMapScene extends Phaser.Scene {
       fontSize: '20px', color: '#ffd700'
     }).setOrigin(1, 0).setDepth(2000)
 
-    // World navigation arrows
-    this.drawWorldArrows()
-
-    const levels = getLevelsForWorld(this.currentWorld)
-
-    // Bezier paths
-    const completedIds = new Set<string>(
-      levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
-    )
-    this.worldPath = this.mapRenderer!.renderPaths(levels, completedIds)
-
-    this.drawNodes(levels, mapData.nodePositions)
-    this.drawSpecialNodes(mapData.specialNodes)
-    this.drawMasteryChest()
-    this.drawSettingsButton()
-    this.drawProfilesButton()
-    this.drawCharacterButton()
-
-    let startPos = mapData.nodePositions[0] || { x: 0, y: 0 }
+    let startPos = {
+      x: UNIFIED_MAP.xOffsets[0] + (UNIFIED_MAP.worlds[0].nodePositions[0]?.x ?? 0),
+      y: UNIFIED_MAP.worlds[0].nodePositions[0]?.y ?? 0
+    }
     this.currentNodeIndex = 0
     if (this.profile.currentLevelNodeId) {
-      const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
-      if (idx !== -1 && mapData.nodePositions[idx]) {
-        startPos = mapData.nodePositions[idx]
-        this.currentNodeIndex = idx
-      } else if (mapData.specialNodes[this.profile.currentLevelNodeId]) {
-        startPos = mapData.specialNodes[this.profile.currentLevelNodeId]
+      for (let i = 0; i < UNIFIED_MAP.worlds.length; i++) {
+        const xOffset = UNIFIED_MAP.xOffsets[i]
+        const levels = getLevelsForWorld(i + 1)
+        const idx = levels.findIndex(l => l.id === this.profile.currentLevelNodeId)
+        if (idx !== -1 && UNIFIED_MAP.worlds[i].nodePositions[idx]) {
+          startPos = {
+            x: UNIFIED_MAP.worlds[i].nodePositions[idx].x + xOffset,
+            y: UNIFIED_MAP.worlds[i].nodePositions[idx].y,
+          }
+          this.currentNodeIndex = idx
+          break
+        }
       }
     }
 
@@ -151,55 +177,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         this.avatarShadow.setPosition(this.avatarBasePos.x, this.avatarBasePos.y + 2);
         const shadowScale = 1 - (bobOffset * 0.05);
         this.avatarShadow.setScale(shadowScale, shadowScale);
-      }
-    }
-  }
-
-  private drawWorldArrows() {
-    const { height } = this.scale
-    const maxWorld = 5
-
-    // Previous world arrow
-    if (this.currentWorld > 1) {
-      const prev = this.add.text(30, height / 2, '◀', {
-        fontSize: '36px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
-      prev.on('pointerdown', () => {
-        this.profile.currentWorld = this.currentWorld - 1
-        saveProfile(this.profileSlot, this.profile)
-        this.cameras.main.fadeOut(300, 0, 0, 0)
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld - 1 })
-        })
-      })
-      this.add.text(30, height / 2 + 30, `W${this.currentWorld - 1}`, {
-        fontSize: '14px', color: '#aaaaff'
-      }).setOrigin(0, 0.5).setDepth(2000)
-    }
-
-    // Next world arrow — only if world boss beaten
-    if (this.currentWorld < maxWorld) {
-      const bossLevel = getLevelsForWorld(this.currentWorld).find(l => l.isBoss)
-      const worldCleared = bossLevel ? !!this.profile.levelResults[bossLevel.id] : false
-      const { width, height: h } = this.scale
-      if (worldCleared) {
-        const next = this.add.text(width - 30, h / 2, '▶', {
-          fontSize: '36px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(2000)
-        next.on('pointerdown', () => {
-          this.profile.currentWorld = this.currentWorld + 1
-          saveProfile(this.profileSlot, this.profile)
-          this.cameras.main.fadeOut(300, 0, 0, 0)
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('OverlandMap', { profileSlot: this.profileSlot, world: this.currentWorld + 1 })
-          })
-        })
-        this.add.text(width - 30, h / 2 + 30, `W${this.currentWorld + 1}`, {
-          fontSize: '14px', color: '#aaffaa'
-        }).setOrigin(1, 0.5).setDepth(2000)
-      } else {
-        const { width: w } = this.scale
-        this.add.text(w - 30, h / 2, '🔒', { fontSize: '24px' }).setOrigin(1, 0.5).setDepth(2000)
       }
     }
   }
@@ -330,48 +307,9 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  private drawSpecialNodes(specialPositions: Record<string, NodePosition>) {
-    // Tavern
-    const tp = specialPositions['tavern']
-    this.add.ellipse(tp.x, tp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const tavernNode = this.add.sprite(tp.x, tp.y, 'map-common', COMMON_FRAMES.nodeTavern)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(tp.x, tp.y + 25, 'TAVERN', { fontSize: '12px', color: '#ffd700' }).setOrigin(0.5).setDepth(2000)
-    tavernNode.on('pointerdown', () => {
-      this.glideAvatarTo(tp, 'tavern', () => {
-        this.scene.start('Tavern', { profileSlot: this.profileSlot })
-      })
-    })
-
-    // Stable
-    const sp = specialPositions['stable']
-    this.add.ellipse(sp.x, sp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const stableNode = this.add.sprite(sp.x, sp.y, 'map-common', COMMON_FRAMES.nodeStable)
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    this.add.text(sp.x, sp.y + 25, 'STABLE', { fontSize: '12px', color: '#aaffaa' }).setOrigin(0.5).setDepth(2000)
-    stableNode.on('pointerdown', () => {
-      this.glideAvatarTo(sp, 'stable', () => {
-        this.scene.start('Stable', { profileSlot: this.profileSlot })
-      })
-    })
-
-    // Shop
-    const shp = specialPositions['shop']
-    this.add.ellipse(shp.x, shp.y + 16, 64, 24, 0x8b6b3a).setDepth(998)
-    const shopNode = this.add.sprite(shp.x, shp.y, 'map-common', COMMON_FRAMES.nodeTavern) // Reusing tavern icon, or nodeInventory
-      .setInteractive({ useHandCursor: true }).setDepth(1000).setScale(1.5)
-    shopNode.setTint(0xffaa00) // Distinct color for shop
-    this.add.text(shp.x, shp.y + 25, 'SHOP', { fontSize: '12px', color: '#ffaa00' }).setOrigin(0.5).setDepth(2000)
-    shopNode.on('pointerdown', () => {
-      this.glideAvatarTo(shp, 'shop', () => {
-        this.scene.start('Shop', { profileSlot: this.profileSlot })
-      })
-    })
-  }
-
   private drawMasteryChest() {
     const { width } = this.scale
-    const world = this.currentWorld
+    const world = this.profile.currentWorld ?? 1
     const claimKey = `worldMastery_${world}`
 
     const masteryItems: Record<number, string> = {
@@ -427,7 +365,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }).setOrigin(0.5).setDepth(3000)
 
       this.input.once('pointerdown', () => {
-        this.scene.restart({ profileSlot: this.profileSlot, world: this.currentWorld })
+        this.scene.restart({ profileSlot: this.profileSlot })
       })
     })
   }
@@ -609,7 +547,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.glideStartTime = this.time.now
 
     // Determine if we can use bezier path-following
-    const levels = getLevelsForWorld(this.currentWorld)
+    const targetLevel = ALL_LEVELS.find(l => l.id === nodeId)
+    const levels = targetLevel ? getLevelsForWorld(targetLevel.world) : []
     const targetLevelIdx = levels.findIndex(l => l.id === nodeId)
     const canUsePath = this.worldPath && targetLevelIdx !== -1
 
