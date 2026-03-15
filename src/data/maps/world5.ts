@@ -95,69 +95,31 @@ function buildGround(): TileGrid {
     if (r < ROWS && c < COLS) g[r][c] = FLOATING_STONE
   }
 
-  // ── Path ascends steeply from bottom to top (tower climb) ──
-  // Segment 1: l1 (bottom-center) → l2 (up)
-  vPath(g, 37, 18, 21, PATH_V)
-
-  // Segment 2: l2 → l3 (right and up)
-  g[18][37] = PATH_CORNER
-  hPath(g, 18, 37, 44, PATH_H)
-  g[18][44] = PATH_CORNER
-  vPath(g, 44, 16, 18, PATH_V)
-
-  // Segment 3: l3 → mb1 (left and up)
-  g[16][44] = PATH_CORNER
-  hPath(g, 16, 33, 44, PATH_H)
-  g[16][33] = PATH_CORNER
-  vPath(g, 33, 14, 16, PATH_V)
-
-  // Segment 4: mb1 → l4 (right and up)
-  g[14][33] = PATH_CORNER
-  hPath(g, 14, 33, 44, PATH_H)
-  g[14][44] = PATH_CORNER
-  vPath(g, 44, 12, 14, PATH_V)
-
-  // Segment 5: l4 → l5 (left and up)
-  g[12][44] = PATH_CORNER
-  hPath(g, 12, 30, 44, PATH_H)
-  g[12][30] = PATH_CORNER
-  vPath(g, 30, 10, 12, PATH_V)
-
-  // Segment 6: l5 → mb2 (right and up)
-  g[10][30] = PATH_CORNER
-  hPath(g, 10, 30, 41, PATH_H)
-  g[10][41] = PATH_CORNER
-  vPath(g, 41, 8, 10, PATH_V)
-
-  // Segment 7: mb2 → l6 (left and up)
-  g[8][41] = PATH_CORNER
-  hPath(g, 8, 33, 41, PATH_H)
-  g[8][33] = PATH_CORNER
-  vPath(g, 33, 7, 8, PATH_V)
-
-  // Segment 8: l6 → l7 (right and up)
-  g[7][33] = PATH_CORNER
-  hPath(g, 7, 33, 44, PATH_H)
-  g[7][44] = PATH_CORNER
-  vPath(g, 44, 5, 7, PATH_V)
-
-  // Segment 9: l7 → mb3 (left and up)
-  g[5][44] = PATH_CORNER
-  hPath(g, 5, 37, 44, PATH_H)
-  g[5][37] = PATH_CORNER
-  vPath(g, 37, 4, 5, PATH_V)
-
-  // Segment 10: mb3 → l8 (up-center)
-  g[4][37] = PATH_CORNER
-  hPath(g, 4, 37, 41, PATH_H)
-  g[4][41] = PATH_CORNER
-  vPath(g, 41, 3, 4, PATH_V)
-
-  // Segment 11: l8 → boss (center, top)
-  g[3][41] = PATH_CORNER
-  hPath(g, 3, 37, 41, PATH_H)
-  g[3][37] = PATH_CORNER
-  vPath(g, 37, 1, 3, PATH_V)
+  // ── Path ascends left-to-right (tower staircase) ───────────
+  // l1(4,19) → l2(10,16)
+  hPath(g, 19, 4, 10, PATH_H); g[19][10] = PATH_CORNER; vPath(g, 10, 16, 19, PATH_V)
+  // l2(10,16) → l3(17,12)
+  hPath(g, 16, 10, 17, PATH_H); g[16][17] = PATH_CORNER; vPath(g, 17, 12, 16, PATH_V)
+  // l3(17,12) → mb1(23,8)
+  hPath(g, 12, 17, 23, PATH_H); g[12][23] = PATH_CORNER; vPath(g, 23, 8, 12, PATH_V)
+  // mb1(23,8) → l4(28,13)
+  hPath(g, 8, 23, 28, PATH_H); g[8][28] = PATH_CORNER; vPath(g, 28, 8, 13, PATH_V)
+  // l4(28,13) → l5(34,8)
+  hPath(g, 13, 28, 34, PATH_H); g[13][34] = PATH_CORNER; vPath(g, 34, 8, 13, PATH_V)
+  // l5(34,8) → mb2(40,5)
+  hPath(g, 8, 34, 40, PATH_H); g[8][40] = PATH_CORNER; vPath(g, 40, 5, 8, PATH_V)
+  // mb2(40,5) → l6(45,9)
+  hPath(g, 5, 40, 45, PATH_H); g[5][45] = PATH_CORNER; vPath(g, 45, 5, 9, PATH_V)
+  // l6(45,9) → l7(51,5)
+  hPath(g, 9, 45, 51, PATH_H); g[9][51] = PATH_CORNER; vPath(g, 51, 5, 9, PATH_V)
+  // l7(51,5) → mb3(56,3)
+  hPath(g, 5, 51, 56, PATH_H); g[5][56] = PATH_CORNER; vPath(g, 56, 3, 5, PATH_V)
+  // mb3(56,3) → l8(62,6)
+  hPath(g, 3, 56, 62, PATH_H); g[3][62] = PATH_CORNER; vPath(g, 62, 3, 6, PATH_V)
+  // l8(62,6) → mb4(67,3)
+  hPath(g, 6, 62, 67, PATH_H); g[6][67] = PATH_CORNER; vPath(g, 67, 3, 6, PATH_V)
+  // mb4(67,3) → boss(72,1)
+  hPath(g, 3, 67, 72, PATH_H); g[3][72] = PATH_CORNER; vPath(g, 72, 1, 3, PATH_V)
 
   // ── Void / starfield areas ─────────────────────────────────
   // Void on edges — the tower floats in space
@@ -182,10 +144,6 @@ function buildGround(): TileGrid {
   g[6][61] = VOID_1
   g[7][59] = VOID_1
   g[7][61] = VOID_1
-
-  // Path to special nodes
-  vPath(g, 26, 20, 22, PATH_V)
-  hPath(g, 22, 22, 33, PATH_H)
 
   return g
 }
@@ -260,32 +218,21 @@ function buildDecorations(): DecorationPlacement[] {
 }
 
 // ── Path segments ───────────────────────────────────────────
+// cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    // l1 → l2: straight up with slight curve
-    { cx: 1212, cy: 600 },
-    // l2 → l3: zigzag right-up
-    { cx: 1359, cy: 530 },
-    // l3 → mb1: left-up
-    { cx: 1028, cy: 480 },
-    // mb1 → l4: right-up
-    { cx: 1359, cy: 420 },
-    // l4 → l5: left-up
-    { cx: 955, cy: 370 },
-    // l5 → mb2: right-up
-    { cx: 1285, cy: 310 },
-    // mb2 → l6: left-up
-    { cx: 1065, cy: 260 },
-    // l6 → l7: right-up
-    { cx: 1359, cy: 210 },
-    // l7 → mb3: left-up
-    { cx: 1138, cy: 160 },
-    // mb3 → l8: up
-    { cx: 1248, cy: 110 },
-    // l8 → mb4: right-up
-    { cx: 1322, cy: 70 },
-    // mb4 → boss: final ascent to summit
-    { cx: 1395, cy: 30 },
+    { cx: 230,  cy: 520 }, // l1 → l2   (going up)
+    { cx: 430,  cy: 405 }, // l2 → l3   (going up)
+    { cx: 625,  cy: 290 }, // l3 → mb1  (going up)
+    { cx: 810,  cy: 375 }, // mb1 → l4  (going down)
+    { cx: 995,  cy: 295 }, // l4 → l5   (going up)
+    { cx: 1180, cy: 170 }, // l5 → mb2  (going up)
+    { cx: 1355, cy: 255 }, // mb2 → l6  (going down)
+    { cx: 1530, cy: 180 }, // l6 → l7   (going up)
+    { cx: 1710, cy: 80  }, // l7 → mb3  (going up)
+    { cx: 1885, cy: 175 }, // mb3 → l8  (going down)
+    { cx: 2055, cy: 95  }, // l8 → mb4  (going up)
+    { cx: 2220, cy: 15  }, // mb4 → boss (going up)
   ]
 }
 
@@ -339,21 +286,21 @@ export const WORLD5_MAP: WorldMapData = {
   detail: buildDetail(),
   decorations: buildDecorations(),
 
-  // Path ascends steeply — tower climb pattern (zigzag up)
+  // Path ascends left-to-right — tower staircase
   nodePositions: [
-    { x: 1175, y: 660 },  // l1 — tower base
-    { x: 1175, y: 580 },  // l2
-    { x: 1359, y: 520 },  // l3
-    { x: 1065, y: 460 },  // mb1
-    { x: 1359, y: 400 },  // l4
-    { x: 992, y: 340 },   // l5
-    { x: 1285, y: 280 },  // mb2
-    { x: 1065, y: 240 },  // l6
-    { x: 1359, y: 190 },  // l7
-    { x: 1175, y: 140 },  // mb3
-    { x: 1285, y: 90 },   // l8
-    { x: 1395, y: 60 },   // mb4
-    { x: 1542, y: 20 },   // boss — tower summit
+    { x: 130,  y: 620 }, // l1 — tower base (left)
+    { x: 330,  y: 500 }, // l2
+    { x: 530,  y: 390 }, // l3
+    { x: 720,  y: 270 }, // mb1
+    { x: 900,  y: 400 }, // l4
+    { x: 1090, y: 270 }, // l5
+    { x: 1270, y: 150 }, // mb2
+    { x: 1440, y: 280 }, // l6
+    { x: 1620, y: 160 }, // l7
+    { x: 1800, y: 80  }, // mb3
+    { x: 1970, y: 190 }, // l8
+    { x: 2140, y: 80  }, // mb4
+    { x: 2300, y: 30  }, // boss — Typemancer's throne (right)
   ],
 
   pathSegments: buildPathSegments(),
