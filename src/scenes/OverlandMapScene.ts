@@ -31,7 +31,6 @@ export class OverlandMapScene extends Phaser.Scene {
   private readonly EDGE_SCROLL_MAX_SPEED = 12
   private worldTitleText!: Phaser.GameObjects.Text
   private allNodes: { level: LevelConfig; pos: NodePosition }[] = []
-  // @ts-ignore — wired in a subsequent task
   private dropdownOpen = false
   private dropdownItems: (Phaser.GameObjects.Text | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Zone)[] = []
 
@@ -185,9 +184,20 @@ export class OverlandMapScene extends Phaser.Scene {
     const currentWorldIdx = (this.profile.currentWorld ?? 1) - 1
     this.worldTitleText = this.add.text(
       this.scale.width / 2, 40,
-      this.worldNameForIndex(currentWorldIdx),
+      this.worldNameForIndex(currentWorldIdx) + ' ▼',
       { fontSize: '28px', color: '#ffd700' }
     ).setOrigin(0.5).setDepth(2000).setScrollFactor(0)
+      .setInteractive({ useHandCursor: true })
+
+    this.worldTitleText.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation()
+      if (this.isGliding) return
+      if (this.dropdownOpen) {
+        this.closeWorldDropdown()
+      } else {
+        this.openWorldDropdown()
+      }
+    })
 
     // Player info
     this.add.text(20, 20, `${this.profile.playerName}  Lv.${this.profile.characterLevel}`, {
@@ -342,8 +352,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         this.scale.width,
       )
       const name = this.worldNameForIndex(visibleWorldIdx)
-      if (this.worldTitleText.text !== name) {
-        this.worldTitleText.setText(name)
+      if (!this.dropdownOpen && this.worldTitleText.text !== name + ' ▼') {
+        this.worldTitleText.setText(name + ' ▼')
       }
     }
   }
@@ -595,19 +605,16 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
-  // @ts-ignore — wired in a subsequent task
   private isWorldUnlocked(worldIdx: number): boolean {
     return getLevelsForWorld(worldIdx + 1).some(l => this.isUnlocked(l.id))
   }
 
-  // @ts-ignore — wired in a subsequent task
   private closeWorldDropdown(): void {
     this.dropdownItems.forEach(o => { if (o?.active) o.destroy() })
     this.dropdownItems = []
     this.dropdownOpen = false
   }
 
-  // @ts-ignore — wired in a subsequent task
   private panToWorld(worldIdx: number): void {
     this.tweens.killTweensOf(this.cameras.main)
     const nodeX = UNIFIED_MAP.xOffsets[worldIdx] + UNIFIED_MAP.worlds[worldIdx].nodePositions[0].x
@@ -621,6 +628,41 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       scrollX: targetScrollX,
       duration: 500,
       ease: 'Sine.easeInOut',
+    })
+  }
+
+  private openWorldDropdown(): void {
+    this.dropdownOpen = true
+    const cx = this.scale.width / 2
+
+    const bg = this.add.rectangle(cx, 135, 320, 160, 0x000000)
+      .setAlpha(0.75).setDepth(2099).setScrollFactor(0)
+    this.dropdownItems.push(bg)
+
+    const dismissZone = this.add.zone(cx, this.scale.height / 2, this.scale.width, this.scale.height)
+      .setInteractive().setDepth(1999).setScrollFactor(0)
+    dismissZone.on('pointerdown', () => this.closeWorldDropdown())
+    this.dropdownItems.push(dismissZone)
+
+    ;[0, 1, 2, 3, 4].forEach((i) => {
+      const name = this.worldNameForIndex(i)
+      const unlocked = this.isWorldUnlocked(i)
+      const item = this.add.text(cx, 75 + i * 30, name, {
+        fontSize: '20px',
+        color: unlocked ? '#ffd700' : '#555555',
+      }).setOrigin(0.5, 0.5).setDepth(2100).setScrollFactor(0)
+
+      if (unlocked) {
+        item.setInteractive({ useHandCursor: true })
+        item.on('pointerover', () => item.setColor('#ffffff'))
+        item.on('pointerout', () => item.setColor('#ffd700'))
+        item.on('pointerdown', () => {
+          this.closeWorldDropdown()
+          this.panToWorld(i)
+        })
+      }
+
+      this.dropdownItems.push(item)
     })
   }
 
