@@ -641,7 +641,10 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     const dismissZone = this.add.zone(cx, this.scale.height / 2, this.scale.width, this.scale.height)
       .setInteractive().setDepth(1999).setScrollFactor(0)
-    dismissZone.on('pointerdown', () => this.closeWorldDropdown())
+    dismissZone.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation()
+      this.closeWorldDropdown()
+    })
     this.dropdownItems.push(dismissZone)
 
     ;[0, 1, 2, 3, 4].forEach((i) => {
