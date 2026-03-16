@@ -18,7 +18,9 @@ export class OverlandMapScene extends Phaser.Scene {
   private avatarShadow?: Phaser.GameObjects.Ellipse
   private isGliding = false
   private mapRenderers: MapRenderer[] = []
-  private worldPaths: Phaser.Curves.Path[] = []
+  private megaPath!: Phaser.Curves.Path
+  private allNodeTValues: number[] = []
+
   private glowRect?: Phaser.GameObjects.Rectangle
   private currentNodeIndex = 0
   private avatarBasePos: NodePosition = { x: 0, y: 0 }
@@ -29,6 +31,9 @@ export class OverlandMapScene extends Phaser.Scene {
   private readonly EDGE_SCROLL_MAX_SPEED = 12
   private worldTitleText!: Phaser.GameObjects.Text
   private allNodes: { level: LevelConfig; pos: NodePosition }[] = []
+  // @ts-ignore — wired in a subsequent task
+  private dropdownOpen = false
+  private dropdownItems: (Phaser.GameObjects.Text | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Zone)[] = []
 
   private readonly WORLD_NAMES = [
     'World 1 — The Heartland',
@@ -160,8 +165,7 @@ export class OverlandMapScene extends Phaser.Scene {
       const completedIds = new Set<string>(
         levels.filter(l => !!this.profile.levelResults[l.id]).map(l => l.id)
       )
-      const path = this.mapRenderers[i].renderPaths(levels, completedIds)
-      this.worldPaths.push(path)
+      this.mapRenderers[i].renderPaths(levels, completedIds)
 
       this.drawNodes(levels, positions)
 
@@ -171,6 +175,8 @@ export class OverlandMapScene extends Phaser.Scene {
         }
       })
     })
+
+    this.buildMegaPath()
 
     this.drawWorldTransitionPaths()
     this.drawSettingsButton()
@@ -589,6 +595,35 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
   }
 
+  // @ts-ignore — wired in a subsequent task
+  private isWorldUnlocked(worldIdx: number): boolean {
+    return getLevelsForWorld(worldIdx + 1).some(l => this.isUnlocked(l.id))
+  }
+
+  // @ts-ignore — wired in a subsequent task
+  private closeWorldDropdown(): void {
+    this.dropdownItems.forEach(o => { if (o?.active) o.destroy() })
+    this.dropdownItems = []
+    this.dropdownOpen = false
+  }
+
+  // @ts-ignore — wired in a subsequent task
+  private panToWorld(worldIdx: number): void {
+    this.tweens.killTweensOf(this.cameras.main)
+    const nodeX = UNIFIED_MAP.xOffsets[worldIdx] + UNIFIED_MAP.worlds[worldIdx].nodePositions[0].x
+    const targetScrollX = Phaser.Math.Clamp(
+      nodeX - this.scale.width / 2,
+      0,
+      UNIFIED_MAP.totalWidth - this.scale.width
+    )
+    this.tweens.add({
+      targets: this.cameras.main,
+      scrollX: targetScrollX,
+      duration: 500,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
   /** Emit a short burst of dust particles at the avatar position. */
   private emitDustPuff() {
     if (!this.textures.exists('map-common')) return
@@ -620,8 +655,75 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     return Math.sin((elapsed / 200) * Math.PI) * 2
   }
 
-  private glideAvatarTo(pos: NodePosition, nodeId: string, onComplete: () => void) {
-    const distance = Phaser.Math.Distance.Between(this.avatar.x, this.avatar.y, pos.x, pos.y)
+  /**
+   * Build a single bezier path that spans all worlds, stitched together with the
+   * world-transition beziers.  Compute the arc-length T value for every node in
+   * allNodes so getPoint(T) lands exactly on that node.
+   */
+  private buildMegaPath(): void {
+    const { worlds, xOffsets, worldTransitions } = UNIFIED_MAP
+
+    const firstNode = worlds[0].nodePositions[0]
+    this.megaPath = new Phaser.Curves.Path(xOffsets[0] + firstNode.x, firstNode.y)
+
+    for (let wi = 0; wi < worlds.length; wi++) {
+      const { nodePositions, pathSegments } = worlds[wi]
+      const ox = xOffsets[wi]
+
+      // Intra-world curves
+      for (let j = 0; j < nodePositions.length - 1; j++) {
+        const to = nodePositions[j + 1]
+        const tx = ox + to.x
+        const ty = to.y
+        const seg = pathSegments[j]
+        if (seg?.cx !== undefined && seg?.cy !== undefined) {
+          this.megaPath.quadraticBezierTo(tx, ty, ox + seg.cx, seg.cy)
+        } else {
+          this.megaPath.lineTo(tx, ty)
+        }
+      }
+
+      // Transition bezier to next world
+      if (wi < worlds.length - 1) {
+        const tr = worldTransitions[wi]
+        const nextFirst = worlds[wi + 1].nodePositions[0]
+        this.megaPath.quadraticBezierTo(
+          xOffsets[wi + 1] + nextFirst.x, nextFirst.y,
+          tr.cx, tr.cy,
+        )
+      }
+    }
+
+    // Pre-compute arc-length T for each node in allNodes.
+    // Each world i contributes (N_i - 1) intra-world curves + 1 transition curve = N_i curves
+    // (except the last world which has N_last - 1 curves).
+    // So curveIndex for node j in world i = (sum_{k<i} N_k) + j.
+    const curveLengths = this.megaPath.curves.map(c => c.getLength())
+    const totalLength = curveLengths.reduce((a, b) => a + b, 0)
+    const cumLengths: number[] = [0]
+    for (const len of curveLengths) {
+      cumLengths.push(cumLengths[cumLengths.length - 1] + len)
+    }
+
+    this.allNodeTValues = []
+    let curveOffset = 0
+    for (let wi = 0; wi < worlds.length; wi++) {
+      const nNodes = getLevelsForWorld(wi + 1).length
+      for (let j = 0; j < nNodes; j++) {
+        const curveIdx = curveOffset + j
+        this.allNodeTValues.push((cumLengths[curveIdx] ?? totalLength) / totalLength)
+      }
+      // World i contributes nNodes curves (nNodes-1 intra + 1 transition) for all but last world
+      curveOffset += nNodes
+    }
+  }
+
+  private readonly GLIDE_DURATION = 550
+
+  private glideAvatarTo(pos: NodePosition, nodeId: string, onComplete: () => void, ease = 'Sine.easeInOut', trackCamera = false) {
+    const distance = Phaser.Math.Distance.Between(
+      this.avatarBasePos.x, this.avatarBasePos.y, pos.x, pos.y
+    )
 
     if (distance < 1) {
       this.profile.currentLevelNodeId = nodeId
@@ -632,103 +734,67 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.isGliding = true
     this.glideStartTime = this.time.now
 
-    // Determine if we can use bezier path-following
     const destLevel = ALL_LEVELS.find(l => l.id === nodeId)
-    const targetWorld = destLevel?.world ?? 1
-    const targetWorldPath = this.worldPaths[targetWorld - 1]
-    const worldLevels = getLevelsForWorld(targetWorld)
-    const targetLevelIdx = worldLevels.findIndex(l => l.id === nodeId)
-    const canUsePath = !!targetWorldPath && targetLevelIdx !== -1
-
-    // Compute unified index for the destination node
     const unifiedIdx = this.allNodes.findIndex(n => n.level.id === nodeId)
 
-    // Compute the per-world index of the current node for bezier path following
-    const currentLevel = this.allNodes[this.currentNodeIndex]?.level
-    const currentWorld = currentLevel?.world ?? 1
-    const currentWorldLevels = getLevelsForWorld(currentWorld)
-    const currentWorldLevelIdx = currentWorldLevels.findIndex(l => l.id === currentLevel?.id)
-
     const finishGlide = () => {
-      // Snap to final position (no bob)
       this.avatarBasePos = { x: pos.x, y: pos.y }
       this.avatar.setPosition(pos.x, pos.y)
       this.syncShadow()
-      // Update tracking
       if (unifiedIdx !== -1) {
         this.currentNodeIndex = unifiedIdx
       }
-      // Save current world when glide completes
       if (destLevel) {
         this.profile.currentWorld = destLevel.world
       }
       this.profile.currentLevelNodeId = nodeId
       saveProfile(this.profileSlot, this.profile)
       this.isGliding = false
-      // Dust puff on arrival
       this.emitDustPuff()
       onComplete()
     }
 
-    // Only use bezier path when both nodes are in the same world
-    const sameWorld = currentWorld === targetWorld
-
-    if (canUsePath && sameWorld) {
-      // Bezier path-following between nodes
-      const numCurves = targetWorldPath!.curves.length
-      if (numCurves === 0) {
-        this.glideDirectTo(pos, distance, finishGlide)
-        return
-      }
-
-      const startT = currentWorldLevelIdx / numCurves
-      const endT = targetLevelIdx / numCurves
-      const obj = { val: 0 }
-
-      this.tweens.add({
-        targets: obj,
-        val: 1,
-        duration: Math.max(200, distance * 2),
-        ease: 'Sine.easeInOut',
-        onUpdate: () => {
-          const t = Phaser.Math.Linear(startT, endT, obj.val)
-          const clampedT = Phaser.Math.Clamp(t, 0, 1)
-          const pt = targetWorldPath!.getPoint(clampedT)
-          if (pt) {
-            this.avatarBasePos = { x: pt.x, y: pt.y }
-            this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
-            this.syncShadow()
-          }
-        },
-        onComplete: finishGlide,
-      })
-    } else {
-      // Direct tween for special nodes or worlds without paths
-      this.glideDirectTo(pos, distance, finishGlide)
-    }
-  }
-
-  /** Simple direct linear-interpolation tween (used for special nodes or fallback). */
-  private glideDirectTo(pos: NodePosition, distance: number, onComplete: () => void) {
+    const startT = this.allNodeTValues[this.currentNodeIndex] ?? 0
+    const endT = this.allNodeTValues[unifiedIdx] ?? 1
+    // Click travel: scale duration by path fraction so longer journeys take more time.
+    // Keyboard travel: fixed GLIDE_DURATION regardless of distance.
+    const duration = trackCamera
+      ? Math.max(1800, Math.abs(endT - startT) * 22000)
+      : this.GLIDE_DURATION
     const obj = { val: 0 }
-    const startX = this.avatar.x
-    const startY = this.avatar.y
+    const cam = this.cameras.main
+    const vw = this.scale.width
 
     this.tweens.add({
       targets: obj,
       val: 1,
-      duration: Math.max(100, distance * 2),
-      ease: 'Sine.easeInOut',
+      duration,
+      ease,
       onUpdate: () => {
-        const x = Phaser.Math.Linear(startX, pos.x, obj.val)
-        const y = Phaser.Math.Linear(startY, pos.y, obj.val)
-        this.avatarBasePos = { x, y }
-        this.avatar.setPosition(x, y + this.walkBobOffset())
-        this.syncShadow()
+        const t = Phaser.Math.Clamp(Phaser.Math.Linear(startT, endT, obj.val), 0, 1)
+        const pt = this.megaPath.getPoint(t)
+        if (pt) {
+          this.avatarBasePos = { x: pt.x, y: pt.y }
+          this.avatar.setPosition(pt.x, pt.y + this.walkBobOffset())
+          this.syncShadow()
+          if (trackCamera) {
+            this.cameras.main.scrollX = Phaser.Math.Clamp(
+              pt.x - vw / 2,
+              0,
+              UNIFIED_MAP.totalWidth - vw,
+            )
+          }
+        }
       },
-      onComplete,
+      onComplete: () => {
+        if (trackCamera) {
+          cam.scrollX = Phaser.Math.Clamp(pos.x - vw / 2, 0, UNIFIED_MAP.totalWidth - vw)
+        }
+        finishGlide()
+      },
     })
   }
+
 
   /** Move the hero to the next or previous unlocked node. */
   private moveToAdjacentNode(direction: -1 | 1): void {
@@ -776,31 +842,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   private enterLevel(level: LevelConfig, pos: { x: number; y: number }) {
     if (this.isGliding) return
     this.isGliding = true
-
-    const cam = this.cameras.main
-    const vw = this.scale.width
-    const isOffScreen = pos.x < cam.scrollX || pos.x > cam.scrollX + vw
-
-    if (isOffScreen) {
-      // Tween camera to center on destination, then glide
-      const targetScrollX = Phaser.Math.Clamp(
-        pos.x - vw / 2,
-        0,
-        UNIFIED_MAP.totalWidth - vw,
-      )
-      this.tweens.add({
-        targets: cam,
-        scrollX: targetScrollX,
-        duration: 600,
-        ease: 'Sine.easeInOut',
-        onComplete: () => this.glideAvatarTo(pos, level.id, () => {
-          this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
-        }),
-      })
-    } else {
-      this.glideAvatarTo(pos, level.id, () => {
-        this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
-      })
-    }
+    this.glideAvatarTo(pos, level.id, () => {
+      this.scene.start('LevelIntro', { level, profileSlot: this.profileSlot })
+    }, 'Sine.easeInOut', true)
   }
 }
