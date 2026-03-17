@@ -119,6 +119,9 @@ export class CrazedCookLevel extends Phaser.Scene {
     this.wordPool = Phaser.Utils.Array.Shuffle([...pool])
     this.wordIndex = 0
 
+    // Dark backing panel behind the word display
+    this.add.rectangle(width / 2, height - 80, 500, 56, 0x000000, 0.55).setOrigin(0.5)
+
     // Typing engine
     this.engine = new TypingEngine({
       scene: this,
@@ -275,7 +278,7 @@ export class CrazedCookLevel extends Phaser.Scene {
       if (currentWord) {
         this.engine.setWord(currentWord)
         if (this.typingHands) this.typingHands.highlightFinger(currentWord[0])
-        order.ticket.lines[order.currentIngredientIndex]?.setColor('#ffffff')
+        order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
       }
     } else {
       this.engine.clearWord()
@@ -310,7 +313,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     const nextIng = order.ingredients[order.currentIngredientIndex]
     if (nextIng) {
       this.engine.setWord(nextIng.word)
-      order.ticket.lines[order.currentIngredientIndex]?.setColor('#ffffff')
+      order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
       if (this.typingHands) this.typingHands.highlightFinger(nextIng.word[0])
       return
     }
