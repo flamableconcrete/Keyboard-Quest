@@ -17,6 +17,7 @@ interface Ingredient {
 interface TicketUI {
   bg: Phaser.GameObjects.Rectangle
   lines: Phaser.GameObjects.Text[]
+  underlines: Phaser.GameObjects.Rectangle[]
 }
 
 interface OrcOrder {
@@ -119,8 +120,8 @@ export class CrazedCookLevel extends Phaser.Scene {
     this.wordPool = Phaser.Utils.Array.Shuffle([...pool])
     this.wordIndex = 0
 
-    // Dark backing panel behind the word display
-    this.add.rectangle(width / 2, height - 80, 500, 56, 0x000000, 0.55).setOrigin(0.5)
+    // Dark backing panel behind the word display (centered on the text, which renders top-down from height-80)
+    this.add.rectangle(width / 2, height - 58, 500, 56, 0x000000, 0.55).setOrigin(0.5)
 
     // Typing engine
     this.engine = new TypingEngine({
@@ -231,12 +232,17 @@ export class CrazedCookLevel extends Phaser.Scene {
 
     // Ingredient text lines
     const lines: Phaser.GameObjects.Text[] = ingredients.map((ing, i) =>
-      this.add.text(seatX, 215 + i * 22, ing.word, {
-        fontSize: '13px',
+      this.add.text(seatX, 213 + i * 26, ing.word, {
+        fontSize: '15px',
         color: '#888888',
         stroke: '#000000',
         strokeThickness: 1,
       }).setOrigin(0.5)
+    )
+
+    // Underlines — one per ingredient, hidden by default
+    const underlines: Phaser.GameObjects.Rectangle[] = lines.map((line, i) =>
+      this.add.rectangle(seatX, 213 + i * 26 + 11, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
     )
 
     const patienceDuration = 70 - ingredientCount * 10
@@ -244,7 +250,7 @@ export class CrazedCookLevel extends Phaser.Scene {
 
     const order: OrcOrder = {
       orcSprite,
-      ticket: { bg: ticketBg, lines },
+      ticket: { bg: ticketBg, lines, underlines },
       patienceBar,
       patienceBarBg,
       ingredients,
@@ -262,13 +268,13 @@ export class CrazedCookLevel extends Phaser.Scene {
   }
 
   private setActiveOrder(order: OrcOrder | null) {
-    // Deactivate old order — dim its current ingredient line
+    // Deactivate old order — dim its current ingredient line and hide underline
     if (this.activeOrder) {
       this.activeOrder.ticket.bg.setStrokeStyle(2, 0x8b6340)
       const prevIdx = this.activeOrder.currentIngredientIndex
-      const prevLine = this.activeOrder.ticket.lines[prevIdx]
-      if (prevLine && !this.activeOrder.ingredients[prevIdx]?.done) {
-        prevLine.setColor('#888888')
+      if (!this.activeOrder.ingredients[prevIdx]?.done) {
+        this.activeOrder.ticket.lines[prevIdx]?.setColor('#888888')
+        this.activeOrder.ticket.underlines[prevIdx]?.setAlpha(0)
       }
     }
     this.activeOrder = order
@@ -279,6 +285,7 @@ export class CrazedCookLevel extends Phaser.Scene {
         this.engine.setWord(currentWord)
         if (this.typingHands) this.typingHands.highlightFinger(currentWord[0])
         order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
+        order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(1)
       }
     } else {
       this.engine.clearWord()
@@ -307,6 +314,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     ing.done = true
     order.ticket.lines[order.currentIngredientIndex].setText(`✓ ${ing.word}`)
     order.ticket.lines[order.currentIngredientIndex].setColor('#44ff44')
+    order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(0)
 
     // More ingredients?
     order.currentIngredientIndex++
@@ -314,6 +322,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (nextIng) {
       this.engine.setWord(nextIng.word)
       order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
+      order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(1)
       if (this.typingHands) this.typingHands.highlightFinger(nextIng.word[0])
       return
     }
@@ -335,6 +344,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     // Destroy ticket and patience bar immediately
     order.ticket.bg.destroy()
     order.ticket.lines.forEach(l => l.destroy())
+    order.ticket.underlines.forEach(u => u.destroy())
     order.patienceBar.destroy()
     order.patienceBarBg.destroy()
     this.orders = this.orders.filter(o => o !== order)
@@ -374,6 +384,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     order.orcSprite.destroy()
     order.ticket.bg.destroy()
     order.ticket.lines.forEach(l => l.destroy())
+    order.ticket.underlines.forEach(u => u.destroy())
     order.patienceBar.destroy()
     order.patienceBarBg.destroy()
 
