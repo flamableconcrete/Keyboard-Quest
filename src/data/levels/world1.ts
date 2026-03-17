@@ -125,12 +125,14 @@ export const WORLD1_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w1_l6',
-    name: 'The Crazed Cook\'s Camp',
-    type: 'SillyChallenge',
+    name: "The Crazed Cook's Camp",
+    type: 'CrazedCook',
     world: 1,
     unlockedLetters: W1_AFTER_MB2,
-    wordCount: 20,
-    timeLimit: 60,
+    wordCount: 40,
+    timeLimit: 90,
+    orderQuota: 12,
+    maxWalkoffs: 3,
     dialogue: [
       { speaker: "enemy", text: "You dare enter my camp?! My exploding cheese will flatten your fingers!" },
       { speaker: "hero",  text: "...Is that a real threat? Are you a real cook?" },

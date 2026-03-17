@@ -76,6 +76,7 @@ export type LevelType =
   | 'CharacterCreator'
   | 'WoodlandFestival'
   | 'SillyChallenge'
+  | 'CrazedCook'
   | 'BossBattle'
 
 export interface LevelConfig {
@@ -101,6 +102,8 @@ export interface LevelConfig {
   isMiniBoss?: boolean
   bossId?: string
   phases?: number
+  orderQuota?: number       // for CrazedCook: orders needed to win
+  maxWalkoffs?: number      // for CrazedCook: max angry walk-offs before losing
 }
 
 export interface ItemData {

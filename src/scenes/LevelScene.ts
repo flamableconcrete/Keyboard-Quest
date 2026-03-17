@@ -22,6 +22,7 @@ export class LevelScene extends Phaser.Scene {
       GuildRecruitment: 'GuildRecruitmentLevel',
       WoodlandFestival: 'WoodlandFestivalLevel',
       SillyChallenge: 'SillyChallengeLevel',
+      CrazedCook: 'CrazedCookLevel',
       BossBattle: 'BossBattleScene',
     }
     const sceneName = typeToScene[data.level.type] ?? 'GoblinWhackerLevel'
