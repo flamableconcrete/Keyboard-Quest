@@ -132,11 +132,21 @@ export class CrazedCookLevel extends Phaser.Scene {
     // Finger hints
     const profile = loadProfile(this.profileSlot)
     if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 100)
+      this.typingHands = new TypingHands(this, width / 2, height - 190)
     }
 
     // TAB key to cycle orders
     this.input.keyboard?.on('keydown-TAB', this.cycleActiveOrder, this)
+
+    // Update finger hint after each keypress
+    this.input.keyboard?.on('keydown', () => {
+      if (this.activeOrder && this.typingHands) {
+        const nextIdx = this.engine.getTypedSoFar().length
+        const currentWord = this.activeOrder.ingredients[this.activeOrder.currentIngredientIndex]?.word
+        const nextCh = currentWord?.[nextIdx]
+        if (nextCh) this.typingHands.highlightFinger(nextCh)
+      }
+    })
 
     // Timer
     this.timeLeft = this.level.timeLimit ?? 90
@@ -257,7 +267,10 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (order) {
       order.ticket.bg.setStrokeStyle(2, 0xffd700)
       const currentWord = order.ingredients[order.currentIngredientIndex]?.word
-      if (currentWord) this.engine.setWord(currentWord)
+      if (currentWord) {
+        this.engine.setWord(currentWord)
+        if (this.typingHands) this.typingHands.highlightFinger(currentWord[0])
+      }
     } else {
       this.engine.clearWord()
     }
