@@ -657,7 +657,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         item.setInteractive({ useHandCursor: true })
         item.on('pointerover', () => item.setColor('#ffffff'))
         item.on('pointerout', () => item.setColor('#ffd700'))
-        item.on('pointerdown', () => {
+        item.on('pointerup', () => {
           this.closeWorldDropdown()
           this.panToWorld(i)
         })
