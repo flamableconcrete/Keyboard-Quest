@@ -635,10 +635,6 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.dropdownOpen = true
     const cx = this.scale.width / 2
 
-    const bg = this.add.rectangle(cx, 135, 320, 160, 0x000000)
-      .setAlpha(0.75).setDepth(2099).setScrollFactor(0)
-    this.dropdownItems.push(bg)
-
     const dismissZone = this.add.zone(cx, this.scale.height / 2, this.scale.width, this.scale.height)
       .setInteractive().setDepth(1999).setScrollFactor(0)
     dismissZone.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
@@ -647,6 +643,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     })
     this.dropdownItems.push(dismissZone)
 
+    // Create text items first so we can measure their actual rendered widths
+    const items: Phaser.GameObjects.Text[] = []
     ;[0, 1, 2, 3, 4].forEach((i) => {
       const name = this.worldNameForIndex(i)
       const unlocked = this.isWorldUnlocked(i)
@@ -665,8 +663,15 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         })
       }
 
+      items.push(item)
       this.dropdownItems.push(item)
     })
+
+    // Size background width to fit the widest item (height/position unchanged)
+    const maxTextWidth = Math.max(...items.map(t => t.width))
+    const bg = this.add.rectangle(cx, 135, maxTextWidth + 40, 160, 0x000000)
+      .setAlpha(0.75).setDepth(2099).setScrollFactor(0)
+    this.dropdownItems.push(bg)
   }
 
   /** Emit a short burst of dust particles at the avatar position. */
