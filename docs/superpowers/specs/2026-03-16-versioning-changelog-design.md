@@ -46,7 +46,6 @@ on:
 
 permissions:
   contents: write
-  issues: write
   pull-requests: write
 
 name: release-please
@@ -80,3 +79,4 @@ To be hand-crafted by the developer with Claude's help, covering all work comple
 
 - The default `GITHUB_TOKEN` is used; CI checks will not re-run on release PRs (acceptable since no required CI checks exist)
 - Commit message convention (`feat:`, `fix:`, `docs:`, etc.) is already in use throughout the repo — no workflow change needed
+- Merging the release PR counts as a push to `main`, so any existing GitHub Pages deploy workflow will also trigger — this is the desired behavior (deployed game reflects the released version)
