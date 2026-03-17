@@ -132,7 +132,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     // Finger hints
     const profile = loadProfile(this.profileSlot)
     if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 190)
+      this.typingHands = new TypingHands(this, width / 2, height - 160)
     }
 
     // TAB key to cycle orders
@@ -259,9 +259,14 @@ export class CrazedCookLevel extends Phaser.Scene {
   }
 
   private setActiveOrder(order: OrcOrder | null) {
-    // Clear old active highlight
+    // Deactivate old order — dim its current ingredient line
     if (this.activeOrder) {
       this.activeOrder.ticket.bg.setStrokeStyle(2, 0x8b6340)
+      const prevIdx = this.activeOrder.currentIngredientIndex
+      const prevLine = this.activeOrder.ticket.lines[prevIdx]
+      if (prevLine && !this.activeOrder.ingredients[prevIdx]?.done) {
+        prevLine.setColor('#888888')
+      }
     }
     this.activeOrder = order
     if (order) {
@@ -270,6 +275,7 @@ export class CrazedCookLevel extends Phaser.Scene {
       if (currentWord) {
         this.engine.setWord(currentWord)
         if (this.typingHands) this.typingHands.highlightFinger(currentWord[0])
+        order.ticket.lines[order.currentIngredientIndex]?.setColor('#ffffff')
       }
     } else {
       this.engine.clearWord()
@@ -304,6 +310,8 @@ export class CrazedCookLevel extends Phaser.Scene {
     const nextIng = order.ingredients[order.currentIngredientIndex]
     if (nextIng) {
       this.engine.setWord(nextIng.word)
+      order.ticket.lines[order.currentIngredientIndex]?.setColor('#ffffff')
+      if (this.typingHands) this.typingHands.highlightFinger(nextIng.word[0])
       return
     }
 
