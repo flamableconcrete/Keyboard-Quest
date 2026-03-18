@@ -194,7 +194,7 @@ export class CrazedCookLevel extends Phaser.Scene {
       }
 
       if (order.patience <= 0) {
-        this.handleWalkoff(order)
+        this.handleAttack(order)
       }
     }
   }
@@ -377,19 +377,12 @@ export class CrazedCookLevel extends Phaser.Scene {
     })
   }
 
-  private handleWalkoff(order: OrcOrder) {
+  private handleAttack(order: OrcOrder) {
+    // Remove from orders immediately to prevent re-entry from update loop
+    this.orders = this.orders.filter(o => o !== order)
     const wasActive = order === this.activeOrder
 
-    this.orders = this.orders.filter(o => o !== order)
-    order.orcSprite.destroy()
-    order.ticket.bg.destroy()
-    order.ticket.lines.forEach(l => l.destroy())
-    order.ticket.underlines.forEach(u => u.destroy())
-    order.patienceBar.destroy()
-    order.patienceBarBg.destroy()
-
-    this.walkoffs++
-
+    // Clear active order focus if needed
     if (wasActive) {
       this.engine.clearWord()
       const remaining = this.orders
@@ -400,18 +393,41 @@ export class CrazedCookLevel extends Phaser.Scene {
       if (lowest) this.setActiveOrder(lowest)
     }
 
-    // Check lose
-    if (this.walkoffs >= this.maxWalkoffs) {
-      this.endLevel(false)
-      return
-    }
+    // Destroy ticket and patience bar immediately
+    order.ticket.bg.destroy()
+    order.ticket.lines.forEach(l => l.destroy())
+    order.ticket.underlines.forEach(u => u.destroy())
+    order.patienceBar.destroy()
+    order.patienceBarBg.destroy()
 
-    // Respawn after delay
-    const seat = order.seat
-    this.time.delayedCall(1500, () => {
-      if (!this.finished && !this.orders.find(o => o.seat === seat)) {
-        this.spawnOrc(seat)
-      }
+    // Attack tween sequence
+    order.orcSprite.setTint(0xff0000)
+    this.tweens.add({
+      targets: order.orcSprite,
+      scaleX: 2.8,
+      scaleY: 2.8,
+      duration: 200,
+      ease: 'Power2',
+      onStart: () => {
+        this.cameras.main.shake(150, 0.01)
+      },
+      onComplete: () => {
+        order.orcSprite.destroy()
+
+        this.walkoffs++
+
+        if (this.walkoffs >= this.maxWalkoffs) {
+          this.endLevel(false)
+          return
+        }
+
+        const seat = order.seat
+        this.time.delayedCall(1500, () => {
+          if (!this.finished && !this.orders.find(o => o.seat === seat)) {
+            this.spawnOrc(seat)
+          }
+        })
+      },
     })
   }
 
