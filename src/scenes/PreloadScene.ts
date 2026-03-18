@@ -1,6 +1,7 @@
 import { generateThemeMusic } from '../utils/musicGenerator'
 import Phaser from 'phaser'
 import { AvatarRenderer } from '../components/AvatarRenderer'
+import { generateLevelNodeTextures } from '../utils/levelNodeTextures'
 
 export class PreloadScene extends Phaser.Scene {
   constructor() { super('Preload') }
@@ -37,6 +38,7 @@ export class PreloadScene extends Phaser.Scene {
     this.generateWorld4Tileset()
     this.generateWorld5Tileset()
     this.generateCommonMapSheet()
+    generateLevelNodeTextures(this)
 
     // Real assets (pixel art sprites, tilesets, audio) are added here as they are created
     this.load.on('complete', () => {

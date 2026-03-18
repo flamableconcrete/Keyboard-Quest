@@ -21,7 +21,7 @@ export function generateLevelNodeTextures(scene: Phaser.Scene): void {
   // Helper: draw the shared circular background (resets stroke state each time)
   const bg = (color: number) => {
     g.clear()
-    g.lineStyle(0)
+    g.lineStyle(0, 0x000000)
     g.fillStyle(color)
     g.fillCircle(16, 16, 15)
   }
