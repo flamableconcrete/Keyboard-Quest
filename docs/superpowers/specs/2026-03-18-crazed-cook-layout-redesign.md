@@ -7,7 +7,7 @@
 
 ## Overview
 
-Move orcs, patience bars, and tickets entirely into the bottom seating zone, away from kitchen chaos and finger hints. Tickets move from covering the orc body to sitting beside it (to the right). Reduce from 5 seats to 4 to accommodate the wider per-slot footprint.
+Move orcs and tickets entirely into the bottom seating zone, away from kitchen chaos and finger hints. Patience bars sit at the counter surface edge (y=390), just above the seating zone. Tickets move from covering the orc body to sitting beside it (to the right). Reduce from 5 seats to 4 to accommodate the wider per-slot footprint.
 
 ---
 
@@ -83,5 +83,6 @@ Ticket size: 100×110px (height reduced from 120 to fit the seating zone).
 
 - No art changes (`crazedCookArt.ts` unchanged — the seating zone background tiles already extend to the bottom)
 - No gameplay mechanic changes
-- No changes to ticket size logic, ingredient count, or patience rates
+- No changes to ingredient count or patience rates
+- Ticket background height reduced from 120 to 110px to fit the seating zone (all other ticket sizing unchanged)
 - HUD and typing engine positions unchanged
