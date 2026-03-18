@@ -8,6 +8,8 @@ import { getWordPool } from '../../utils/words'
 import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateCrazedCookTextures } from '../../art/crazedCookArt'
 import { setupPause } from '../../utils/pauseSetup'
+import { COOK_STATIONS } from '../../data/cookStations'
+import { calcMoveDuration, pickNextStationIndex } from '../../utils/cookMovement'
 
 interface Ingredient {
   word: string
@@ -39,6 +41,9 @@ const INGREDIENT_WEIGHTS = [
   { count: 3, weight: 25 },
   { count: 4, weight: 10 },
 ]
+
+// ms per 100px for each cook — staggered so they don't move in lockstep
+const COOK_BASE_SPEEDS = [160, 130, 190] // cook_ladle, cook_knife, cook_spoon
 
 export class CrazedCookLevel extends Phaser.Scene {
   private level!: LevelConfig
@@ -85,19 +90,13 @@ export class CrazedCookLevel extends Phaser.Scene {
     // Background
     this.add.image(width / 2, height / 2, 'kitchen_bg')
 
-    // Cook sprites with bobbing tweens
+    // Cook sprites with waypoint wandering
     const cookKeys = ['cook_ladle', 'cook_knife', 'cook_spoon']
-    const cookXs = [200, 560, 920]
+    const startStations = [0, 6, 3] // stove_left, cauldron, herb_bundles — spread them out initially
     cookKeys.forEach((key, i) => {
-      const cook = this.add.image(cookXs[i], 460, key).setScale(2)
-      this.tweens.add({
-        targets: cook,
-        y: 460 + 4,
-        yoyo: true,
-        repeat: -1,
-        duration: 600 + i * 150,
-        ease: 'Sine.easeInOut',
-      })
+      const station = COOK_STATIONS[startStations[i]]
+      const cook = this.add.image(station.workX, station.workY, key).setScale(2)
+      this.startCookWander(cook, COOK_BASE_SPEEDS[i], startStations[i])
     })
 
     // HUD
@@ -265,6 +264,32 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (!this.activeOrder) {
       this.setActiveOrder(order)
     }
+  }
+
+  private startCookWander(cook: Phaser.GameObjects.Image, baseMsPerHundredPx: number, startStationIdx: number) {
+    let currentIdx = startStationIdx
+
+    const wander = () => {
+      if (this.finished) return
+      const nextIdx = pickNextStationIndex(currentIdx, COOK_STATIONS.length)
+      const station = COOK_STATIONS[nextIdx]
+      const duration = calcMoveDuration(cook.x, cook.y, station.workX, station.workY, baseMsPerHundredPx)
+
+      this.tweens.add({
+        targets: cook,
+        x: station.workX,
+        y: station.workY,
+        duration,
+        ease: 'Linear',
+        onComplete: () => {
+          currentIdx = nextIdx
+          const pause = Phaser.Math.Between(150, 500)
+          this.time.delayedCall(pause, wander)
+        },
+      })
+    }
+
+    wander()
   }
 
   private setActiveOrder(order: OrcOrder | null) {
