@@ -34,7 +34,7 @@ interface OrcOrder {
   seat: number
 }
 
-const SEAT_X = [160, 360, 560, 760, 960]
+const SEAT_X = [250, 510, 770, 1030]
 const INGREDIENT_WEIGHTS = [
   { count: 1, weight: 15 },
   { count: 2, weight: 50 },
@@ -219,19 +219,19 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (ingredients.length === 0) return
 
     const seatX = SEAT_X[seat]
-    const orcSprite = this.add.image(seatX, 248, 'orc_customer').setScale(2)
+    const orcSprite = this.add.image(seatX, 475, 'orc_customer').setScale(2)
 
     // Patience bar background
-    const patienceBarBg = this.add.rectangle(seatX, 100, 100, 10, 0x444444).setOrigin(0.5)
+    const patienceBarBg = this.add.rectangle(seatX, 390, 100, 10, 0x444444).setOrigin(0.5)
     // Patience bar foreground (origin 0, 0.5 so shrinking width goes left-to-right)
-    const patienceBar = this.add.rectangle(seatX - 50, 100, 100, 10, 0x44ff44).setOrigin(0, 0.5)
+    const patienceBar = this.add.rectangle(seatX - 50, 390, 100, 10, 0x44ff44).setOrigin(0, 0.5)
 
     // Ticket background + border
-    const ticketBg = this.add.rectangle(seatX, 260, 100, 120, 0xf5e6c8).setStrokeStyle(2, 0x8b6340)
+    const ticketBg = this.add.rectangle(seatX + 115, 475, 100, 110, 0xf5e6c8).setStrokeStyle(2, 0x8b6340)
 
     // Ingredient text lines
     const lines: Phaser.GameObjects.Text[] = ingredients.map((ing, i) =>
-      this.add.text(seatX, 213 + i * 26, ing.word, {
+      this.add.text(seatX + 115, 435 + i * 24, ing.word, {
         fontSize: '15px',
         color: '#888888',
         stroke: '#000000',
@@ -241,7 +241,7 @@ export class CrazedCookLevel extends Phaser.Scene {
 
     // Underlines — one per ingredient, hidden by default
     const underlines: Phaser.GameObjects.Rectangle[] = lines.map((line, i) =>
-      this.add.rectangle(seatX, 213 + i * 26 + 11, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
+      this.add.rectangle(seatX + 115, 435 + i * 24 + 10, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
     )
 
     const patienceDuration = 70 - ingredientCount * 10
