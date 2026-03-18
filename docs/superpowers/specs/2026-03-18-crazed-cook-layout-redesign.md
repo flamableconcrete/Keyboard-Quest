@@ -25,7 +25,9 @@ Move orcs and tickets entirely into the bottom seating zone, away from kitchen c
 
 ## Section 1: Seat Positions
 
-**Change:** `SEAT_X` from `[160, 360, 560, 760, 960]` (5 seats, 200px apart) to `[200, 460, 720, 980]` (4 seats, 260px apart, centered in 1280px canvas).
+**Change:** `SEAT_X` from `[160, 360, 560, 760, 960]` (5 seats, 200px apart) to `[250, 510, 770, 1030]` (4 seats, 260px apart, centered in 1280px canvas).
+
+Centering check: left orc edge = 250 − 60 = 190px from left; right orc edge = 1030 + 60 = 1090, margin from right = 1280 − 1090 = 190px ✓
 
 ---
 
@@ -65,9 +67,10 @@ Ticket size: 100×110px (height reduced from 120 to fit the seating zone).
 
 **No-overlap verification** (orc half-width = 60px, ticket half-width = 50px):
 - Ticket center X = seatX + 115 → left edge at seatX + 65, right edge at seatX + 165
+- Gap between own orc right edge and ticket left edge: (seatX + 65) − (seatX + 60) = **5px** ✓
 - Adjacent seat orc left edge: (seatX + 260) − 60 = seatX + 200
 - Gap between ticket right edge and next orc left edge: 200 − 165 = **35px** ✓
-- Rightmost ticket right edge (seat 3, x=980): 980 + 165 = 1145 < 1280 ✓
+- Rightmost ticket right edge (seat 3, x=1030): 1030 + 165 = 1195 < 1280 ✓
 
 ---
 
