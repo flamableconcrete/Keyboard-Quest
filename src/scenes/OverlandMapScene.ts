@@ -1,6 +1,7 @@
 import { AudioHelper } from '../utils/AudioHelper'
 // src/scenes/OverlandMapScene.ts
 import Phaser from 'phaser'
+import { levelNodeTextureKey } from '../utils/levelNodeTextures'
 import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ALL_LEVELS, getLevelsForWorld } from '../data/levels'
@@ -391,8 +392,14 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       // Base oval
       this.add.ellipse(pos.x, pos.y + (16 * (baseScale / 1.5)), 64 * (baseScale / 1.5), 24 * (baseScale / 1.5), 0x8b6b3a).setDepth(998)
 
-      const nodeFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : level.isMiniBoss ? COMMON_FRAMES.nodeMiniBoss : COMMON_FRAMES.nodeLevel
-      const nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', nodeFrame).setTint(color).setDepth(1000).setScale(baseScale)
+      const generatedKey = levelNodeTextureKey(level)
+      let nodeSprite: Phaser.GameObjects.Sprite
+      if (generatedKey) {
+        nodeSprite = this.add.sprite(pos.x, pos.y, generatedKey).setTint(color).setDepth(1000).setScale(baseScale)
+      } else {
+        const bossFrame = level.isBoss ? COMMON_FRAMES.nodeBoss : COMMON_FRAMES.nodeMiniBoss
+        nodeSprite = this.add.sprite(pos.x, pos.y, 'map-common', bossFrame).setTint(color).setDepth(1000).setScale(baseScale)
+      }
 
       if (unlocked && !gated) {
         nodeSprite.setInteractive({ useHandCursor: true })
