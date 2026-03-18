@@ -73,7 +73,6 @@ export type LevelType =
   | 'MagicRuneTyping'
   | 'MonsterManual'
   | 'GuildRecruitment'
-  | 'CharacterCreator'
   | 'WoodlandFestival'
   | 'CrazedCook'
   | 'BossBattle'

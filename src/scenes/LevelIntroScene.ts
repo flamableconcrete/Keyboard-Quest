@@ -20,7 +20,6 @@ const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
   MagicRuneTyping:    '🔮 Magic Runes',
   MonsterManual:      '📖 Monster Manual',
   GuildRecruitment:   '🛡️ Guild Recruitment',
-  CharacterCreator:   '🎨 Character Creator',
   WoodlandFestival:   '🌳 Woodland Festival',
   CrazedCook:         '🍳 Crazed Cook',
   BossBattle:         '🐉 Boss Battle',
