@@ -104,6 +104,7 @@ const wordPool = getWordPool(this.level.unlockedLetters, this.level.wordCount, d
 ### Order Structure
 
 Ingredient count per order (random on spawn):
+
 - 15% chance of 1 ingredient
 - 50% chance of 2 ingredients
 - 25% chance of 3 ingredients
@@ -214,6 +215,7 @@ export function generateCrazedCookTextures(scene: Phaser.Scene): void {
 ### Orc Customer (`'orc_customer'`)
 
 Distinct from the slim green goblin:
+
 - Stocky, wide body — broader than goblin
 - Warty grey-green skin: `0x6b7c3a` body, `0x8a9e4a` highlight
 - Flat wide nose, small beady yellow eyes, jutting underbite with two bottom tusks
@@ -224,6 +226,7 @@ Distinct from the slim green goblin:
 ### Cook Characters (3 texture keys)
 
 ~24px tall, top-down angle. Animated in-scene with looping `y ± 4px` bobbing tween:
+
 - **`cook_ladle`** — white apron, ladle (yellow handle, round head)
 - **`cook_knife`** — stained apron, kitchen knife (grey blade, brown handle)
 - **`cook_spoon`** — tall chef hat, wooden spoon (brown handle, oval bowl)
@@ -238,6 +241,7 @@ Distinct from the slim green goblin:
 ### Order Ticket UI
 
 Built from Phaser `Rectangle` + `Text` objects in `CrazedCookLevel.ts`:
+
 - `ticket.bg` = `this.add.rectangle(seatX, 260, 100, 120, 0xf5e6c8).setStrokeStyle(2, 0x8b6340)`
 - Active: `ticket.bg.setStrokeStyle(2, 0xffd700)`
 - Ingredient lines: `Text` at `(seatX, 215 + i*22)`, gray `#888888` pending, green `#44ff44` with `'✓ '` when done
