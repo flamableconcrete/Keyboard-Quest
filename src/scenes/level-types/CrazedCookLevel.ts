@@ -219,6 +219,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (ingredients.length === 0) return
 
     const seatX = SEAT_X[seat]
+    const ticketX = seatX + 115
     const orcSprite = this.add.image(seatX, 475, 'orc_customer').setScale(2)
 
     // Patience bar background
@@ -227,11 +228,11 @@ export class CrazedCookLevel extends Phaser.Scene {
     const patienceBar = this.add.rectangle(seatX - 50, 390, 100, 10, 0x44ff44).setOrigin(0, 0.5)
 
     // Ticket background + border
-    const ticketBg = this.add.rectangle(seatX + 115, 475, 100, 110, 0xf5e6c8).setStrokeStyle(2, 0x8b6340)
+    const ticketBg = this.add.rectangle(ticketX, 475, 100, 110, 0xf5e6c8).setStrokeStyle(2, 0x8b6340)
 
     // Ingredient text lines
     const lines: Phaser.GameObjects.Text[] = ingredients.map((ing, i) =>
-      this.add.text(seatX + 115, 435 + i * 24, ing.word, {
+      this.add.text(ticketX, 435 + i * 24, ing.word, {
         fontSize: '15px',
         color: '#888888',
         stroke: '#000000',
@@ -241,7 +242,7 @@ export class CrazedCookLevel extends Phaser.Scene {
 
     // Underlines — one per ingredient, hidden by default
     const underlines: Phaser.GameObjects.Rectangle[] = lines.map((line, i) =>
-      this.add.rectangle(seatX + 115, 435 + i * 24 + 10, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
+      this.add.rectangle(ticketX, 435 + i * 24 + 10, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
     )
 
     const patienceDuration = 70 - ingredientCount * 10
