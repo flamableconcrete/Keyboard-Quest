@@ -56,7 +56,7 @@ export class CrazedCookLevel extends Phaser.Scene {
   private wordIndex = 0
   private orders: OrcOrder[] = []
   private activeOrder: OrcOrder | null = null
-  private orderQuota = 12
+  private orderQuota = 8
   private maxWalkoffs = 3
 
   constructor() { super('CrazedCookLevel') }
@@ -72,7 +72,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     this.wordIndex = 0
     this.orders = []
     this.activeOrder = null
-    this.orderQuota = data.level.orderQuota ?? 12
+    this.orderQuota = data.level.orderQuota ?? 8
     this.maxWalkoffs = data.level.maxWalkoffs ?? 3
   }
 

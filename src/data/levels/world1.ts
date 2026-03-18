@@ -130,8 +130,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     world: 1,
     unlockedLetters: W1_AFTER_MB2,
     wordCount: 40,
-    timeLimit: 90,
-    orderQuota: 12,
+    timeLimit: 120,
+    orderQuota: 8,
     maxWalkoffs: 3,
     dialogue: [
       { speaker: "enemy", text: "You dare enter my camp?! My exploding cheese will flatten your fingers!" },
