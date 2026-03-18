@@ -10,75 +10,98 @@ export function generateCrazedCookTextures(scene: Phaser.Scene): void {
 }
 
 function generateOrcCustomerTexture(scene: Phaser.Scene) {
-  // Seated orc: stocky, wide, grey-green
-  // Canvas: 48px wide × 40px tall (larger than goblin's slim silhouette)
-  const s = 3 // pixel scale
+  const s = 3
   const g = scene.add.graphics()
 
-  // Body / torso (wide and squat)
-  g.fillStyle(0x6b7c3a) // warty grey-green
-  g.fillRect(4 * s, 10 * s, 8 * s, 6 * s)
+  // ── Head ─────────────────────────────────────────────────────────────────
+  // Heavy brow ridge
+  g.fillStyle(0x556030)
+  g.fillRect(2 * s, 2 * s, 14 * s, 3 * s)
 
-  // Body highlight
-  g.fillStyle(0x8a9e4a)
-  g.fillRect(5 * s, 11 * s, 3 * s, 2 * s)
-
-  // Leather bib / vest (dark brown)
-  g.fillStyle(0x3e2a10)
-  g.fillRect(5 * s, 10 * s, 6 * s, 4 * s)
-  g.fillRect(6 * s, 14 * s, 4 * s, 2 * s)
-
-  // Head (wide, flat-nosed)
+  // Head main
   g.fillStyle(0x6b7c3a)
-  g.fillRect(3 * s, 3 * s, 10 * s, 8 * s)
+  g.fillRect(2 * s, 4 * s, 14 * s, 9 * s)
 
-  // Ears (wide and flat)
-  g.fillRect(1 * s, 5 * s, 2 * s, 3 * s)
-  g.fillRect(13 * s, 5 * s, 2 * s, 3 * s)
+  // Wide ears
+  g.fillRect(0 * s, 5 * s, 2 * s, 4 * s)
+  g.fillRect(16 * s, 5 * s, 2 * s, 4 * s)
 
   // Forehead warts
-  g.fillStyle(0x556030)
-  g.fillRect(5 * s, 3 * s, 1 * s, 1 * s)
-  g.fillRect(8 * s, 4 * s, 1 * s, 1 * s)
-  g.fillRect(11 * s, 3 * s, 1 * s, 1 * s)
+  g.fillStyle(0x4a5828)
+  g.fillRect(4 * s, 3 * s, 1 * s, 1 * s)
+  g.fillRect(9 * s, 2 * s, 1 * s, 1 * s)
+  g.fillRect(13 * s, 3 * s, 1 * s, 1 * s)
 
-  // Eyes (beady yellow)
+  // Beady yellow eyes (deeper under brow)
   g.fillStyle(0xddcc00)
-  g.fillRect(5 * s, 6 * s, 2 * s, 2 * s)
-  g.fillRect(9 * s, 6 * s, 2 * s, 2 * s)
-  // Pupils (black dot)
+  g.fillRect(4 * s, 6 * s, 3 * s, 3 * s)
+  g.fillRect(11 * s, 6 * s, 3 * s, 3 * s)
+  // Pupils
   g.fillStyle(0x000000)
-  g.fillRect(6 * s, 7 * s, 1 * s, 1 * s)
-  g.fillRect(10 * s, 7 * s, 1 * s, 1 * s)
+  g.fillRect(5 * s, 7 * s, 1 * s, 1 * s)
+  g.fillRect(12 * s, 7 * s, 1 * s, 1 * s)
+  // Angry brow lines over eyes
+  g.fillStyle(0x3a4820)
+  g.fillRect(4 * s, 5 * s, 3 * s, 1 * s)
+  g.fillRect(11 * s, 5 * s, 3 * s, 1 * s)
 
-  // Flat wide nose
+  // Wide flat nose
   g.fillStyle(0x4a5a28)
-  g.fillRect(6 * s, 8 * s, 4 * s, 2 * s)
+  g.fillRect(7 * s, 8 * s, 4 * s, 3 * s)
   // Nostrils
   g.fillStyle(0x2a3a18)
-  g.fillRect(6 * s, 9 * s, 1 * s, 1 * s)
-  g.fillRect(9 * s, 9 * s, 1 * s, 1 * s)
+  g.fillRect(7 * s, 10 * s, 1 * s, 1 * s)
+  g.fillRect(10 * s, 10 * s, 1 * s, 1 * s)
 
-  // Mouth line (wide scowl)
+  // Scowling mouth
   g.fillStyle(0x2a3a18)
-  g.fillRect(5 * s, 10 * s, 6 * s, 1 * s)
+  g.fillRect(5 * s, 11 * s, 8 * s, 2 * s)
 
-  // Two bottom tusks jutting up
-  g.fillStyle(0xeeeecc)
-  g.fillRect(6 * s, 9 * s, 1 * s, 2 * s)
-  g.fillRect(9 * s, 9 * s, 1 * s, 2 * s)
+  // Large bottom tusks (prominent)
+  g.fillStyle(0xeeeedd)
+  g.fillRect(6 * s, 10 * s, 2 * s, 4 * s)
+  g.fillRect(10 * s, 10 * s, 2 * s, 4 * s)
 
-  // Arms (hunched forward)
+  // ── Body / torso ──────────────────────────────────────────────────────────
   g.fillStyle(0x6b7c3a)
-  g.fillRect(1 * s, 12 * s, 3 * s, 4 * s)
-  g.fillRect(12 * s, 12 * s, 3 * s, 4 * s)
+  g.fillRect(3 * s, 13 * s, 12 * s, 7 * s)
 
-  // Hands (fists on counter)
+  // Leather vest
+  g.fillStyle(0x3e2a10)
+  g.fillRect(4 * s, 13 * s, 10 * s, 6 * s)
+  // Vest highlight
+  g.fillStyle(0x5a3e18)
+  g.fillRect(5 * s, 14 * s, 2 * s, 4 * s)
+
+  // ── Left arm (empty fist on counter) ─────────────────────────────────────
+  g.fillStyle(0x6b7c3a)
+  g.fillRect(0 * s, 15 * s, 3 * s, 5 * s)
   g.fillStyle(0x556030)
-  g.fillRect(0 * s, 15 * s, 3 * s, 3 * s)
-  g.fillRect(13 * s, 15 * s, 3 * s, 3 * s)
+  g.fillRect(0 * s, 19 * s, 3 * s, 3 * s)
 
-  g.generateTexture('orc_customer', 16 * s, 20 * s)
+  // ── Right arm (raised, holding axe) ──────────────────────────────────────
+  g.fillStyle(0x6b7c3a)
+  g.fillRect(15 * s, 12 * s, 3 * s, 6 * s)
+  // Fist
+  g.fillStyle(0x556030)
+  g.fillRect(15 * s, 17 * s, 3 * s, 3 * s)
+
+  // ── Battle axe ────────────────────────────────────────────────────────────
+  // Handle (brown, along right side, extending up)
+  g.fillStyle(0x6a3a10)
+  g.fillRect(16 * s, 2 * s, 2 * s, 16 * s)
+  // Axe blade (steel wedge, above shoulder)
+  g.fillStyle(0x999999)
+  g.fillRect(14 * s, 0 * s, 4 * s, 6 * s)
+  g.fillStyle(0xbbbbbb) // blade highlight edge
+  g.fillRect(14 * s, 0 * s, 1 * s, 6 * s)
+  // Blade beard (lower curved bit)
+  g.fillStyle(0x999999)
+  g.fillRect(14 * s, 4 * s, 6 * s, 3 * s)
+  g.fillStyle(0x777777) // shadow on blade
+  g.fillRect(17 * s, 1 * s, 1 * s, 5 * s)
+
+  g.generateTexture('orc_customer', 20 * s, 24 * s)
   g.destroy()
 }
 

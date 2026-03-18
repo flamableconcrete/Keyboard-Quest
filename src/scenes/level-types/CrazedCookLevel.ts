@@ -220,7 +220,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     if (ingredients.length === 0) return
 
     const seatX = SEAT_X[seat]
-    const orcSprite = this.add.image(seatX, 160, 'orc_customer').setScale(2)
+    const orcSprite = this.add.image(seatX, 248, 'orc_customer').setScale(2)
 
     // Patience bar background
     const patienceBarBg = this.add.rectangle(seatX, 100, 100, 10, 0x444444).setOrigin(0.5)
