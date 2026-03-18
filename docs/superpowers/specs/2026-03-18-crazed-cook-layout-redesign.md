@@ -34,18 +34,18 @@ Move orcs, patience bars, and tickets entirely into the bottom seating zone, awa
 **Change:** Orc spawn Y from `248` to `475`.
 
 At scale 2, the orc texture (60×72px) renders at 120×144px. With origin (0.5, 0.5):
-- Top edge: y = 475 − 72 = 403 (just below counter bottom at y=400 — orc peers over the counter) ✓
+- Top edge: y = 475 − 72 = 403 (3px below counter bottom at y=400 — orc sits just behind the counter) ✓
 - Bottom edge: y = 475 + 72 = 547 (above finger hints at y≈560, 13px clearance) ✓
 
 ---
 
 ## Section 3: Patience Bar Placement
 
-**Change:** Patience bar Y from `100` (was incorrectly in the kitchen/back-wall zone) to `415`.
+**Change:** Patience bar Y from `100` (was incorrectly in the kitchen/back-wall zone) to `390`.
 
-- Patience bar bg: center at `(seatX, 415)`, 100×10px
-- Patience bar fg: left-anchored at `(seatX − 50, 415)`, 100×10px
-- X stays the same as the orc (centered above orc head)
+- Patience bar bg: center at `(seatX, 390)`, 100×10px
+- Patience bar fg: left-anchored at `(seatX − 50, 390)`, 100×10px
+- X stays the same as the orc (centered on counter surface, above orc top edge at y=403)
 
 ---
 
