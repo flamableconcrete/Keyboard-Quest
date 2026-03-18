@@ -56,9 +56,6 @@ export const mobileTaunts: Record<string, string[]> = {
   WoodlandFestival: [
     "\"The festival games need nimble fingers on real keys, not a tiny screen!\"",
   ],
-  SillyChallenge: [
-    "\"Ha! Even silly challenges need a keyboard. Come back on a computer!\"",
-  ],
   BossBattle: [
     "The boss crosses their arms. \"Come back when you have a real keyboard, adventurer.\"",
   ],
