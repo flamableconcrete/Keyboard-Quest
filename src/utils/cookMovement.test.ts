@@ -42,4 +42,9 @@ describe('pickNextStationIndex', () => {
       expect(pickNextStationIndex(1, 2)).toBe(0)
     }
   })
+
+  it('throws when stationCount < 2', () => {
+    expect(() => pickNextStationIndex(0, 1)).toThrow()
+    expect(() => pickNextStationIndex(0, 0)).toThrow()
+  })
 })

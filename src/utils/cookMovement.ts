@@ -16,8 +16,12 @@ export function calcMoveDuration(
 
 /**
  * Picks a random station index from [0, stationCount), guaranteed != currentIndex.
+ * Requires stationCount >= 2.
  */
 export function pickNextStationIndex(currentIndex: number, stationCount: number): number {
+  if (stationCount < 2) {
+    throw new Error(`pickNextStationIndex requires stationCount >= 2, got ${stationCount}`)
+  }
   let next: number
   do {
     next = Math.floor(Math.random() * stationCount)
