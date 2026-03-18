@@ -126,7 +126,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   {
     id: 'w5_l6',
     name: "The Mad King's Court",
-    type: 'SillyChallenge',
+    type: 'CrazedCook',
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
     wordCount: 22,

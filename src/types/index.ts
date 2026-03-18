@@ -75,7 +75,6 @@ export type LevelType =
   | 'GuildRecruitment'
   | 'CharacterCreator'
   | 'WoodlandFestival'
-  | 'SillyChallenge'
   | 'CrazedCook'
   | 'BossBattle'
 

@@ -141,7 +141,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   {
     id: 'w4_l7',
     name: 'The Jester\'s Glade',
-    type: 'SillyChallenge',
+    type: 'CrazedCook',
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
     wordCount: 20,

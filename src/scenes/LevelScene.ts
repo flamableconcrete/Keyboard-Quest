@@ -21,7 +21,6 @@ export class LevelScene extends Phaser.Scene {
       MonsterManual: 'MonsterManualLevel',
       GuildRecruitment: 'GuildRecruitmentLevel',
       WoodlandFestival: 'WoodlandFestivalLevel',
-      SillyChallenge: 'SillyChallengeLevel',
       CrazedCook: 'CrazedCookLevel',
       BossBattle: 'BossBattleScene',
     }

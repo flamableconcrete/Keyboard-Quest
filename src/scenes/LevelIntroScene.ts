@@ -22,7 +22,6 @@ const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
   GuildRecruitment:   '🛡️ Guild Recruitment',
   CharacterCreator:   '🎨 Character Creator',
   WoodlandFestival:   '🌳 Woodland Festival',
-  SillyChallenge:     '🃏 Silly Challenge',
   CrazedCook:         '🍳 Crazed Cook',
   BossBattle:         '🐉 Boss Battle',
 }
