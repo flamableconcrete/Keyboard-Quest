@@ -83,6 +83,5 @@ Ticket size: 100×110px (height reduced from 120 to fit the seating zone).
 
 - No art changes (`crazedCookArt.ts` unchanged — the seating zone background tiles already extend to the bottom)
 - No gameplay mechanic changes
-- No changes to ingredient count or patience rates
-- Ticket background height reduced from 120 to 110px to fit the seating zone (all other ticket sizing unchanged)
+- No changes to ingredient count, patience rates, or ticket ingredient logic
 - HUD and typing engine positions unchanged
