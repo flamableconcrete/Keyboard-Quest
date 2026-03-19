@@ -394,13 +394,15 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     if (this.finished) return
 
     if (this.gameMode === 'advanced') {
+      const reached: Skeleton[] = []
       this.skeletons.forEach(s => {
         s.x -= s.speed * (delta / 1000)
         s.sprite.setX(s.x)
         s.label.setX(s.x)
         s.aura.setX(s.x)
-        if (s.x <= this.maxSkeletonReach) this.skeletonReachedPlayer(s)
+        if (s.x <= this.maxSkeletonReach) reached.push(s)
       })
+      reached.forEach(s => { if (s.sprite.active) this.skeletonReachedPlayer(s) })
     } else {
       // Regular mode: lead stops at BATTLE_X, others queue behind with spacing
       this.skeletons.forEach((s, i) => {

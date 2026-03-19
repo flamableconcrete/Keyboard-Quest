@@ -13,7 +13,6 @@ export function generateSkeletonSwarmTextures(scene: Phaser.Scene) {
 
 function generateSkeletonBackground(scene: Phaser.Scene) {
   const { width, height } = scene.scale
-  const s = 1
 
   // Sky layer — deep blood-red fading to near-black
   const sky = scene.add.graphics()
@@ -63,7 +62,7 @@ function generateSkeletonBackground(scene: Phaser.Scene) {
   field.fillRect(0, 0, width, 200)
 
   // Crack lines
-  field.lineStyle(1 * s, 0x2a1e0e)
+  field.lineStyle(1, 0x2a1e0e)
   field.beginPath()
   field.moveTo(100, 10); field.lineTo(130, 60); field.lineTo(150, 40)
   field.moveTo(300, 5); field.lineTo(320, 80); field.lineTo(360, 50)
