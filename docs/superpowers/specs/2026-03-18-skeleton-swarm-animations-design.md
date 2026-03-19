@@ -74,7 +74,7 @@ interface Skeleton {
 2. Call `sprite.play('ss_idle_anim')` — Phaser's animation system replaces the displayed texture with each animation frame, so the `ss_skeleton_rising` base texture is immediately overridden. No `setTexture` call is needed before `play()`.
 3. The state-tracking loop takes over from this point.
 
-**Marcher skeletons** are created with `ss_skeleton_walk_0` as their initial texture (a valid walk-animation frame). Call `sprite.play('ss_idle_anim')` immediately after creation — the state-tracking loop will transition them to `ss_walk_anim` on the first update frame when movement is detected.
+**Marcher skeletons** are created with any valid texture key (e.g. `ss_skeleton_idle_0`). Call `sprite.play('ss_idle_anim')` immediately after creation — Phaser's animation system replaces the initial texture on the first animation tick, so the constructor texture is cosmetically irrelevant. The state-tracking loop will transition the sprite to `ss_walk_anim` on the first update frame when movement is detected.
 
 `prevX` is initialised to `startX` in `spawnSkeleton()` as a safe default. The value is overwritten at the **start of every `update()` frame** before any position changes, so the animation state check (Section 6) always compares against the previous frame's position.
 
@@ -95,7 +95,7 @@ Where:
 - `LABEL_PAD = 24` px total (≈ 12 px gap on each side of the label)
 - `MIN_SPACING = 80` px (minimum slot width even for very short words)
 
-Clamp: if a computed `targetX` exceeds `(scene.scale.width - 60)`, clamp it to that value. The **clamped** value is then used as the base for computing the next skeleton's slot (i.e. subsequent skeletons stack against the right edge rather than spreading further off-screen).
+Clamp: if a computed `targetX` exceeds `(scene.scale.width - 60)`, clamp it to that value. The **clamped** value is then used as the base for computing the next skeleton's slot (i.e. subsequent skeletons stack against the right edge rather than spreading further off-screen). Overlap at the far right when more skeletons exist than horizontal space allows is an accepted limitation.
 
 Skeletons slide toward their target X at their normal speed (clamped approach, same as before).
 
@@ -114,9 +114,10 @@ for i = 0 to skeletons.length - 2:
     b.x += overlap / 2
     clamp a.x to [BARRIER_X + 20, scene.scale.width - 60]
     clamp b.x to [BARRIER_X + 20, scene.scale.width - 60]
-    # Lower bound = BARRIER_X + 20 = 285 (skeletons march leftward; lower X = closer to player).
-    # This is intentionally 20px above maxSkeletonReach (265) so the separation pass can never
-    # push a skeleton back rightward past the damage trigger threshold.
+    # Skeletons march leftward (decreasing X = closer to player).
+    # Clamping a.x >= BARRIER_X + 20 = 285 prevents the left-push from shoving a skeleton
+    # into the damage zone (maxSkeletonReach = 265).
+    # Clamping b.x <= scene.scale.width - 60 prevents overflow off the right edge.
 ```
 
 Sorting by X first ensures the left-to-right pass resolves the most impactful overlaps first. One pass per frame is sufficient at expected skeleton counts (≤ 6); residual error is imperceptible.
@@ -160,7 +161,7 @@ The `if (moved !== s.isMoving)` guard ensures `play()` is only called on a state
 
 | Constant | Value | Purpose |
 |----------|-------|---------|
-| `LABEL_PAD` | 24 px | Total horizontal gap between adjacent label edges |
+| `LABEL_PAD` | 24 px | Minimum padding added to a label's width when computing the next slot position |
 | `MIN_SPACING` | 80 px | Minimum slot width in regular mode |
 | `BARRIER_X` | 265 px | Left bound for separation clamp in advanced mode |
 
