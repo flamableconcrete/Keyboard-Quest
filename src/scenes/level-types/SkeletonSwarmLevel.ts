@@ -493,14 +493,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       this.endLevel(true)
       return
     }
-    if (this.gameMode === 'regular') this.spawnNextIfReady()
-  }
-
-  private spawnNextIfReady() {
-    // In regular mode, after a kill, try to pull next word from queue immediately
-    if (this.wordQueue.length > 0 && this.skeletons.length < 3) {
-      this.spawnSkeleton(false)
-    }
   }
 
   private onWrongKey() {
@@ -524,7 +516,8 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
             yoyo: true,
             duration: 150,
             onComplete: () => {
-              if (attacker.sprite?.active) this.skeletonReachedPlayer(attacker)
+              if (this.finished || !attacker.sprite?.active) return
+              this.skeletonReachedPlayer(attacker)
             }
           })
         }
