@@ -12,17 +12,20 @@ import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 import { GoldManager } from '../../utils/goldSystem'
+import { computeSlotPositions, applySeparationForce } from '../../utils/skeletonSpacing'
 
 interface Skeleton {
   word: string
   x: number
   speed: number
-  sprite: Phaser.GameObjects.Image
+  sprite: Phaser.GameObjects.Sprite   // was Image
   label: Phaser.GameObjects.Text
   hp: number
   aura: Phaser.GameObjects.Ellipse
   auraTween: Phaser.Tweens.Tween | null
   isRiser: boolean
+  isMoving: boolean    // tracks current animation state; false = idle, true = walk
+  prevX: number        // x at start of last frame, used for animation state detection
 }
 
 export class SkeletonSwarmLevel extends Phaser.Scene {
@@ -35,7 +38,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   private engine!: TypingEngine
   private wordQueue: string[] = []
   private playerHp = 3
-  private maxSkeletonReach = 100
+  private maxSkeletonReach = 265
   private hpHearts: Phaser.GameObjects.Image[] = []
   private waveText!: Phaser.GameObjects.Text
   private waveTimer?: Phaser.Time.TimerEvent
@@ -50,13 +53,17 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   private spellCaster?: SpellCaster
   private typingHands?: TypingHands
   private barrierLine!: Phaser.GameObjects.Graphics
+  private barrierColor = 0x0099ff
   private pathY = 0
   private riseEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
   private boneBurstEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
 
   // Regular mode constants (mirrors GoblinWhacker)
-  private readonly BATTLE_X = 300
+  private readonly BATTLE_X = 350
   private readonly SKELETON_SPACING = 120
+  private readonly BARRIER_X = 265
+  private readonly LABEL_PAD = 24
+  private readonly MIN_SPACING = 80
 
   constructor() { super('SkeletonSwarmLevel') }
 
@@ -85,6 +92,12 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     const { width, height } = this.scale
     this.pathY = height * 0.55
 
+    // Spacing utilities — used in update(); referenced here to satisfy noUnusedLocals until Tasks 5/6
+    void computeSlotPositions
+    void applySeparationForce
+    void this.LABEL_PAD
+    void this.MIN_SPACING
+
     // Generate all textures
     generateSkeletonSwarmTextures(this)
 
@@ -96,15 +109,33 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.add.rectangle(width / 2, height * 0.85, width, height * 0.3, 0x1a0e00)
 
     // Fire sprites at ruins positions
-    this.anims.create({
-      key: 'ss_fire_anim',
-      frames: [
-        { key: 'ss_fire_0' }, { key: 'ss_fire_1' },
-        { key: 'ss_fire_2' }, { key: 'ss_fire_1' },
-      ],
-      frameRate: 8,
-      repeat: -1,
-    })
+    if (!this.anims.exists('ss_fire_anim')) {
+      this.anims.create({
+        key: 'ss_fire_anim',
+        frames: [
+          { key: 'ss_fire_0' }, { key: 'ss_fire_1' },
+          { key: 'ss_fire_2' }, { key: 'ss_fire_1' },
+        ],
+        frameRate: 8,
+        repeat: -1,
+      })
+    }
+    if (!this.anims.exists('ss_idle_anim')) {
+      this.anims.create({
+        key: 'ss_idle_anim',
+        frames: Array.from({ length: 8 }, (_, i) => ({ key: `ss_skeleton_idle_${i}` })),
+        frameRate: 3,
+        repeat: -1,
+      })
+    }
+    if (!this.anims.exists('ss_walk_anim')) {
+      this.anims.create({
+        key: 'ss_walk_anim',
+        frames: Array.from({ length: 8 }, (_, i) => ({ key: `ss_skeleton_walk_${i}` })),
+        frameRate: 8,
+        repeat: -1,
+      })
+    }
     const firePositions = [160, 400, 700, 1000]
     firePositions.forEach(x => {
       this.add.sprite(x, height * 0.6 - 50, 'ss_fire_0').setScale(2.5).play('ss_fire_anim')
@@ -144,19 +175,42 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       emitting: false,
     })
 
-    // Barrier line (Graphics object, tweened alpha)
-    this.barrierLine = this.add.graphics()
-    this.barrierLine.lineStyle(3, 0x00ccff, 1.0)
-    this.barrierLine.beginPath()
-    this.barrierLine.moveTo(100, height * 0.2)
-    this.barrierLine.lineTo(100, height * 0.85)
-    this.barrierLine.strokePath()
+    // Magical barrier — wavy animated energy wall (redrawn each frame in update)
+    this.barrierLine = this.add.graphics().setDepth(6)
+    this.redrawBarrier(0)
+    // Energy motes rising along the barrier
+    this.add.particles(this.BARRIER_X, 0, 'ss_ash_particle', {
+      x: { min: -8, max: 8 },
+      y: { min: height * 0.2, max: height * 0.85 },
+      speedX: { min: -18, max: 18 },
+      speedY: { min: -110, max: -35 },
+      alpha: { start: 1.0, end: 0 },
+      scale: { start: 3.5, end: 0.3 },
+      tint: [0x00ccff, 0x88eeff, 0xffffff, 0x0055ff, 0xaa88ff],
+      lifespan: { min: 700, max: 1400 },
+      frequency: 55,
+      quantity: 1,
+    }).setDepth(7)
+    // Electric sparks shooting toward skeletons
+    this.add.particles(this.BARRIER_X, 0, 'ss_ash_particle', {
+      x: { min: -4, max: 4 },
+      y: { min: height * 0.2, max: height * 0.85 },
+      speedX: { min: 50, max: 200 },
+      speedY: { min: -20, max: 20 },
+      alpha: { start: 1.0, end: 0 },
+      scale: { start: 2.5, end: 0.1 },
+      tint: [0x00ccff, 0xffffff, 0x88eeff],
+      lifespan: { min: 100, max: 280 },
+      frequency: 220,
+      quantity: 1,
+    }).setDepth(7)
     this.tweens.add({
       targets: this.barrierLine,
-      alpha: { from: 0.4, to: 1.0 },
-      duration: 1200,
+      alpha: { from: 0.6, to: 1.0 },
+      duration: 1800,
       yoyo: true,
       repeat: -1,
+      ease: 'Sine.InOut',
     })
 
     // Player avatar
@@ -325,8 +379,12 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     const startY = isRiser ? finalY + 20 : finalY
 
     const aura = this.add.ellipse(startX, startY, 72, 52, 0x006688).setAlpha(0).setDepth(1)
-    const sprite = this.add.image(startX, startY, isRiser ? 'ss_skeleton_rising' : 'ss_skeleton').setDepth(2)
-    const label = this.add.text(startX, startY - 40, word, {
+    const sprite = this.add.sprite(
+      startX,
+      startY,
+      isRiser ? 'ss_skeleton_rising' : 'ss_skeleton_idle_0',
+    ).setDepth(2)
+    const label = this.add.text(startX, finalY - 62, word, {
       fontSize: '20px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5).setDepth(3)
@@ -341,11 +399,17 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       aura,
       auraTween: null,
       isRiser,
+      isMoving: false,   // NEW
+      prevX: startX,     // NEW
     }
     this.skeletons.push(skeleton)
 
+    if (!isRiser) {
+      sprite.play('ss_idle_anim')
+    }
+
     if (isRiser) {
-      // Rise animation: tween from y+20 to finalY, swap sprite, burst dirt
+      // Rise animation: tween from y+20 to finalY, burst dirt, then bootstrap animation
       this.riseEmitter?.explode(12, startX, finalY)
       this.tweens.add({
         targets: [sprite, aura],
@@ -353,8 +417,9 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
         duration: 600,
         ease: 'Back.Out',
         onComplete: () => {
+          if (!sprite.active) return          // guard: skeleton may have been defeated mid-rise
           skeleton.isRiser = false
-          sprite.setTexture('ss_skeleton')
+          sprite.play('ss_idle_anim')         // bootstrap animation; state-tracking takes over next frame
         }
       })
     }
@@ -389,8 +454,9 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     }
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     this.goldManager?.update(delta)
+    this.redrawBarrier(time)
     if (this.finished) return
 
     if (this.gameMode === 'advanced') {
@@ -440,22 +506,71 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
-  private flashBarrierRed() {
-    this.barrierLine.clear()
-    this.barrierLine.lineStyle(3, 0xff2200, 1.0)
-    this.barrierLine.beginPath()
+  private redrawBarrier(time: number) {
     const { height } = this.scale
-    this.barrierLine.moveTo(100, height * 0.2)
-    this.barrierLine.lineTo(100, height * 0.85)
-    this.barrierLine.strokePath()
-    this.time.delayedCall(300, () => {
-      this.barrierLine.clear()
-      this.barrierLine.lineStyle(3, 0x00ccff, 1.0)
+    const bx = this.BARRIER_X
+    const top = height * 0.2
+    const bot = height * 0.85
+    const color = this.barrierColor
+    const coreColor = color === 0x0099ff ? 0xaaeeff : 0xff9966
+    const N = 40
+
+    // Build wavy polyline with two composited sine waves
+    const pts: { x: number; y: number }[] = []
+    for (let i = 0; i <= N; i++) {
+      const frac = i / N
+      const y = top + frac * (bot - top)
+      const wave = Math.sin(time * 0.002 + frac * Math.PI * 7) * 5
+                 + Math.sin(time * 0.0034 + frac * Math.PI * 3.2) * 3
+      pts.push({ x: bx + wave, y })
+    }
+
+    const drawPath = () => {
       this.barrierLine.beginPath()
-      this.barrierLine.moveTo(100, height * 0.2)
-      this.barrierLine.lineTo(100, height * 0.85)
+      this.barrierLine.moveTo(pts[0].x, pts[0].y)
+      for (let i = 1; i <= N; i++) this.barrierLine.lineTo(pts[i].x, pts[i].y)
       this.barrierLine.strokePath()
-    })
+    }
+
+    this.barrierLine.clear()
+    // Outer glow
+    this.barrierLine.lineStyle(52, color, 0.07); drawPath()
+    // Mid glow
+    this.barrierLine.lineStyle(22, color, 0.26); drawPath()
+    // Inner white halo
+    this.barrierLine.lineStyle(7, 0xffffff, 0.32); drawPath()
+    // Core beam
+    this.barrierLine.lineStyle(2, coreColor, 1.0); drawPath()
+
+    // Rune diamonds floating with the wave at 25 / 50 / 75 %
+    const drawDiamond = (p: { x: number; y: number }, size: number) => {
+      this.barrierLine.fillStyle(coreColor, 0.95)
+      this.barrierLine.fillPoints([
+        { x: p.x,            y: p.y - size },
+        { x: p.x + size * 0.7, y: p.y },
+        { x: p.x,            y: p.y + size },
+        { x: p.x - size * 0.7, y: p.y },
+      ], true)
+      // Highlight shard
+      this.barrierLine.fillStyle(0xffffff, 0.55)
+      this.barrierLine.fillPoints([
+        { x: p.x,              y: p.y - size },
+        { x: p.x + size * 0.7, y: p.y },
+        { x: p.x - size * 0.1, y: p.y - size * 0.35 },
+      ], true)
+    }
+
+    drawDiamond(pts[Math.floor(N * 0.25)], 8)
+    drawDiamond(pts[Math.floor(N * 0.5)],  11)
+    drawDiamond(pts[Math.floor(N * 0.75)], 8)
+    // Anchor gems at endpoints
+    drawDiamond(pts[0], 13)
+    drawDiamond(pts[N], 13)
+  }
+
+  private flashBarrierRed() {
+    this.barrierColor = 0xff2200
+    this.time.delayedCall(300, () => { this.barrierColor = 0x0099ff })
   }
 
   private onWordComplete(word: string, _elapsed: number) {
