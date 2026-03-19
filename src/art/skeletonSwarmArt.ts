@@ -5,6 +5,7 @@ export function generateSkeletonSwarmTextures(scene: Phaser.Scene) {
   generateSkeletonTexture(scene)
   generateRisingSkeletonTexture(scene)
   generateSkeletonIdleFrames(scene)
+  generateSkeletonWalkFrames(scene)
   generateSkeletonBackground(scene)
   generateBoneFragmentTexture(scene)
   generateAshParticleTexture(scene)
@@ -286,6 +287,59 @@ function generateSkeletonIdleFrames(scene: Phaser.Scene) {
     g.fillRect(9 * s, (8 + off) * s, 2 * s, (12 - off) * s)
 
     g.generateTexture(`ss_skeleton_idle_${i}`, 12 * s, 20 * s)
+    g.destroy()
+  }
+}
+
+function generateSkeletonWalkFrames(scene: Phaser.Scene) {
+  const s = 4
+
+  // Per-frame leg data: [leftLegX, leftLegH, rightLegX, rightLegH, rightArmYOff]
+  // leftLegX / rightLegX: X position of leg in s-units (base: left=2, right=6)
+  // leftLegH / rightLegH: leg height in s-units (base: 4; 3 = foot raised mid-stride)
+  // rightArmYOff: right arm Y offset in s-units (swings opposite to legs)
+  const frames: [number, number, number, number, number][] = [
+    [2, 4, 6, 4,  0],  // frame 0: neutral
+    [1, 3, 6, 4, -1],  // frame 1: left leg stepping forward (raised)
+    [1, 3, 7, 4, -2],  // frame 2: left at peak, right trailing back
+    [2, 4, 7, 4, -1],  // frame 3: left returning, right still back
+    [2, 4, 6, 4,  0],  // frame 4: neutral
+    [3, 4, 5, 3,  1],  // frame 5: right leg stepping forward (raised), left trailing
+    [3, 4, 5, 3,  0],  // frame 6: right at peak, left still back
+    [2, 4, 5, 4, -1],  // frame 7: right returning
+  ]
+
+  for (let i = 0; i < 8; i++) {
+    const [lx, lh, rx, rh, armOff] = frames[i]
+    const g = scene.add.graphics()
+
+    drawSkeletonBase(g, s)
+
+    // Left leg (animated)
+    g.fillStyle(0xddccaa)
+    g.fillRect(lx * s, (20 - lh) * s, 2 * s, lh * s)
+    g.fillStyle(0xbbaa88)
+    g.fillRect(lx * s, 19 * s, 2 * s, 1 * s)
+
+    // Right leg (animated)
+    g.fillStyle(0xddccaa)
+    g.fillRect(rx * s, (20 - rh) * s, 2 * s, rh * s)
+    g.fillStyle(0xbbaa88)
+    g.fillRect(rx * s, 19 * s, 2 * s, 1 * s)
+
+    // Right arm (animated — swings with armOff)
+    g.fillStyle(0xddccaa)
+    g.fillRect(8 * s, (8 + armOff) * s, 2 * s, 6 * s)
+
+    // Weapon blade + tip
+    g.fillStyle(0xaaaaaa)
+    g.fillRect(9 * s, (4 + armOff) * s, 2 * s, 4 * s)
+    g.fillRect(10 * s, (3 + armOff) * s, 1 * s, 2 * s)
+    // Weapon haft
+    g.fillStyle(0x885533)
+    g.fillRect(9 * s, (8 + armOff) * s, 2 * s, (12 - armOff) * s)
+
+    g.generateTexture(`ss_skeleton_walk_${i}`, 12 * s, 20 * s)
     g.destroy()
   }
 }
