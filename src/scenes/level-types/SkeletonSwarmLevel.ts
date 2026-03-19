@@ -228,7 +228,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       const heart = this.add.image(30 + i * 24, 28, 'heart').setScale(1.5).setDepth(10)
       this.hpHearts.push(heart)
     }
-    if (this.gameMode === 'regular') this.hpHearts.forEach(h => h.setVisible(false))
+
 
     this.waveText = this.add.text(width - 20, 20, `Wave 1 / ${this.maxWaves}`, {
       fontSize: '22px', color: '#ffffff'
@@ -309,9 +309,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.currentWave++
     this.waveText.setText(`Wave ${this.currentWave} / ${this.maxWaves}`)
 
-    // Scale composition with wave number and world
-    const baseCount = Math.min(2 + Math.floor(this.currentWave / 2), 4)
-    const numSkeletons = Math.min(baseCount, this.wordQueue.length)
+    const numSkeletons = Math.min(Phaser.Math.Between(6, 10), this.wordQueue.length)
     const riserCount = Math.min(Math.ceil(numSkeletons / 2), this.wordQueue.length)
     const marcherCount = Math.min(numSkeletons - riserCount, this.wordQueue.length - riserCount)
 
@@ -459,6 +457,9 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
         if (s.x > targetX) {
           s.x -= s.speed * (delta / 1000)
           if (s.x < targetX) s.x = targetX
+        } else if (s.x < targetX) {
+          s.x += s.speed * (delta / 1000)
+          if (s.x > targetX) s.x = targetX
         }
         s.sprite.setX(s.x)
         s.label.setX(s.x)
@@ -469,11 +470,14 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     // Animation state tracking: switch between walk/idle based on whether skeleton moved
     this.skeletons.forEach(s => {
       if (s.isRiser) return
-      const moved = Math.abs(s.x - s.prevX) > 0.5
+      const dx = s.x - s.prevX
+      const moved = Math.abs(dx) > 0.5
       if (moved !== s.isMoving) {
         s.isMoving = moved
         s.sprite.play(moved ? 'ss_walk_anim' : 'ss_idle_anim')
       }
+      // Flip sprite when walking right (retreating); reset to face left when idle or walking left
+      s.sprite.setFlipX(moved && dx > 0)
     })
   }
 

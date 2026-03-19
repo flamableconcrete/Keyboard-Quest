@@ -5,6 +5,7 @@ import { loadProfile } from '../utils/profile'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { generateGoblinWhackerTextures } from '../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../art/genericBossArt'
+import { generateSkeletonSwarmTextures } from '../art/skeletonSwarmArt'
 import { getSpeedThresholds } from '../utils/scoring'
 
 const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
@@ -89,19 +90,8 @@ export class LevelIntroScene extends Phaser.Scene {
       generateGenericBossTextures(this)
       enemyTexture = 'generic_boss'
     } else if (this.level.type === 'SkeletonSwarm' || this.level.type === 'UndeadSiege') {
-      // Create a simple skeleton placeholder texture
-      if (!this.textures.exists('skeleton_placeholder')) {
-        const g = this.add.graphics()
-        g.fillStyle(0xdddddd)
-        g.fillRect(0, 0, 32, 32)
-        g.fillStyle(0x000000)
-        g.fillRect(8, 8, 4, 4)
-        g.fillRect(20, 8, 4, 4)
-        g.fillRect(10, 20, 12, 4)
-        g.generateTexture('skeleton_placeholder', 32, 32)
-        g.destroy()
-      }
-      enemyTexture = 'skeleton_placeholder'
+      generateSkeletonSwarmTextures(this)
+      enemyTexture = 'ss_skeleton'
     } else if (this.level.type === 'SlimeSplitting') {
       // Create a simple slime placeholder texture
       if (!this.textures.exists('slime_placeholder')) {
@@ -142,6 +132,8 @@ export class LevelIntroScene extends Phaser.Scene {
     if (enemyTexture) {
       enemy = this.add.sprite(width + 200, height * 0.85, enemyTexture).setOrigin(0.5, 1).setScale(3)
       if (enemyTexture === 'generic_boss') {
+        enemy.setScale(2)
+      } else if (enemyTexture === 'ss_skeleton') {
         enemy.setScale(2)
       } else if (enemyTexture.includes('placeholder') || enemyTexture === 'generic_monster') {
         enemy.setScale(2.5)
