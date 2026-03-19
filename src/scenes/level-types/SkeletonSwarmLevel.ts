@@ -452,6 +452,9 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.redrawBarrier(time)
     if (this.finished) return
 
+    // Snapshot each skeleton's current X before any movement
+    this.skeletons.forEach(s => { s.prevX = s.x })
+
     if (this.gameMode === 'advanced') {
       // Move all skeletons
       this.skeletons.forEach(s => { s.x -= s.speed * (delta / 1000) })
@@ -498,6 +501,16 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
         s.aura.setX(s.x)
       })
     }
+
+    // Animation state tracking: switch between walk/idle based on whether skeleton moved
+    this.skeletons.forEach(s => {
+      if (s.isRiser) return
+      const moved = Math.abs(s.x - s.prevX) > 0.5
+      if (moved !== s.isMoving) {
+        s.isMoving = moved
+        s.sprite.play(moved ? 'ss_walk_anim' : 'ss_idle_anim')
+      }
+    })
   }
 
   private skeletonReachedPlayer(skeleton: Skeleton) {
