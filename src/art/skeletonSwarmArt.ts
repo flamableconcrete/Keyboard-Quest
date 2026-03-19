@@ -4,6 +4,7 @@ export function generateSkeletonSwarmTextures(scene: Phaser.Scene) {
   if (scene.textures.exists('ss_skeleton')) return
   generateSkeletonTexture(scene)
   generateRisingSkeletonTexture(scene)
+  generateSkeletonIdleFrames(scene)
   generateSkeletonBackground(scene)
   generateBoneFragmentTexture(scene)
   generateAshParticleTexture(scene)
@@ -206,6 +207,89 @@ function generateRisingSkeletonTexture(scene: Phaser.Scene) {
   g.generateTexture('ss_skeleton_rising', 12 * s, 20 * s)
   g.destroy()
 }
+
+/**
+ * Draws the static parts of the skeleton (skull, ribcage, armor, pelvis, left arm, legs)
+ * onto the given graphics object at pixel scale `s`.
+ * Variable parts (right arm, weapon) are NOT drawn here — callers handle them.
+ */
+function drawSkeletonBase(g: Phaser.GameObjects.Graphics, s: number) {
+  // Skull
+  g.fillStyle(0xddccaa)
+  g.fillRect(2 * s, 0 * s, 6 * s, 5 * s)
+  g.fillRect(1 * s, 1 * s, 8 * s, 3 * s)
+  // Eye sockets
+  g.fillStyle(0x00ccff)
+  g.fillRect(2 * s, 1 * s, 2 * s, 2 * s)
+  g.fillRect(6 * s, 1 * s, 2 * s, 2 * s)
+  // Jaw
+  g.fillStyle(0xddccaa)
+  g.fillRect(2 * s, 4 * s, 6 * s, 2 * s)
+  g.fillStyle(0xbbaa88)
+  g.fillRect(3 * s, 5 * s, 4 * s, 1 * s)
+  // Neck
+  g.fillStyle(0xddccaa)
+  g.fillRect(4 * s, 6 * s, 2 * s, 2 * s)
+  // Ribcage
+  g.fillStyle(0xddccaa)
+  g.fillRect(2 * s, 8 * s, 6 * s, 6 * s)
+  g.fillStyle(0xbbaa88)
+  g.fillRect(2 * s, 9 * s, 6 * s, 1 * s)
+  g.fillRect(2 * s, 11 * s, 6 * s, 1 * s)
+  g.fillRect(2 * s, 13 * s, 6 * s, 1 * s)
+  // Armor scraps
+  g.fillStyle(0x445566)
+  g.fillRect(1 * s, 8 * s, 2 * s, 4 * s)
+  g.fillRect(7 * s, 8 * s, 2 * s, 3 * s)
+  g.fillStyle(0x334455)
+  g.fillRect(1 * s, 11 * s, 2 * s, 1 * s)
+  // Left arm (static)
+  g.fillStyle(0xddccaa)
+  g.fillRect(0 * s, 8 * s, 2 * s, 6 * s)
+  g.fillStyle(0xbbaa88)
+  g.fillRect(0 * s, 12 * s, 2 * s, 1 * s)
+  // Pelvis
+  g.fillStyle(0xddccaa)
+  g.fillRect(2 * s, 14 * s, 6 * s, 2 * s)
+}
+
+function generateSkeletonIdleFrames(scene: Phaser.Scene) {
+  const s = 4
+  // Right arm Y offset per frame (in s-units). Range: 0 (base) to -3 (peak up).
+  // Cycle: hold → rise → peak → fall → hold
+  const yOffs = [0, -1, -2, -3, -3, -2, -1, 0]
+
+  for (let i = 0; i < 8; i++) {
+    const off = yOffs[i]
+    const g = scene.add.graphics()
+
+    drawSkeletonBase(g, s)
+
+    // Legs (static in idle)
+    g.fillStyle(0xddccaa)
+    g.fillRect(2 * s, 16 * s, 2 * s, 4 * s)
+    g.fillRect(6 * s, 16 * s, 2 * s, 4 * s)
+    g.fillStyle(0xbbaa88)
+    g.fillRect(2 * s, 19 * s, 2 * s, 1 * s)
+    g.fillRect(6 * s, 19 * s, 2 * s, 1 * s)
+
+    // Right arm (animated — shifts up with off)
+    g.fillStyle(0xddccaa)
+    g.fillRect(8 * s, (8 + off) * s, 2 * s, 6 * s)
+
+    // Weapon: blade + tip
+    g.fillStyle(0xaaaaaa)
+    g.fillRect(9 * s, (4 + off) * s, 2 * s, 4 * s)
+    g.fillRect(10 * s, (3 + off) * s, 1 * s, 2 * s)
+    // Weapon: haft (runs from arm top to bottom of canvas)
+    g.fillStyle(0x885533)
+    g.fillRect(9 * s, (8 + off) * s, 2 * s, (12 - off) * s)
+
+    g.generateTexture(`ss_skeleton_idle_${i}`, 12 * s, 20 * s)
+    g.destroy()
+  }
+}
+
 function generateBoneFragmentTexture(scene: Phaser.Scene) {
   const g = scene.add.graphics()
   g.fillStyle(0xeeddbb)
