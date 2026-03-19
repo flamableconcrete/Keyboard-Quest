@@ -210,9 +210,9 @@ function generateRisingSkeletonTexture(scene: Phaser.Scene) {
 }
 
 /**
- * Draws the static parts of the skeleton (skull, ribcage, armor, pelvis, left arm)
- * onto the given graphics object at pixel scale `s`.
- * Legs, right arm, and weapon are NOT drawn here — callers handle them.
+ * Draws the STATIC parts common to all skeleton animation frames: skull, ribcage,
+ * armor scraps, pelvis, and left arm. Legs, right arm, and weapon are intentionally
+ * omitted — callers draw those per-frame.
  */
 function drawSkeletonBase(g: Phaser.GameObjects.Graphics, s: number) {
   // Skull
