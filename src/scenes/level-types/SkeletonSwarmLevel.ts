@@ -12,7 +12,7 @@ import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 import { GoldManager } from '../../utils/goldSystem'
-import { computeSlotPositions, applySeparationForce } from '../../utils/skeletonSpacing'
+import { computeSlotPositions } from '../../utils/skeletonSpacing'
 
 interface Skeleton {
   word: string
@@ -60,7 +60,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
 
   // Regular mode constants (mirrors GoblinWhacker)
   private readonly BATTLE_X = 350
-  private readonly SKELETON_SPACING = 120
   private readonly BARRIER_X = 265
   private readonly LABEL_PAD = 24
   private readonly MIN_SPACING = 80
@@ -91,12 +90,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.pathY = height * 0.55
-
-    // Spacing utilities — used in update(); referenced here to satisfy noUnusedLocals until Tasks 5/6
-    void computeSlotPositions
-    void applySeparationForce
-    void this.LABEL_PAD
-    void this.MIN_SPACING
 
     // Generate all textures
     generateSkeletonSwarmTextures(this)
@@ -470,9 +463,17 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       })
       reached.forEach(s => { if (s.sprite.active) this.skeletonReachedPlayer(s) })
     } else {
-      // Regular mode: lead stops at BATTLE_X, others queue behind with spacing
+      // Regular mode: label-aware dynamic slot positions
+      const labelWidths = this.skeletons.map(s => s.label.width)
+      const targetXs = computeSlotPositions(
+        labelWidths,
+        this.BATTLE_X,
+        this.LABEL_PAD,
+        this.MIN_SPACING,
+        this.scale.width - 60,
+      )
       this.skeletons.forEach((s, i) => {
-        const targetX = this.BATTLE_X + i * this.SKELETON_SPACING
+        const targetX = targetXs[i]
         if (s.x > targetX) {
           s.x -= s.speed * (delta / 1000)
           if (s.x < targetX) s.x = targetX
