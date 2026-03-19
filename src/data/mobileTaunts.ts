@@ -29,9 +29,6 @@ export const mobileTaunts: Record<string, string[]> = {
   SlimeSplitting: [
     "*jiggles smugly* Even I know you need a keyboard for this...",
   ],
-  DungeonTrapDisarm: [
-    "\"These traps require precise keystrokes. Your thumbs won't cut it.\"",
-  ],
   DungeonPlatformer: [
     "\"The dungeon demands a keyboard, adventurer. Come back prepared.\"",
   ],

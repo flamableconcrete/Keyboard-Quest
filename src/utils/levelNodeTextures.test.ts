@@ -35,7 +35,7 @@ describe('levelNodeTextureKey', () => {
   it('returns node_<type> for every non-boss level type', () => {
     const regularTypes: LevelConfig['type'][] = [
       'GoblinWhacker', 'SkeletonSwarm', 'MonsterArena', 'UndeadSiege',
-      'SlimeSplitting', 'DungeonTrapDisarm', 'DungeonPlatformer', 'DungeonEscape',
+      'SlimeSplitting', 'DungeonPlatformer', 'DungeonEscape',
       'PotionBrewingLab', 'MagicRuneTyping', 'MonsterManual', 'GuildRecruitment',
       'WoodlandFestival', 'CrazedCook',
     ]

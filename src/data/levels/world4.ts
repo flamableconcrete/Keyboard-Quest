@@ -41,7 +41,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   {
     id: 'w4_l3',
     name: 'Forgotten Stone Pass',
-    type: 'DungeonTrapDisarm',
+    type: 'DungeonPlatformer',
     world: 4,
     unlockedLetters: W4_BASE,
     wordCount: 28,

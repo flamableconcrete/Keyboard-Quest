@@ -107,7 +107,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   {
     id: 'w2_l6',
     name: 'Dwarven Depths',
-    type: 'DungeonTrapDisarm',
+    type: 'DungeonPlatformer',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
     wordCount: 20,

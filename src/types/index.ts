@@ -66,7 +66,6 @@ export type LevelType =
   | 'MonsterArena'
   | 'UndeadSiege'
   | 'SlimeSplitting'
-  | 'DungeonTrapDisarm'
   | 'DungeonPlatformer'
   | 'DungeonEscape'
   | 'PotionBrewingLab'

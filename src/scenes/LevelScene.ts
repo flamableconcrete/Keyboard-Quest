@@ -15,7 +15,6 @@ export class LevelScene extends Phaser.Scene {
       MonsterArena: 'MonsterArenaLevel',
       UndeadSiege: 'UndeadSiegeLevel',
       SlimeSplitting: 'SlimeSplittingLevel',
-      DungeonTrapDisarm: 'DungeonTrapDisarmLevel',
       DungeonPlatformer: 'DungeonPlatformerLevel',
       DungeonEscape: 'DungeonEscapeLevel',
       PotionBrewingLab: 'PotionBrewingLabLevel',

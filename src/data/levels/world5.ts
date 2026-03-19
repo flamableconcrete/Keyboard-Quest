@@ -26,7 +26,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   {
     id: 'w5_l2',
     name: 'The Shifting Labyrinth',
-    type: 'DungeonTrapDisarm',
+    type: 'DungeonPlatformer',
     world: 5,
     unlockedLetters: W5_BASE,
     wordCount: 32,

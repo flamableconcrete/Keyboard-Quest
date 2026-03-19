@@ -13,7 +13,6 @@ import { SkeletonSwarmLevel } from './scenes/level-types/SkeletonSwarmLevel'
 import { MonsterArenaLevel } from './scenes/level-types/MonsterArenaLevel'
 import { UndeadSiegeLevel } from './scenes/level-types/UndeadSiegeLevel'
 import { SlimeSplittingLevel } from './scenes/level-types/SlimeSplittingLevel'
-import { DungeonTrapDisarmLevel } from './scenes/level-types/DungeonTrapDisarmLevel'
 import { DungeonPlatformerLevel } from './scenes/level-types/DungeonPlatformerLevel'
 import { DungeonEscapeLevel } from './scenes/level-types/DungeonEscapeLevel'
 import { PotionBrewingLabLevel } from './scenes/level-types/PotionBrewingLabLevel'
@@ -62,7 +61,7 @@ const game = new Phaser.Game({
   scene: [
     BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, AvatarCustomizerScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene,
     GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
-    DungeonTrapDisarmLevel, DungeonPlatformerLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
+    DungeonPlatformerLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
     MonsterManualLevel, WoodlandFestivalLevel, CrazedCookLevel, GuildRecruitmentLevel,
     BossBattleScene, CharacterScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, ShopScene, TrophyRoomScene, MobileLevelIntroScene, MobileOverlandMapScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss, PauseScene
   ],

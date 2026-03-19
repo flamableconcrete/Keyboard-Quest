@@ -106,7 +106,7 @@ export function generateLevelNodeTextures(scene: Phaser.Scene): void {
   g.fillRect(20, 18, 1, 1)
   g.generateTexture('node_SlimeSplitting', 32, 32)
 
-  // ── DungeonTrapDisarm ───────────────────────────────────────
+  // ── DungeonPlatformer ───────────────────────────────────────
   bg(0x8c5a1a)
   g.fillStyle(0x885522)
   g.fillRect(4, 22, 24, 6)
@@ -118,19 +118,6 @@ export function generateLevelNodeTextures(scene: Phaser.Scene): void {
   g.fillRect(10, 10, 1, 2)
   g.fillRect(15, 10, 1, 2)
   g.fillRect(20, 10, 1, 2)
-  g.generateTexture('node_DungeonTrapDisarm', 32, 32)
-
-  // ── DungeonPlatformer ───────────────────────────────────────
-  bg(0x5a4a2a)
-  g.fillStyle(0x888888)
-  g.fillCircle(16, 18, 10)
-  g.fillStyle(0x555555)
-  g.fillTriangle(20, 14, 26, 20, 24, 26)
-  g.fillStyle(0xbbbbbb)
-  g.fillCircle(12, 14, 3)
-  g.lineStyle(1, 0x333333)
-  g.lineBetween(14, 12, 16, 18)
-  g.lineBetween(16, 18, 20, 22)
   g.generateTexture('node_DungeonPlatformer', 32, 32)
 
   // ── DungeonEscape ───────────────────────────────────────────
