@@ -15,6 +15,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     world: 2,
     unlockedLetters: W2_BASE,
     wordCount: 20,
+    waveCount: 4,
     timeLimit: 90,
     dialogue: [
       { speaker: "enemy", text: "None may cross the Mistweaver Shore. The dead have held it since the Age of Silence." },

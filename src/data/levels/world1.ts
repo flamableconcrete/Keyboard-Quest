@@ -148,6 +148,7 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     world: 1,
     unlockedLetters: W1_AFTER_MB2,
     wordCount: 25,
+    waveCount: 3,
     timeLimit: 90,
     dialogue: [
       { speaker: "enemy", text: "Turn back. The pass belongs to the dead now." },

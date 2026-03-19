@@ -95,6 +95,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     world: 5,
     unlockedLetters: W5_AFTER_MB1,
     wordCount: 40,
+    waveCount: 5,
     timeLimit: 140,
     dialogue: [
       { speaker: "enemy", text: "The Typemancer's own guard. We were alive when he took the letters. We'll be here when you fail." },

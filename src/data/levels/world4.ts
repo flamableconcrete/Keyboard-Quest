@@ -95,6 +95,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     world: 4,
     unlockedLetters: W4_AFTER_MB1,
     wordCount: 35,
+    waveCount: 4,
     timeLimit: 130,
     dialogue: [
       { speaker: "enemy", text: "We were warriors once. Now we are wardens. Leave. This is our rest." },
