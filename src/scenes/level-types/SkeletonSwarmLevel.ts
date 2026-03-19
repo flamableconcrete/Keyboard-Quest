@@ -12,7 +12,7 @@ import { setupPause } from '../../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../../art/companionsArt'
 import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 import { GoldManager } from '../../utils/goldSystem'
-import { computeSlotPositions } from '../../utils/skeletonSpacing'
+import { computeSlotPositions, applySeparationForce } from '../../utils/skeletonSpacing'
 
 interface Skeleton {
   word: string
@@ -453,9 +453,24 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     if (this.finished) return
 
     if (this.gameMode === 'advanced') {
+      // Move all skeletons
+      this.skeletons.forEach(s => { s.x -= s.speed * (delta / 1000) })
+
+      // Separation force: push overlapping skeletons apart (one pass, sorted by x)
+      const positions = this.skeletons.map(s => s.x)
+      const labelWidths = this.skeletons.map(s => s.label.width)
+      const separated = applySeparationForce(
+        positions,
+        labelWidths,
+        this.LABEL_PAD,
+        this.BARRIER_X + 20,
+        this.scale.width - 60,
+      )
+      this.skeletons.forEach((s, i) => { s.x = separated[i] })
+
+      // Apply positions and collect damage events
       const reached: Skeleton[] = []
       this.skeletons.forEach(s => {
-        s.x -= s.speed * (delta / 1000)
         s.sprite.setX(s.x)
         s.label.setX(s.x)
         s.aura.setX(s.x)
