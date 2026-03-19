@@ -281,7 +281,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => {
       if (!ptr.isDown) return
       const dx = ptr.x - this.panStartX
-      if (!this.isPanning && Math.abs(dx) > 5) {
+      if (!this.isPanning && Math.abs(dx) > 15) {
         this.isPanning = true
       }
       if (this.isPanning) {
