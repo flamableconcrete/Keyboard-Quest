@@ -275,7 +275,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
             this.removeSkeleton(target)
             this.skeletonsDefeated++
             this.setActiveSkeleton(this.skeletons[0] ?? null)
-            if (this.wordQueue.length === 0 && this.skeletons.length === 0) this.endLevel(true)
+            this.checkWaveOrWin()
           }
         } else if (effect === 'second_chance') {
           this.playerHp = Math.min(this.playerHp + 2, 5)
@@ -497,6 +497,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
+    if (!this.finished) this.checkWaveOrWin()
   }
 
   private redrawBarrier(time: number) {
@@ -596,11 +597,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
 
     const next = this.skeletons[0] ?? null
     this.setActiveSkeleton(next)
-    // Win check here covers cleave kills that empty the board
-    if (this.wordQueue.length === 0 && this.skeletons.length === 0) {
-      this.endLevel(true)
-      return
-    }
+    this.checkWaveOrWin()
   }
 
   private onWrongKey() {
@@ -643,6 +640,20 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     skeleton.label.destroy()
     this.skeletons = this.skeletons.filter(s => s !== skeleton)
     if (this.activeSkeleton === skeleton) this.activeSkeleton = null
+  }
+
+  private checkWaveOrWin() {
+    if (this.finished || this.skeletons.length > 0) return
+    if (this.currentWave < this.maxWaves) {
+      this.showWaveBanner(this.currentWave + 1)
+    } else {
+      this.endLevel(true)
+    }
+  }
+
+  private showWaveBanner(_waveNumber: number) {
+    // stub — will be implemented in Task 4
+    this.spawnWave()
   }
 
   private endLevel(passed: boolean) {
