@@ -41,7 +41,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   private maxSkeletonReach = 265
   private hpHearts: Phaser.GameObjects.Image[] = []
   private waveText!: Phaser.GameObjects.Text
-  private waveTimer?: Phaser.Time.TimerEvent
   private skeletonsDefeated = 0
   private finished = false
   private currentWave = 0
@@ -73,7 +72,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.skeletonsDefeated = 0
     this.playerHp = 3
     this.currentWave = 0
-    this.maxWaves = Phaser.Math.Between(3, 5)
+    this.maxWaves = this.level.waveCount ?? 3
     this.skeletons = []
     this.activeSkeleton = null
     this.words = []
@@ -303,41 +302,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
 
     // Start wave loop
     this.spawnWave()
-    this.waveTimer = this.time.addEvent({
-      delay: 5000,
-      loop: true,
-      callback: this.onWaveTimer,
-      callbackScope: this,
-    })
-  }
-
-  private onWaveTimer() {
-    if (this.finished) return
-    if (this.currentWave >= this.maxWaves) {
-      if (this.skeletons.length === 0) this.endLevel(true)
-      return
-    }
-    if (this.skeletons.length === 0) {
-      // Show wave incoming banner then spawn
-      const { width, height } = this.scale
-      const banner = this.add.text(width / 2, height / 2, `WAVE INCOMING`, {
-        fontSize: '36px', color: '#ffd700', stroke: '#000000', strokeThickness: 4
-      }).setOrigin(0.5).setDepth(200).setAlpha(0)
-      this.tweens.add({
-        targets: banner,
-        alpha: 1,
-        duration: 400,
-        yoyo: true,
-        hold: 1200,
-        onComplete: () => {
-          banner.destroy()
-          this.spawnWave()
-        }
-      })
-    } else {
-      // Previous wave not cleared — spawn next wave on top of existing skeletons
-      this.spawnWave()
-    }
   }
 
   private spawnWave() {
@@ -684,7 +648,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   private endLevel(passed: boolean) {
     if (this.finished) return
     this.finished = true
-    this.waveTimer?.remove()
     this.spellCaster?.destroy()
     this.typingHands?.fadeOut()
     this.engine.destroy()
