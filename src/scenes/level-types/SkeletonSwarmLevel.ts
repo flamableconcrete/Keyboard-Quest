@@ -651,9 +651,23 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     }
   }
 
-  private showWaveBanner(_waveNumber: number) {
-    // stub — will be implemented in Task 4
-    this.spawnWave()
+  private showWaveBanner(waveNumber: number) {
+    const { width, height } = this.scale
+    const banner = this.add.text(width / 2, height / 2, `WAVE ${waveNumber}`, {
+      fontSize: '48px', color: '#ffd700', stroke: '#000000', strokeThickness: 5
+    }).setOrigin(0.5).setDepth(200).setAlpha(0)
+
+    this.tweens.add({
+      targets: banner,
+      alpha: 1,
+      duration: 400,
+      yoyo: true,
+      hold: 1200,
+      onComplete: () => {
+        banner.destroy()
+        this.spawnWave()
+      }
+    })
   }
 
   private endLevel(passed: boolean) {
