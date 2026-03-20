@@ -37,7 +37,7 @@ export abstract class BaseBossScene extends BaseLevelScene {
     const { width, height } = this.scale
     super.preCreate(
       avatarX ?? width * BOSS_AVATAR_X_FRAC,
-      avatarY ?? height / 2 - BOSS_AVATAR_Y_OFFSET,
+      avatarY ?? (height / 2 - BOSS_AVATAR_Y_OFFSET),
       {
         avatarScale: BOSS_AVATAR_SCALE,
         engineY: height - BOSS_ENGINE_Y_OFFSET,
