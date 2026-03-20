@@ -28,11 +28,8 @@ export class KitchenController {
   private _orders: OrderState[] = []
   private _ordersFilled = 0
   private _walkoffs = 0
-  private rng: () => number
 
-  constructor(private config: KitchenConfig) {
-    this.rng = config.rng ?? Math.random
-  }
+  constructor(private config: KitchenConfig) {}
 
   get activeOrders(): ReadonlyArray<OrderState> { return this._orders }
   get ordersFilled() { return this._ordersFilled }
