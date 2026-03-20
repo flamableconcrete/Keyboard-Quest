@@ -160,7 +160,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
    * and then call super.endLevel(passed).
    */
   protected endLevel(passed: boolean) {
-    if (process.env.NODE_ENV !== 'production' && !this._preCreateCalled) {
+    if (import.meta.env.DEV && !this._preCreateCalled) {
       throw new Error(
         `${this.scene.key}: endLevel() called before preCreate(). ` +
         `Did you forget to call super.preCreate() in create()?`

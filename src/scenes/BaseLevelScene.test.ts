@@ -51,7 +51,7 @@ const mockLevel: Partial<LevelConfig> = {
   name: 'Test',
   world: 1,
   wordCount: 10,
-  unlockedLetters: 'abcdefghijklmnopqrstuvwxyz',
+  unlockedLetters: ['a', 'b', 'c', 'd', 'e', 'f'],
 }
 
 describe('BaseLevelScene.init()', () => {
@@ -87,28 +87,16 @@ describe('BaseLevelScene._preCreateCalled guard', () => {
     scene = new TestLevelScene()
   })
 
-  it('throws if endLevel is called before preCreate in development', () => {
-    // Save original NODE_ENV
-    const originalEnv = process.env.NODE_ENV
-
-    // Set to development
-    process.env.NODE_ENV = 'development'
-
+  it('throws if endLevel is called before preCreate (guard always active in test env)', () => {
     ;(scene as any).init({
       level: mockLevel as LevelConfig,
       profileSlot: 0,
     })
 
     expect(() => scene.callEndLevelWithoutPreCreate(true)).toThrow(/preCreate/)
-
-    // Restore original NODE_ENV
-    process.env.NODE_ENV = originalEnv
   })
 
   it('does not throw if preCreate was called before endLevel', () => {
-    const originalEnv = process.env.NODE_ENV
-    process.env.NODE_ENV = 'development'
-
     ;(scene as any).init({
       level: mockLevel as LevelConfig,
       profileSlot: 0,
@@ -133,7 +121,5 @@ describe('BaseLevelScene._preCreateCalled guard', () => {
     expect(() => {
       ;(scene as any).endLevel(true)
     }).not.toThrow()
-
-    process.env.NODE_ENV = originalEnv
   })
 })
