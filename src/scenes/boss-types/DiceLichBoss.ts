@@ -1,26 +1,16 @@
 // src/scenes/boss-types/DiceLichBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
-export class DiceLichBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class DiceLichBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
   private wordsPerPhase = 5
-  private wordQueue: string[] = []
+  private phaseWordQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private diceSprite!: Phaser.GameObjects.Rectangle
@@ -28,7 +18,7 @@ export class DiceLichBoss extends Phaser.Scene {
   private curseLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  
+
   private bossHp = 0
   private bossMaxHp = 0
   private playerHp = 5
@@ -38,60 +28,42 @@ export class DiceLichBoss extends Phaser.Scene {
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private currentCurse = 0
-  private finished = false
 
   constructor() { super('DiceLichBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
-    this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
+    this.wordsPerPhase = Math.max(1, Math.ceil(data.level.wordCount / this.maxPhases))
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
     // Dark background
     this.add.rectangle(width / 2, height / 2, width, height, 0x050505)
 
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
-
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { 
-      fontSize: '22px', color: '#ff4444' 
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+      fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
     }).setOrigin(1, 0)
 
     // Level name
-    this.add.text(width / 2, 20, this.level.name, { 
-      fontSize: '28px', color: '#00ff88' 
+    this.add.text(width / 2, 20, this.level.name, {
+      fontSize: '28px', color: '#00ff88'
     }).setOrigin(0.5, 0)
-    
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, { 
-      fontSize: '20px', color: '#aaaaaa' 
+
+    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
+      fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Indigo)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 250, 0x4b0082)
-    
+
     // Dice (White)
     this.diceSprite = this.add.rectangle(width / 2 + 200, height * 0.42 - 25, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
     this.diceText = this.add.text(width / 2 + 200, height * 0.42 - 25, '?', {
@@ -104,19 +76,9 @@ export class DiceLichBoss extends Phaser.Scene {
 
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`, { 
-      fontSize: '24px', color: '#00ff88' 
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`, {
+      fontSize: '24px', color: '#00ff88'
     }).setOrigin(0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this, 
-      x: width / 2, 
-      y: height - 160, 
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     // Timer
     if (this.level.timeLimit) {
@@ -136,30 +98,30 @@ export class DiceLichBoss extends Phaser.Scene {
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
-    
+
     // Number of words is dictated by config, let's distribute evenly across 3 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
-    
+
     // Ensure we don't generate more words than remaining boss HP
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    
+
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
-    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
-    
+    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.phaseWordQueue = shuffledWords
+
     // Visual cue for phase change
     this.cameras.main.flash(500, 0, 255, 136)
-    
+
     this.loadNextWord()
   }
 
   private rollDice(): number {
     const val = Phaser.Math.Between(1, 6)
     this.diceText.setText(val.toString())
-    
+
     let curseName = ''
     let color = '#ffffff'
-    
+
     switch (val) {
       case 1: curseName = 'EASY WORD'; color = '#00ff00'; break
       case 2: curseName = 'FAST ATTACK'; color = '#ffff00'; break
@@ -168,14 +130,14 @@ export class DiceLichBoss extends Phaser.Scene {
       case 5: curseName = 'DOUBLE WORD'; color = '#ff8800'; break
       case 6: curseName = 'CRITICAL STRIKE!'; color = '#ff0000'; break
     }
-    
+
     this.curseLabel.setText(curseName).setColor(color)
     this.currentCurse = val
     return val
   }
 
   private loadNextWord() {
-    if (this.wordQueue.length === 0) {
+    if (this.phaseWordQueue.length === 0) {
       if (this.phase < this.maxPhases && this.bossHp > 0) {
         this.phase++
         this.startPhase()
@@ -186,23 +148,23 @@ export class DiceLichBoss extends Phaser.Scene {
     }
 
     const val = this.rollDice()
-    let word = this.wordQueue[0]
-    
+    let word = this.phaseWordQueue[0]
+
     // Apply Curse Effects to Word Choice
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    
+
     if (val === 1) { // Easy: pick a short word
       const easyPool = getWordPool(this.level.unlockedLetters, 10, 1, this.level.world === 1 ? 5 : undefined)
       word = easyPool[Phaser.Math.Between(0, easyPool.length - 1)]
-      this.wordQueue[0] = word
+      this.phaseWordQueue[0] = word
     } else if (val === 4) { // Long: pick a hard word
       const hardPool = getWordPool(this.level.unlockedLetters, 10, difficulty + 2, this.level.world === 1 ? 5 : undefined)
       word = hardPool[Phaser.Math.Between(0, hardPool.length - 1)]
-      this.wordQueue[0] = word
+      this.phaseWordQueue[0] = word
     }
 
     this.engine.setWord(word)
-    
+
     if (val === 3) { // Scrambled: show underscores
       const underscores = '_'.repeat(word.length)
       this.engine.setWord(word, underscores)
@@ -225,9 +187,9 @@ export class DiceLichBoss extends Phaser.Scene {
 
   private bossAttack() {
     if (this.finished) return
-    
+
     const damage = this.currentCurse === 6 ? 2 : 1
-    
+
     this.tweens.add({
       targets: this.bossSprite,
       scaleX: 1.2,
@@ -236,26 +198,26 @@ export class DiceLichBoss extends Phaser.Scene {
       duration: 100,
       onComplete: () => {
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp -= damage
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+          const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+          this.playerHp -= damage
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
         if (this.currentCurse === 6) {
            this.cameras.main.flash(200, 255, 0, 0)
         }
-        
+
         if (this.playerHp <= 0) this.endLevel(false)
       }
     })
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -266,11 +228,11 @@ export class DiceLichBoss extends Phaser.Scene {
     if (this.finished) return
 
     const damageToBoss = (this.currentCurse === 6) ? 2 : 1
-    
-    this.wordQueue.shift()
+
+    this.phaseWordQueue.shift()
     this.bossHp -= damageToBoss
     if (this.bossHp < 0) this.bossHp = 0
-    
+
     this.bossHpText.setText(`Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`)
 
     // Visual damage cue
@@ -285,9 +247,9 @@ export class DiceLichBoss extends Phaser.Scene {
     if (this.currentCurse === 5) {
         // We just completed one. We need to complete another from the queue without a new roll.
         // But if queue is empty, we just finish.
-        if (this.wordQueue.length > 0) {
+        if (this.phaseWordQueue.length > 0) {
             this.currentCurse = 0 // Reset curse so next word doesn't double-trigger
-            const nextWord = this.wordQueue[0]
+            const nextWord = this.phaseWordQueue[0]
             this.engine.setWord(nextWord)
             return // Skip loadNextWord (which rolls)
         }
@@ -296,19 +258,19 @@ export class DiceLichBoss extends Phaser.Scene {
     this.loadNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     if (this.currentCurse === 6) {
         // Critical Strike: Typo deals 2 damage and resets
         this.playerHp -= 2
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(400, 0.03)
         this.cameras.main.flash(200, 255, 0, 0)
-        
+
         if (this.playerHp <= 0) {
             this.endLevel(false)
         } else {
             // Reset word progress
-            const word = this.wordQueue[0]
+            const word = this.phaseWordQueue[0]
             this.engine.setWord(word)
         }
     } else {
@@ -316,12 +278,9 @@ export class DiceLichBoss extends Phaser.Scene {
     }
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.attackTimer?.remove()
-    this.engine.destroy()
 
     if (passed) {
       this.bossSprite.destroy()
@@ -331,21 +290,10 @@ export class DiceLichBoss extends Phaser.Scene {
       this.bossHpText.setText('BANISHED!')
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(2000, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

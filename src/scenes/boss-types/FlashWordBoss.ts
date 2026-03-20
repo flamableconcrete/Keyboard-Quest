@@ -2,68 +2,38 @@ import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
-import { GoldManager } from '../../utils/goldSystem'
+import { BaseBossScene } from '../BaseBossScene'
 
-export class FlashWordBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class FlashWordBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
-  private wordQueue: string[] = []
   private currentWord = ""
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  
+
   private bossHp = 0
   private bossMaxHp = 0
   private playerHp = 5
   private hpText!: Phaser.GameObjects.Text
-  
-  private finished = false
+
   private wordIsHidden = false
   private visibilityTimer?: Phaser.Time.TimerEvent
 
   constructor() { super('FlashWordBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2e)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
-
 
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
@@ -74,21 +44,12 @@ export class FlashWordBoss extends Phaser.Scene {
     }).setOrigin(0.5, 0)
 
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 250, 250, 0x9b30ff)
-    
+
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
     this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#cc33ff'
     }).setOrigin(0.5)
-
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 160,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     this.startPhase()
   }
@@ -115,7 +76,7 @@ export class FlashWordBoss extends Phaser.Scene {
     this.currentWord = this.wordQueue.shift()!
     this.wordIsHidden = false
     this.engine.setWord(this.currentWord)
-    
+
     const visibilityTime = [3000, 2000, 1000][this.phase - 1]
     this.visibilityTimer?.remove()
     this.visibilityTimer = this.time.delayedCall(visibilityTime, () => {
@@ -125,7 +86,7 @@ export class FlashWordBoss extends Phaser.Scene {
     })
   }
 
-  private onWordComplete() {
+  protected onWordComplete() {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -139,7 +100,7 @@ export class FlashWordBoss extends Phaser.Scene {
     const powerBonus = weaponItemBoss?.effect?.power || 0
     this.bossHp -= (1 + powerBonus)
     this.bossHpText.setText(`Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`)
-    
+
     // Visual damage cue
     this.bossSprite.setFillStyle(0xffffff)
     this.time.delayedCall(100, () => {
@@ -149,7 +110,7 @@ export class FlashWordBoss extends Phaser.Scene {
     this.loadNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
     // Damage player if word is hidden
     if (this.wordIsHidden) {
@@ -168,27 +129,12 @@ export class FlashWordBoss extends Phaser.Scene {
     }
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.visibilityTimer?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

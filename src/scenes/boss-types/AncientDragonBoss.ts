@@ -1,22 +1,12 @@
 // src/scenes/boss-types/AncientDragonBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
-export class AncientDragonBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class AncientDragonBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
   private sentenceQueue: string[] = []
@@ -24,7 +14,7 @@ export class AncientDragonBoss extends Phaser.Scene {
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  
+
   private bossHp = 0
   private bossMaxHp = 0
 
@@ -34,39 +24,21 @@ export class AncientDragonBoss extends Phaser.Scene {
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
-  private finished = false
 
   constructor() { super('AncientDragonBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
 
     // Deep purple/black background for Ancient Dragon
     this.add.rectangle(width / 2, height / 2, width, height, 0x0a001a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -80,29 +52,19 @@ export class AncientDragonBoss extends Phaser.Scene {
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '28px', color: '#a020f0'
     }).setOrigin(0.5, 0)
-    
+
     this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Ancient Dragon is big and purple)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 350, 350, 0x4b0082)
-    
+
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
     this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Ancient Dragon HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#a020f0'
     }).setOrigin(0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 160,
-      fontSize: 36, // Slightly smaller since sentences are longer
-      onWordComplete: this.onSentenceComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     // Timer
     if (this.level.timeLimit) {
@@ -119,16 +81,16 @@ export class AncientDragonBoss extends Phaser.Scene {
 
     this.startPhase()
   }
-  
+
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
-    
+
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    
+
     // Distribute total words across phases
     const wordsInThisPhase = Math.ceil(this.bossMaxHp / this.maxPhases)
     const wordsRemaining = Math.min(wordsInThisPhase, this.bossHp)
-    
+
     // Sentence length depends on phase
     let wordsPerSentence = 2
     if (this.phase === 2) wordsPerSentence = 4
@@ -136,7 +98,7 @@ export class AncientDragonBoss extends Phaser.Scene {
 
     const words = getWordPool(this.level.unlockedLetters, wordsRemaining, difficulty, this.level.world === 1 ? 5 : undefined)
     const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords);
-    
+
     this.sentenceQueue = []
     for (let i = 0; i < shuffledWords.length; i += wordsPerSentence) {
       const sentenceWords = shuffledWords.slice(i, i + wordsPerSentence)
@@ -144,16 +106,16 @@ export class AncientDragonBoss extends Phaser.Scene {
         this.sentenceQueue.push(sentenceWords.join(' '))
       }
     }
-    
+
     // Setup attack timer
     this.attackTimer?.remove()
     this.attackTimer = this.time.addEvent({
-      delay: Math.max(1200, 3500 - (this.phase * 600)), 
+      delay: Math.max(1200, 3500 - (this.phase * 600)),
       loop: true,
       callback: this.bossAttack,
       callbackScope: this
     })
-    
+
     this.cameras.main.flash(500, 75, 0, 130)
     this.loadNextSentence()
   }
@@ -174,7 +136,7 @@ export class AncientDragonBoss extends Phaser.Scene {
 
   private bossAttack() {
     if (this.finished) return
-    
+
     this.tweens.add({
       targets: this.bossSprite,
       scaleX: 1.15,
@@ -184,27 +146,27 @@ export class AncientDragonBoss extends Phaser.Scene {
       duration: 150,
       onComplete: () => {
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+          const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+          this.playerHp--
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
-        
+
         if (this.phase >= 2) {
            this.cameras.main.flash(100, 100, 0, 200)
         }
-        
+
         if (this.playerHp <= 0) this.endLevel(false)
       }
     })
   }
 
-  private onSentenceComplete(sentence: string, _elapsed: number) {
+  protected onWordComplete(sentence: string, _elapsed: number) {
     if (this.finished) return
 
     const wordsInSentence = sentence.split(' ').length
@@ -223,37 +185,23 @@ export class AncientDragonBoss extends Phaser.Scene {
     this.loadNextSentence()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 80, 0, 0)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.attackTimer?.remove()
-    this.engine.destroy()
 
     if (passed) {
       this.bossSprite.destroy()
       this.bossHpText.setText('DEFEATED!')
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(2000, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

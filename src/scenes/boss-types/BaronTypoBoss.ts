@@ -1,31 +1,21 @@
 // src/scenes/boss-types/BaronTypoBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
-export class BaronTypoBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class BaronTypoBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
   private wordsPerPhase = 5
-  private wordQueue: string[] = []
+  private phaseWordQueue: string[] = []
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  
+
   private bossHp = 0
   private bossMaxHp = 0
 
@@ -35,41 +25,23 @@ export class BaronTypoBoss extends Phaser.Scene {
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
-  private finished = false
 
   constructor() { super('BaronTypoBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
     // Number of words is dictated by config, distributed across 3 phases
-    this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
+    this.wordsPerPhase = Math.max(1, Math.ceil(data.level.wordCount / this.maxPhases))
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
 
     // Deep Purple/Dark Background for Baron Typo
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -83,7 +55,7 @@ export class BaronTypoBoss extends Phaser.Scene {
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '28px', color: '#cc88ff'
     }).setOrigin(0.5, 0)
-    
+
     this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
@@ -91,22 +63,12 @@ export class BaronTypoBoss extends Phaser.Scene {
     // Boss Sprite (Baron is purple and sophisticated-looking placeholder)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
-    
+
     this.bossMaxHp = this.level.wordCount
     this.bossHp = this.bossMaxHp
     this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#cc88ff'
     }).setOrigin(0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 160,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     // Timer
     if (this.level.timeLimit) {
@@ -123,18 +85,18 @@ export class BaronTypoBoss extends Phaser.Scene {
 
     this.startPhase()
   }
-  
+
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
-    
+
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    
+
     // Ensure we don't generate more words than remaining boss HP
     const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
-    
-    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
-    
+
+    const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.phaseWordQueue = shuffledWords
+
     // Setup attack timer based on phase
     this.attackTimer?.remove()
     this.attackTimer = this.time.addEvent({
@@ -143,10 +105,10 @@ export class BaronTypoBoss extends Phaser.Scene {
       callback: this.bossAttack,
       callbackScope: this
     })
-    
+
     // Visual cue for phase change
     this.cameras.main.flash(500, 128, 0, 128)
-    
+
     this.loadNextWord()
   }
 
@@ -162,7 +124,7 @@ export class BaronTypoBoss extends Phaser.Scene {
   }
 
   private loadNextWord() {
-    if (this.wordQueue.length === 0) {
+    if (this.phaseWordQueue.length === 0) {
       if (this.phase < this.maxPhases && this.bossHp > 0) {
         this.phase++
         this.startPhase()
@@ -171,9 +133,9 @@ export class BaronTypoBoss extends Phaser.Scene {
       }
       return
     }
-    const correctWord = this.wordQueue[0]
+    const correctWord = this.phaseWordQueue[0]
     const scrambledWord = this.scrambleWord(correctWord)
-    
+
     // In Phase 1, show the scrambled word as the display to help.
     // In Phase 2 & 3, show underscores to force looking at the boss.
     if (this.phase === 1) {
@@ -187,7 +149,7 @@ export class BaronTypoBoss extends Phaser.Scene {
 
   private bossAttack() {
     if (this.finished) return
-    
+
     // Attack animation
     this.tweens.add({
       targets: this.bossSprite,
@@ -197,23 +159,23 @@ export class BaronTypoBoss extends Phaser.Scene {
       duration: 150,
       onComplete: () => {
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+          const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+          this.playerHp--
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
-        
+
         if (this.playerHp <= 0) this.endLevel(false)
       }
     })
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -223,7 +185,7 @@ export class BaronTypoBoss extends Phaser.Scene {
 
     if (this.finished) return
 
-    this.wordQueue.shift()
+    this.phaseWordQueue.shift()
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
@@ -239,37 +201,23 @@ export class BaronTypoBoss extends Phaser.Scene {
     this.loadNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 150, 0, 0)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.attackTimer?.remove()
-    this.engine.destroy()
 
     if (passed) {
       this.bossSprite.destroy()
       this.bossHpText.setText('FOILED!')
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

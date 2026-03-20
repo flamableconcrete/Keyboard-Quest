@@ -1,15 +1,10 @@
 // src/scenes/boss-types/BoneKnightBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
 interface Shield {
     sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle
@@ -17,12 +12,7 @@ interface Shield {
     word: string
 }
 
-export class BoneKnightBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-    private level!: LevelConfig
-    private profileSlot!: number
-    private engine!: TypingEngine
-
+export class BoneKnightBoss extends BaseBossScene {
     private phase = 1
     private maxPhases = 3
     private shields: Shield[] = []
@@ -39,44 +29,26 @@ export class BoneKnightBoss extends Phaser.Scene {
     private playerHp = 5
     private timeLeft = 0
     private timerEvent?: Phaser.Time.TimerEvent
-    private finished = false
 
     constructor() {
         super('BoneKnightBoss')
     }
 
     init(data: { level: LevelConfig; profileSlot: number }) {
-        this.level = data.level
-        this.profileSlot = data.profileSlot
-        this.finished = false
+        super.init(data)
         this.playerHp = 5
         this.phase = 1
         this.activeShieldIndex = 0
     }
 
     create() {
-    setupPause(this, this.profileSlot)
+        this.preCreate()
         const { width, height } = this.scale
 
         // Dark Background
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a0a)
 
-        const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
-
-    // HUD
+        // HUD
         this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
             fontSize: '22px', color: '#ff4444'
         })
@@ -101,17 +73,6 @@ export class BoneKnightBoss extends Phaser.Scene {
         this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Bone Knight HP: ${this.bossHp}/${this.bossMaxHp}`, {
             fontSize: '24px', color: '#e0e0e0'
         }).setOrigin(0.5)
-
-        // Typing engine (hidden rendering, we'll use shield labels)
-        this.engine = new TypingEngine({
-            scene: this,
-            x: width / 2,
-            y: height - 100,
-            fontSize: 48,
-            onWordComplete: this.onWordComplete.bind(this),
-            onWrongKey: this.onWrongKey.bind(this),
-            silent: true // We manually render word progress on shields
-        })
 
         if (this.level.timeLimit) {
             this.timeLeft = this.level.timeLimit
@@ -187,18 +148,18 @@ export class BoneKnightBoss extends Phaser.Scene {
         })
     }
 
-    private onWordComplete() {
-    // Drop gold on kill
-    if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
-    }
+    protected onWordComplete() {
+        // Drop gold on kill
+        if (this.goldManager) {
+            const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
+            const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
+            this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+        }
 
         if (this.finished) return
 
         const completedShield = this.shields[this.activeShieldIndex]
-        
+
         // Damage effect
         this.tweens.add({
             targets: completedShield.sprite,
@@ -212,9 +173,9 @@ export class BoneKnightBoss extends Phaser.Scene {
         })
 
         const pProfileBoss = loadProfile(this.profileSlot)
-    const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
-    const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (1 + powerBonus)
+        const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
+        const powerBonus = weaponItemBoss?.effect?.power || 0
+        this.bossHp -= (1 + powerBonus)
         this.bossHpText.setText(`Bone Knight HP: ${Math.max(0, this.bossHp)}/${this.bossMaxHp}`)
 
         this.activeShieldIndex++
@@ -236,13 +197,13 @@ export class BoneKnightBoss extends Phaser.Scene {
         }
     }
 
-    private onWrongKey() {
+    protected onWrongKey() {
         if (this.finished) return
 
         // Reset progress on current shield
         const currentShield = this.shields[this.activeShieldIndex]
         this.engine.setWord(currentShield.word)
-        
+
         // Shake current shield
         this.tweens.add({
             targets: [currentShield.sprite, currentShield.text],
@@ -254,33 +215,33 @@ export class BoneKnightBoss extends Phaser.Scene {
 
         // Boss counter-attack
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+            const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+            this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+            this.playerHp--
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(200, 0.01)
-        
+
         if (this.playerHp <= 0) {
             this.endLevel(false)
         }
     }
 
-    update(_time: number, delta: number) {
-        this.goldManager?.update(delta)
+    update(time: number, delta: number) {
+        super.update(time, delta)
 
         if (this.finished) return
-        
+
         // Update the active shield text to show progress
         const currentShield = this.shields[this.activeShieldIndex]
         if (currentShield) {
             const typed = this.engine.getTypedSoFar()
             const word = currentShield.word
-            
+
             // Format text to show typed vs untyped
             // Note: TypingEngine handles colors itself, but here we can just do a simple highlight
             // or just leave the text as is if we want to be simple.
@@ -295,11 +256,8 @@ export class BoneKnightBoss extends Phaser.Scene {
         }
     }
 
-    private endLevel(passed: boolean) {
-        if (this.finished) return
-        this.finished = true
+    protected endLevel(passed: boolean) {
         this.timerEvent?.remove()
-        this.engine.destroy()
 
         if (passed) {
             this.bossHpText.setText('DEFEATED!')
@@ -311,18 +269,6 @@ export class BoneKnightBoss extends Phaser.Scene {
             })
         }
 
-        const elapsed = Date.now() - this.engine.sessionStartTime
-        const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-        const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(2000, () => {
-            this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-                level: this.level,
-                profileSlot: this.profileSlot,
-                accuracyStars: acc,
-                speedStars: spd,
-                passed
-      })
-    })
-  }
+        super.endLevel(passed)
+    }
 }

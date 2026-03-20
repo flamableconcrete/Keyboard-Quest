@@ -1,15 +1,10 @@
 // src/scenes/boss-types/SpiderBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
 interface WebLine {
   index: number;
@@ -19,25 +14,20 @@ interface WebLine {
   textObject?: Phaser.GameObjects.Text;
 }
 
-export class SpiderBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class SpiderBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
   private lettersToSpawn = 0
   private lettersSpawned = 0
-  
+
   private bossSprite!: Phaser.GameObjects.Arc
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
   private webGraphics!: Phaser.GameObjects.Graphics
-  
+
   private lines: WebLine[] = []
   private activeLetterQueue: WebLine[] = []
-  
+
   private bossHp = 0
   private bossMaxHp = 0
   private playerHp = 5
@@ -47,48 +37,30 @@ export class SpiderBoss extends Phaser.Scene {
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
-  private finished = false
 
   constructor() { super('SpiderBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
     this.lettersSpawned = 0
     this.activeLetterQueue = []
-    
+
     // bossMaxHp is waves of 8 letters
-    this.bossMaxHp = Math.ceil(this.level.wordCount / 8)
+    this.bossMaxHp = Math.ceil(data.level.wordCount / 8)
     this.bossHp = this.bossMaxHp
-    this.lettersToSpawn = this.level.wordCount
+    this.lettersToSpawn = data.level.wordCount
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
     const centerX = width / 2
     const centerY = height / 2
 
     // Dark Background
     this.add.rectangle(centerX, centerY, width, height, 0x0a0a1a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -101,7 +73,7 @@ export class SpiderBoss extends Phaser.Scene {
     this.add.text(centerX, 20, this.level.name, {
       fontSize: '28px', color: '#8800ff'
     }).setOrigin(0.5, 0)
-    
+
     this.phaseText = this.add.text(centerX, 60, `Phase ${this.phase}/${this.maxPhases}`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
@@ -114,21 +86,10 @@ export class SpiderBoss extends Phaser.Scene {
     this.bossSprite = this.add.circle(centerX, centerY, 40, 0x333333)
     this.add.circle(centerX - 15, centerY - 10, 5, 0xff0000) // Eye
     this.add.circle(centerX + 15, centerY - 10, 5, 0xff0000) // Eye
-    
+
     this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#8800ff'
     }).setOrigin(0.5)
-
-    // Typing engine (invisible, just for logic)
-    this.engine = new TypingEngine({
-      scene: this,
-      x: centerX,
-      y: height - 50,
-      fontSize: 32,
-      onWordComplete: this.onLetterComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-      silent: true
-    })
 
     // Timer
     if (this.level.timeLimit) {
@@ -194,7 +155,7 @@ export class SpiderBoss extends Phaser.Scene {
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
-    
+
     // Setup spawn timer
     this.spawnTimer?.remove()
     this.spawnTimer = this.time.addEvent({
@@ -227,7 +188,7 @@ export class SpiderBoss extends Phaser.Scene {
 
     const line = Phaser.Utils.Array.GetRandom(availableLines)
     const letter = getWordPool(this.level.unlockedLetters, 1, 1, this.level.world === 1 ? 5 : undefined)[0].charAt(0)
-    
+
     line.letter = letter
     this.lettersSpawned++
 
@@ -248,7 +209,7 @@ export class SpiderBoss extends Phaser.Scene {
     if (this.activeLetterQueue.length > 0) {
       const target = this.activeLetterQueue[0]
       this.engine.setWord(target.letter)
-      
+
       // Highlight target
       this.activeLetterQueue.forEach((l, i) => {
         if (l.textObject) {
@@ -259,7 +220,7 @@ export class SpiderBoss extends Phaser.Scene {
     }
   }
 
-  private onLetterComplete() {
+  protected onWordComplete() {
     if (this.finished || this.activeLetterQueue.length === 0) return
 
     const line = this.activeLetterQueue.shift()!
@@ -271,10 +232,10 @@ export class SpiderBoss extends Phaser.Scene {
     }
 
     this.drawWeb()
-    
+
     // Check if wave complete or level complete
     const waveFinished = this.lines.every(l => l.isCut || (this.lettersSpawned >= this.lettersToSpawn && l.letter === ''))
-    
+
     if (waveFinished) {
       this.waveComplete()
     } else {
@@ -288,7 +249,7 @@ export class SpiderBoss extends Phaser.Scene {
     const powerBonus = weaponItemBoss?.effect?.power || 0
     this.bossHp -= (1 + powerBonus)
     this.bossHpText.setText(`Spider HP: ${this.bossHp}/${this.bossMaxHp}`)
-    
+
     // Damage effect
     this.bossSprite.setFillStyle(0xff0000)
     this.time.delayedCall(200, () => {
@@ -307,7 +268,7 @@ export class SpiderBoss extends Phaser.Scene {
         l.letter = ''
       })
       this.drawWeb()
-      
+
       // Progress phases based on HP
       const newPhase = Math.min(3, 1 + Math.floor(((this.bossMaxHp - this.bossHp) / this.bossMaxHp) * 3))
       if (newPhase > this.phase) {
@@ -328,14 +289,14 @@ export class SpiderBoss extends Phaser.Scene {
       duration: 150,
       onStart: () => {
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+          const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+          this.playerHp--
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(200, 0.01)
         if (this.playerHp <= 0) this.endLevel(false)
@@ -343,38 +304,24 @@ export class SpiderBoss extends Phaser.Scene {
     })
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 100, 0, 0)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
     this.attackTimer?.remove()
-    this.engine.destroy()
 
     if (passed) {
       this.bossHpText.setText('DEFEATED!')
       this.activeLetterQueue.forEach(l => l.textObject?.destroy())
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

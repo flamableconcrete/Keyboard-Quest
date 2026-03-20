@@ -1,15 +1,10 @@
 // src/scenes/boss-types/SlimeKingBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
 interface Slime {
   word: string
@@ -22,53 +17,30 @@ interface Slime {
   size: number
 }
 
-export class SlimeKingBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  
+export class SlimeKingBoss extends BaseBossScene {
   private slimes: Slime[] = []
   private activeSlime: Slime | null = null
-  
+
   private playerHp = 5
   private hpText!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
-  private finished = false
   private attackTimer?: Phaser.Time.TimerEvent
 
   constructor() { super('SlimeKingBoss') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.slimes = []
     this.activeSlime = null
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
 
     // Dark Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -78,20 +50,10 @@ export class SlimeKingBoss extends Phaser.Scene {
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '28px', color: '#ff8800'
     }).setOrigin(0.5, 0)
-    
+
     this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Slimes: 0`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 100,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     this.spawnInitialSlime()
 
@@ -109,7 +71,7 @@ export class SlimeKingBoss extends Phaser.Scene {
 
     // Pick a random slime to "attack"
     const attacker = Phaser.Utils.Array.GetRandom(this.slimes)
-    
+
     this.tweens.add({
       targets: [attacker.sprite, attacker.label],
       scaleX: 1.2,
@@ -119,14 +81,14 @@ export class SlimeKingBoss extends Phaser.Scene {
       onComplete: () => {
         if (this.finished) return
         const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
-    }
+        const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+        const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+        if (Math.random() < absorbChance) {
+          const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+          this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+        } else {
+          this.playerHp--
+        }
         this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
         this.cameras.main.shake(300, 0.01)
         if (this.playerHp <= 0) this.endLevel(false)
@@ -140,7 +102,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     const difficulty = Math.ceil(this.level.world / 2) + 2 // Harder words for boss
     const words = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)
     const word = words[0] || 'slimeking'
-    
+
     this.createSlime(word, width / 2, height / 2 - 50, 200)
   }
 
@@ -149,7 +111,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     const label = this.add.text(x, y, word, {
       fontSize: `${Math.max(24, size / 4)}px`, color: '#ffff00', backgroundColor: '#000000', padding: { x: 6, y: 3 }, fontStyle: 'bold'
     }).setOrigin(0.5)
-    
+
     const slime: Slime = { word, x, y, speed: 0, sprite, label, hp: 1, size }
     this.slimes.push(slime)
 
@@ -173,7 +135,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     this.bossHpText.setText(`Slimes: ${this.slimes.length}`)
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
+  protected onWordComplete(word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -189,7 +151,7 @@ export class SlimeKingBoss extends Phaser.Scene {
       const oldY = slime.y
       const oldSize = slime.size
       this.removeSlime(slime)
-      
+
       const pProfileWep = loadProfile(this.profileSlot)
       const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
       const powerBonus = weaponItem?.effect?.power || 0
@@ -227,7 +189,7 @@ export class SlimeKingBoss extends Phaser.Scene {
     return [word.slice(0, mid), word.slice(mid)]
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
   }
 
@@ -238,27 +200,12 @@ export class SlimeKingBoss extends Phaser.Scene {
     this.updateBossHp()
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.attackTimer?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }

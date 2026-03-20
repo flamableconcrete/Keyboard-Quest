@@ -1,15 +1,10 @@
 // src/scenes/boss-types/HydraBoss.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
 import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
 interface Head {
   sprite: Phaser.GameObjects.Rectangle
@@ -17,12 +12,7 @@ interface Head {
   word: string
 }
 
-export class HydraBoss extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-
+export class HydraBoss extends BaseBossScene {
   private phase = 1
   private maxPhases = 3
   private heads: Head[] = []
@@ -41,7 +31,6 @@ export class HydraBoss extends Phaser.Scene {
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private regrowTimer?: Phaser.Time.TimerEvent
-  private finished = false
 
   private headColors = [0x228b22, 0x006400, 0x32cd32] // Different shades of green
 
@@ -50,37 +39,20 @@ export class HydraBoss extends Phaser.Scene {
   }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 5
     this.phase = 1
     this.totalDefeated = 0
-    this.targetDefeated = this.level.wordCount
+    this.targetDefeated = data.level.wordCount
     this.heads = []
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()
     const { width, height } = this.scale
 
     // Dark swampy background
     this.add.rectangle(width / 2, height / 2, width, height, 0x051a05)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-  const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-  this.goldManager = new GoldManager(this)
-  if (petRenderer.getPetSprite()) {
-    const pProfile = loadProfile(this.profileSlot)!;
-    const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-    if (p) {
-      this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-    }
-  }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -126,16 +98,6 @@ export class HydraBoss extends Phaser.Scene {
     const barWidth = 200
     this.add.rectangle(width / 2, height / 2 + 210, barWidth, 10, 0x333333).setOrigin(0.5)
     this.regrowBar = this.add.rectangle(width / 2 - barWidth / 2, height / 2 + 210, barWidth, 10, 0x00ff00).setOrigin(0, 0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 100,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     // Level Timer
     if (this.level.timeLimit) {
@@ -241,7 +203,7 @@ export class HydraBoss extends Phaser.Scene {
     }
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -327,17 +289,13 @@ export class HydraBoss extends Phaser.Scene {
     }
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 100, 0, 0)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
-
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.regrowTimer?.remove()
-    this.engine.destroy()
 
     if (passed) {
       this.bossHpText.setText('HYDRA DEFEATED!')
@@ -347,23 +305,11 @@ export class HydraBoss extends Phaser.Scene {
       })
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
 
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+  update(time: number, delta: number) {
+    super.update(time, delta)
     if (this.regrowTimer && !this.finished) {
       const progress = this.regrowTimer.getProgress()
       const barWidth = 200
