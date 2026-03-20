@@ -79,10 +79,11 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     const floorY = height * 0.62
     this.heroBaseY = floorY
 
-    // preCreate places the avatar (our walking hero), companion, pet, gold, words, engine
-    // Avatar at heroX = width*0.35 so companion/pet render relative to that position
+    // preCreate places the player avatar at left side, companion, pet, gold, words, engine
+    this.preCreate(100, height * 0.6)
+
+    // Hero dodging sprite is separate — placed at 35% width for obstacle interaction
     const heroX = width * 0.35
-    this.preCreate(heroX, this.heroBaseY)
 
     // ── Scrolling background (two tiles for seamless loop) ────────
     this.bgTile1 = this.add.image(width / 2, height / 2, 'dungeon_bg')
