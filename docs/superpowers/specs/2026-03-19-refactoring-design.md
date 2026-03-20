@@ -54,7 +54,27 @@ Create two abstract base classes that consolidate shared lifecycle logic:
 - `onWordComplete()` / `onWrongKey()` — scene-specific response to typing events
 - Any unique state (wave counters, HP, timers, enemy arrays, etc.)
 
+**Phaser lifecycle note:** Phaser calls `init()`, `preload()`, and `create()` by convention. Subclasses must call `super.init(data)` at the top of their own `init()` override. The `preCreate()` helper is NOT called by Phaser directly — it must be explicitly called by each subclass at the top of its `create()` method. This is documented in the base class JSDoc.
+
+**Scenes that deviate from the standard contract:**
+
+- `CharacterCreatorLevel` calls `scene.start('OverlandMap')` directly rather than routing through `LevelResultScene`. It must override `endLevel()` to preserve this behavior. The base `endLevel()` is not suitable for it as-is.
+- Any other scene with atypical teardown should similarly override `endLevel()` and document why.
+
+**`BaseBossScene`** shares the same contract as `BaseLevelScene` (same `init`, `preCreate`, `endLevel`, and Phaser lifecycle notes apply). The only meaningful difference is that boss scenes route through `BossBattleScene` rather than being started directly, and some bosses use `SpellCaster` — the base class should conditionally set it up if `level.spells` is non-empty.
+
 **Expected outcome:** ~50–100 lines removed from each of 26 scenes ≈ 1,500+ lines deleted, replaced by ~200 lines in two base classes.
+
+**Scene migration regression checklist (minimum smoke-test per scene):**
+
+After migrating each scene to use the base class:
+1. Navigate to that level from the overland map
+2. Complete the LevelIntro by typing the level name
+3. Type at least one word successfully — verify it registers in the scene
+4. Let the level end (pass or fail) — verify `LevelResultScene` loads with correct data
+5. Click Continue — verify it returns to `OverlandMapScene`
+
+For `CharacterCreatorLevel` specifically: complete it and verify `OverlandMapScene` loads directly (no LevelResult).
 
 ---
 
@@ -70,13 +90,15 @@ For the 5 most complex scenes, extract game logic into plain TypeScript controll
 
 **Target scenes:**
 
-| Scene | Controller | Logic to Extract |
-|---|---|---|
-| `SkeletonSwarmLevel` (698 lines) | `WaveController` | Wave sequencing, skeleton state machine, separation physics |
-| `OverlandMapScene` (906 lines) | `MapNavigationController` | Node unlocking, world transition logic, pan bounds calculation |
-| `CharacterScene` (622 lines) | `InventoryController` | Equipment equipping, stat calculations, item filtering |
-| `DungeonPlatformerLevel` (533 lines) | `PlatformerController` | Obstacle state, scroll position, collision logic |
-| `CrazedCookLevel` (485 lines) | `KitchenController` | Cook pathfinding, order assignment, patience decay |
+| Scene | Type | Controller | Logic to Extract |
+|---|---|---|---|
+| `SkeletonSwarmLevel` (698 lines) | level-type | `WaveController` | Wave sequencing, skeleton state machine, separation physics |
+| `DungeonPlatformerLevel` (533 lines) | level-type | `PlatformerController` | Obstacle state, scroll position, collision logic |
+| `CrazedCookLevel` (485 lines) | level-type | `KitchenController` | Cook pathfinding, order assignment, patience decay |
+| `OverlandMapScene` (906 lines) | standalone | `MapNavigationController` | Node unlocking, world transition logic, pan bounds calculation |
+| `CharacterScene` (622 lines) | standalone | `InventoryController` | Equipment equipping, stat calculations, item filtering |
+
+The first three scenes are level-types and will also inherit from `BaseLevelScene`. `OverlandMapScene` and `CharacterScene` are standalone Phaser scenes — they receive controller extraction only and do **not** inherit from either base class.
 
 Controllers live in `src/controllers/`.
 
@@ -178,6 +200,7 @@ Each step is independently committable and leaves the game in a working state.
 
 | Risk | Mitigation |
 |---|---|
-| Breaking a scene during base class migration | Migrate and manually test each scene before moving to the next |
+| Breaking a scene during base class migration | Migrate and smoke-test each scene per the regression checklist before moving to the next |
 | Controller boundary misses a Phaser dependency | Start with the most isolated logic; use TypeScript's import checker to enforce no Phaser imports in controllers |
 | Over-engineering controllers for simple scenes | Only 5 scenes get full extraction; remaining 21 just use the base class |
+| Subclass forgets to call `super.preCreate()` | Add a boolean guard in `BaseLevelScene`/`BaseBossScene` that is set by `preCreate()` and checked at the top of `endLevel()` — if not set, throw a descriptive error in development |
