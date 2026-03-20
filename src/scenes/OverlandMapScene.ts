@@ -9,12 +9,14 @@ import { MapRenderer } from '../utils/mapRenderer'
 import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
+import { MapNavigationController } from '../controllers/MapNavigationController'
 
 interface NodePosition { x: number; y: number }
 
 export class OverlandMapScene extends Phaser.Scene {
   private profile!: ProfileData
   private profileSlot!: number
+  private navController!: MapNavigationController
   private avatar!: Phaser.GameObjects.Sprite
   private avatarShadow?: Phaser.GameObjects.Ellipse
   private isGliding = false
@@ -146,6 +148,8 @@ export class OverlandMapScene extends Phaser.Scene {
       this.scene.start('MobileOverlandMap', { profileSlot: this.profileSlot });
       return;
     }
+    const profile = loadProfile(this.profileSlot)!
+    this.navController = new MapNavigationController(profile)
     this.cameras.main.fadeIn(300, 0, 0, 0)
     const { width } = this.scale
 
@@ -286,11 +290,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }
       if (this.isPanning) {
         const vw = this.scale.width
-        this.cameras.main.scrollX = Phaser.Math.Clamp(
-          this.panCamStartX - dx,
-          0,
-          UNIFIED_MAP.totalWidth - vw
-        )
+        const proposedScrollX = this.panCamStartX - dx
+        this.cameras.main.scrollX = -this.navController.clampPan(-proposedScrollX, 0, vw, UNIFIED_MAP.totalWidth).x
       }
     })
 
@@ -336,11 +337,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       }
 
       if (scrollDelta !== 0) {
-        this.cameras.main.scrollX = Phaser.Math.Clamp(
-          this.cameras.main.scrollX + scrollDelta,
-          0,
-          UNIFIED_MAP.totalWidth - vw
-        )
+        const proposedScrollX = this.cameras.main.scrollX + scrollDelta
+        this.cameras.main.scrollX = -this.navController.clampPan(-proposedScrollX, 0, vw, UNIFIED_MAP.totalWidth).x
       }
     }
 
@@ -360,7 +358,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   }
 
   private isUnlocked(levelId: string): boolean {
-    return this.profile.unlockedLevelIds.includes(levelId)
+    return this.navController.isUnlocked(levelId)
   }
 
   private meetsGate(level: LevelConfig): boolean {
