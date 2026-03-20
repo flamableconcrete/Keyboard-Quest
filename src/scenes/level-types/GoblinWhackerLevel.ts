@@ -1,18 +1,10 @@
 // src/scenes/level-types/GoblinWhackerLevel.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
-import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
-import { TypingHands } from '../../components/TypingHands'
-import { SpellCaster } from '../../components/SpellCaster'
+import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 interface Goblin {
   word: string
@@ -23,15 +15,9 @@ interface Goblin {
   hp: number
 }
 
-export class GoblinWhackerLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
+export class GoblinWhackerLevel extends BaseLevelScene {
   private goblins: Goblin[] = []
   private activeGoblin: Goblin | null = null
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
   private playerHp = 3
   private maxGoblinReach = 0  // x position where goblin damages player
   private hpHearts: Phaser.GameObjects.Image[] = []
@@ -41,10 +27,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
   private goblinsDefeated = 0
-  private finished = false
-  private spellCaster?: SpellCaster
   private letterShieldCount = 0
-  private typingHands?: TypingHands
   private gameMode: 'regular' | 'advanced' = 'regular'
   private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
@@ -55,15 +38,11 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   constructor() { super('GoblinWhackerLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)   // handles: level, profileSlot, finished
     this.goblinsDefeated = 0
     this.playerHp = 3
     this.goblins = []
     this.activeGoblin = null
-    this.words = []
-    this.wordQueue = []
     this.timeLeft = 0
     this.letterShieldCount = 0
     this.wrongKeyCount = 0
@@ -74,34 +53,16 @@ export class GoblinWhackerLevel extends Phaser.Scene {
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
+    this.pathY = height * 0.62
     this.maxGoblinReach = 80
+    this.preCreate(80, this.pathY)   // handles avatar, companion, gold, word pool, engine, spells, hands
 
     // Generate pixel art textures
     generateGoblinWhackerTextures(this)
 
     // Background
     this.add.image(width / 2, height / 2, 'forest_bg')
-
-    // Ground path Y — matches hero position, stays above finger hints area
-    this.pathY = height * 0.62
-
-    // Hero sprite
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(80, this.pathY, avatarKey).setScale(1.5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 80, this.pathY, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
 
     // HUD - HP hearts
     this.hpHearts = []
@@ -124,16 +85,6 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
 
-    // Typing engine (centered, lower third)
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 80,
-      fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
     this.input.keyboard?.on('keydown', () => {
       if (this.activeGoblin && this.typingHands) {
         const nextIdx = this.engine.getTypedSoFar().length
@@ -141,45 +92,6 @@ export class GoblinWhackerLevel extends Phaser.Scene {
         if (nextCh) this.typingHands.highlightFinger(nextCh)
       }
     })
-
-    // Spell system
-    const spellProfile = loadProfile(this.profileSlot)
-    if (spellProfile && spellProfile.spells.length > 0) {
-      this.spellCaster = new SpellCaster(this, this.profileSlot, this.engine)
-      this.spellCaster.setEffectCallback((effect) => {
-        if (effect === 'time_freeze') {
-          this.goblins.forEach(g => { g.speed = 0 })
-          this.time.delayedCall(5000, () => {
-            this.goblins.forEach(g => { g.speed = 60 + this.level.world * 10 })
-          })
-        } else if (effect === 'word_blast') {
-          const nearest = this.goblins.reduce<Goblin | null>((min, g) =>
-            !min || g.x < min.x ? g : min, null)
-          if (nearest) { this.removeGoblin(nearest); this.goblinsDefeated++ }
-        } else if (effect === 'second_chance') {
-          this.playerHp = Math.min(this.playerHp + 2, 5)
-          // Show hearts up to new HP
-          this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
-        } else if (effect === 'letter_shield') {
-          this.letterShieldCount = 3
-        }
-      })
-    }
-
-    // Typing hands overlay (player setting)
-    const hintsProfile = loadProfile(this.profileSlot)
-    if (hintsProfile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 100)
-    }
-
-    // Word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    const maxLength = this.level.world === 1 ? 5 : undefined
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, maxLength)
-    // Shuffle the word pool to randomize the order of words
-    const shuffledWords = [...this.words]
-    Phaser.Utils.Array.Shuffle(shuffledWords)
-    this.wordQueue = shuffledWords
 
     this.updateCounterText()
 
@@ -201,6 +113,24 @@ export class GoblinWhackerLevel extends Phaser.Scene {
       delay: 2500, loop: true, callback: this.spawnGoblin, callbackScope: this
     })
     this.spawnGoblin()
+  }
+
+  protected handleSpellEffect(effect: SpellData['effect']) {
+    if (effect === 'time_freeze') {
+      this.goblins.forEach(g => { g.speed = 0 })
+      this.time.delayedCall(5000, () => {
+        this.goblins.forEach(g => { g.speed = 60 + this.level.world * 10 })
+      })
+    } else if (effect === 'word_blast') {
+      const nearest = this.goblins.reduce<Goblin | null>((min, g) =>
+        !min || g.x < min.x ? g : min, null)
+      if (nearest) { this.removeGoblin(nearest); this.goblinsDefeated++ }
+    } else if (effect === 'second_chance') {
+      this.playerHp = Math.min(this.playerHp + 2, 5)
+      this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
+    } else if (effect === 'letter_shield') {
+      this.letterShieldCount = 3
+    }
   }
 
   private spawnGoblin() {
@@ -239,9 +169,8 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     }
   }
 
-  update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
-
+  update(time: number, delta: number) {
+    super.update(time, delta)   // handles goldManager.update
     if (this.finished) return
 
     if (this.gameMode === 'advanced') {
@@ -292,7 +221,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.counterText.setText(`Goblins Defeated: ${this.goblinsDefeated} / ${this.level.wordCount}`)
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
+  protected onWordComplete(word: string, _elapsed: number) {
     const goblin = this.goblins.find(g => g.word === word)
     if (goblin) {
       // Drop gold on kill below the goblin
@@ -332,7 +261,7 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     }
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     if (this.letterShieldCount > 0) {
       this.letterShieldCount--
       return
@@ -383,27 +312,9 @@ export class GoblinWhackerLevel extends Phaser.Scene {
     this.goblins = this.goblins.filter(g => g !== goblin)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.spawnTimer?.remove()
-    this.spellCaster?.destroy()
-    this.typingHands?.fadeOut()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)   // handles guard, finished flag, spellCaster, typingHands, engine, scoring, scene.start
   }
 }
