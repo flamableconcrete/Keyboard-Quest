@@ -5,6 +5,7 @@ import { getItem, getItemColor } from '../data/items'
 import { generateAllItemTextures } from '../art/itemsArt'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
+import { InventoryController } from '../controllers/InventoryController'
 
 const MONO_FONT = 'monospace'
 
@@ -15,6 +16,7 @@ export class CharacterScene extends Phaser.Scene {
 
   private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
   private activeSlotSelection: 'weapon' | 'armor' | 'accessory' | 'trophy' | null = null
+  private inventoryController!: InventoryController
   private avatarConfig!: AvatarConfig
   private avatarPreviewImage!: Phaser.GameObjects.Image
   private avatarDirty = false
@@ -27,6 +29,7 @@ export class CharacterScene extends Phaser.Scene {
   init(data: { profileSlot: number }) {
     this.profileSlot = data.profileSlot
     this.profile = loadProfile(this.profileSlot)!
+    this.inventoryController = new InventoryController(this.profile)
 
     // Initialize avatar config once from profile
     if (this.profile.avatarConfig) {
@@ -429,7 +432,8 @@ export class CharacterScene extends Phaser.Scene {
       }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
       unequipBtn.on('pointerdown', () => {
-        this.profile.equipment[slot] = null
+        this.inventoryController.unequip(slot)
+        this.profile.equipment = { ...this.inventoryController.equipment }
         saveProfile(this.profileSlot, this.profile)
         this.avatarDirty = true
         this.drawActiveTab()
@@ -475,9 +479,9 @@ export class CharacterScene extends Phaser.Scene {
       }).setOrigin(0.5)
     )
 
-    const ownedItems = this.profile.ownedItemIds
+    const ownedItems = this.inventoryController.getItemsBySlot(slot)
       .map((id) => getItem(id))
-      .filter((item): item is ItemData => !!item && item.slot === slot)
+      .filter((item): item is ItemData => !!item)
       .sort((a, b) => {
         if (a.goldCost !== b.goldCost) return a.goldCost - b.goldCost;
         const ap = a.effect.power || a.effect.hp || a.effect.focusBonus || a.effect.goldMultiplier || 0;
@@ -502,7 +506,8 @@ export class CharacterScene extends Phaser.Scene {
       bg.setInteractive({ useHandCursor: true })
       bg.on('pointerdown', () => {
         if (!isEquipped) {
-          this.profile.equipment[slot] = item.id
+          this.inventoryController.equip(slot, item.id)
+          this.profile.equipment = { ...this.inventoryController.equipment }
           saveProfile(this.profileSlot, this.profile)
           this.avatarDirty = true
           this.drawActiveTab()
