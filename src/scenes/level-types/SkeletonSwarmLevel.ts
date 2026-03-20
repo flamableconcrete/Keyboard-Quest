@@ -4,7 +4,7 @@ import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { computeSlotPositions, applySeparationForce } from '../../utils/skeletonSpacing'
+import { WaveController, WaveEvent } from '../../controllers/WaveController'
 
 interface Skeleton {
   word: string
@@ -24,13 +24,12 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private skeletons: Skeleton[] = []
   private activeSkeleton: Skeleton | null = null
   private playerHp = 3
-  private maxSkeletonReach = 265
   private hpHearts: Phaser.GameObjects.Image[] = []
   private waveText!: Phaser.GameObjects.Text
   private skeletonsDefeated = 0
-  private currentWave = 0
   private maxWaves = 3
   private gameMode: 'regular' | 'advanced' = 'regular'
+  private waveController!: WaveController
   private wrongKeyCount = 0
   private nextAttackThreshold = 5
   private letterShieldCount = 0
@@ -40,11 +39,8 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private riseEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
   private boneBurstEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
 
-  // Regular mode constants (mirrors GoblinWhacker)
-  private readonly BATTLE_X = 350
+  // Barrier constant (used for WaveController config and barrier rendering)
   private readonly BARRIER_X = 265
-  private readonly LABEL_PAD = 24
-  private readonly MIN_SPACING = 80
 
   constructor() { super('SkeletonSwarmLevel') }
 
@@ -52,7 +48,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     super.init(data)
     this.skeletonsDefeated = 0
     this.playerHp = 3
-    this.currentWave = 0
     this.maxWaves = data.level.waveCount ?? 3
     this.skeletons = []
     this.activeSkeleton = null
@@ -68,6 +63,16 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     const { width, height } = this.scale
     this.pathY = height * 0.55
     this.preCreate(60, this.pathY)
+
+    this.waveController = new WaveController({
+      words: this.wordQueue,
+      maxWaves: this.maxWaves,
+      worldNumber: this.level.world,
+      barrierX: this.BARRIER_X,
+      canvasWidth: this.scale.width,
+    })
+    // Clear wordQueue — WaveController owns it now
+    this.wordQueue = []
 
     // Generate all textures
     generateSkeletonSwarmTextures(this)
@@ -226,7 +231,8 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
         this.removeSkeleton(target)
         this.skeletonsDefeated++
         this.setActiveSkeleton(this.skeletons[0] ?? null)
-        this.checkWaveOrWin()
+        const waveEvents = this.waveController.markDefeated(target.word)
+        waveEvents.forEach(e => this.handleWaveEvent(e))
       }
     } else if (effect === 'second_chance') {
       this.playerHp = Math.min(this.playerHp + 2, 5)
@@ -237,32 +243,22 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   }
 
   private spawnWave() {
-    if (this.finished || this.wordQueue.length === 0 || this.currentWave >= this.maxWaves) return
-    this.currentWave++
-    this.waveText.setText(`Wave ${this.currentWave} / ${this.maxWaves}`)
-
-    const numSkeletons = Math.min(Phaser.Math.Between(6, 10), this.wordQueue.length)
-    const riserCount = Math.min(Math.ceil(numSkeletons / 2), this.wordQueue.length)
-    const marcherCount = Math.min(numSkeletons - riserCount, this.wordQueue.length - riserCount)
-
-    for (let i = 0; i < riserCount + marcherCount; i++) {
-      this.time.delayedCall(i * 400, () => {
-        if (this.finished || this.wordQueue.length === 0) return
-        const isRiser = i < riserCount
-        this.spawnSkeleton(isRiser)
-      })
-    }
+    if (this.finished) return
+    const events = this.waveController.startWave()
+    this.waveText.setText(`Wave ${this.waveController.currentWave} / ${this.maxWaves}`)
+    events.forEach((e, i) => {
+      if (e.type === 'spawn') {
+        this.time.delayedCall(i * 400, () => {
+          if (!this.finished) this.spawnSkeletonAt(e.word, e.x, e.isRiser)
+        })
+      }
+    })
   }
 
-  private spawnSkeleton(isRiser: boolean) {
-    if (this.wordQueue.length === 0) return
-    const word = this.wordQueue.shift()!
-    const { width } = this.scale
+  private spawnSkeletonAt(word: string, x: number, isRiser: boolean) {
     const finalY = this.pathY
 
-    const startX = isRiser
-      ? Phaser.Math.Between(300, Math.min(800, width - 50))
-      : width + 30
+    const startX = x
     const startY = isRiser ? finalY + 20 : finalY
 
     const aura = this.add.ellipse(startX, startY, 72, 52, 0x006688).setAlpha(0).setDepth(1)
@@ -346,60 +342,24 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.redrawBarrier(time)
     if (this.finished) return
 
-    // Snapshot each skeleton's current X before any movement
     this.skeletons.forEach(s => { s.prevX = s.x })
 
-    if (this.gameMode === 'advanced') {
-      // Move all skeletons
-      this.skeletons.forEach(s => { s.x -= s.speed * (delta / 1000) })
+    const labelWidths = this.skeletons.map(s => s.label.width)
+    const events = this.waveController.tick(delta, this.gameMode, labelWidths)
+    events.forEach(e => this.handleWaveEvent(e))
 
-      // Separation force: push overlapping skeletons apart (one pass, sorted by x)
-      const positions = this.skeletons.map(s => s.x)
-      const labelWidths = this.skeletons.map(s => s.label.width)
-      const separated = applySeparationForce(
-        positions,
-        labelWidths,
-        this.LABEL_PAD,
-        this.BARRIER_X + 20,
-        this.scale.width - 60,
-      )
-      this.skeletons.forEach((s, i) => { s.x = separated[i] })
+    // Sync sprite positions from controller state
+    this.waveController.activeSkeletons.forEach(state => {
+      const skeleton = this.skeletons.find(s => s.word === state.word)
+      if (skeleton) {
+        skeleton.x = state.x
+        skeleton.sprite.setX(skeleton.x)
+        skeleton.label.setX(skeleton.x)
+        skeleton.aura.setX(skeleton.x)
+      }
+    })
 
-      // Apply positions and collect damage events
-      const reached: Skeleton[] = []
-      this.skeletons.forEach(s => {
-        s.sprite.setX(s.x)
-        s.label.setX(s.x)
-        s.aura.setX(s.x)
-        if (s.x <= this.maxSkeletonReach) reached.push(s)
-      })
-      reached.forEach(s => { if (s.sprite.active) this.skeletonReachedPlayer(s) })
-    } else {
-      // Regular mode: label-aware dynamic slot positions
-      const labelWidths = this.skeletons.map(s => s.label.width)
-      const targetXs = computeSlotPositions(
-        labelWidths,
-        this.BATTLE_X,
-        this.LABEL_PAD,
-        this.MIN_SPACING,
-        this.scale.width - 60,
-      )
-      this.skeletons.forEach((s, i) => {
-        const targetX = targetXs[i]
-        if (s.x > targetX) {
-          s.x -= s.speed * (delta / 1000)
-          if (s.x < targetX) s.x = targetX
-        } else if (s.x < targetX) {
-          s.x += s.speed * (delta / 1000)
-          if (s.x > targetX) s.x = targetX
-        }
-        s.sprite.setX(s.x)
-        s.label.setX(s.x)
-        s.aura.setX(s.x)
-      })
-    }
-
-    // Animation state tracking: switch between walk/idle based on whether skeleton moved
+    // Animation state
     this.skeletons.forEach(s => {
       if (s.isRiser) return
       const dx = s.x - s.prevX
@@ -408,9 +368,22 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
         s.isMoving = moved
         s.sprite.play(moved ? 'ss_walk_anim' : 'ss_idle_anim')
       }
-      // Flip sprite when walking right (retreating); reset to face left when idle or walking left
       s.sprite.setFlipX(moved && dx > 0)
     })
+  }
+
+  private handleWaveEvent(e: WaveEvent) {
+    if (this.finished) return
+    if (e.type === 'skeleton_reached') {
+      const skeleton = this.skeletons.find(s => s.word === e.word)
+      if (skeleton) this.skeletonReachedPlayer(skeleton)
+    }
+    if (e.type === 'wave_complete') {
+      this.showWaveBanner(e.waveNumber)
+    }
+    if (e.type === 'game_complete') {
+      this.endLevel(true)
+    }
   }
 
   private skeletonReachedPlayer(skeleton: Skeleton) {
@@ -433,7 +406,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
-    if (!this.finished) this.checkWaveOrWin()
   }
 
   private redrawBarrier(time: number) {
@@ -521,6 +493,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       if (Math.random() < cleaveChance) {
         const nextEnemy = this.skeletons[0]
         if (nextEnemy) {
+          this.waveController.markDefeated(nextEnemy.word)
           this.removeSkeleton(nextEnemy)
           this.skeletonsDefeated++
           const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', {
@@ -533,7 +506,8 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
 
     const next = this.skeletons[0] ?? null
     this.setActiveSkeleton(next)
-    this.checkWaveOrWin()
+    const waveEvents = this.waveController.markDefeated(word)
+    waveEvents.forEach(e => this.handleWaveEvent(e))
   }
 
   protected onWrongKey() {
@@ -576,15 +550,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     skeleton.label.destroy()
     this.skeletons = this.skeletons.filter(s => s !== skeleton)
     if (this.activeSkeleton === skeleton) this.activeSkeleton = null
-  }
-
-  private checkWaveOrWin() {
-    if (this.finished || this.skeletons.length > 0) return
-    if (this.currentWave < this.maxWaves) {
-      this.showWaveBanner(this.currentWave + 1)
-    } else {
-      this.endLevel(true)
-    }
   }
 
   private showWaveBanner(waveNumber: number) {
