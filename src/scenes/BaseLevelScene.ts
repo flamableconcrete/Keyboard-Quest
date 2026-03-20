@@ -43,7 +43,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   private _preCreateCalled = false
 
   // Override in BaseBossScene to use a longer delay
-  protected readonly endDelayMs = LEVEL_END_DELAY_MS
+  protected readonly endDelayMs: number = LEVEL_END_DELAY_MS
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     this.level = data.level
