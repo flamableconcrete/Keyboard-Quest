@@ -1,26 +1,13 @@
 // src/scenes/boss-types/MiniBossTypical.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { TypingEngine } from '../../components/TypingEngine'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { TypingHands } from '../../components/TypingHands'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseBossScene } from '../BaseBossScene'
 
-export class MiniBossTypical extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
+export class MiniBossTypical extends BaseBossScene {
   private bossSprite!: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
   private bossHp = 0
@@ -32,54 +19,29 @@ export class MiniBossTypical extends Phaser.Scene {
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
-  private finished = false
   private weaknessActive = false
   private gameMode: 'regular' | 'advanced' = 'regular'
   private wrongKeyCount = 0
   private nextAttackThreshold = 0
-  private typingHands?: TypingHands
 
   constructor() { super('MiniBossTypical') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)   // handles level, profileSlot, finished
     this.playerHp = 3
-    this.words = []
-    this.wordQueue = []
     this.wrongKeyCount = 0
-    this.nextAttackThreshold = 0
+    this.nextAttackThreshold = Phaser.Math.Between(2, 5)
     const profile = loadProfile(data.profileSlot)
     this.weaknessActive = profile?.bossWeaknessKnown === (data.level.bossId ?? '')
     this.gameMode = profile?.gameMode ?? 'regular'
-    this.wrongKeyCount = 0
-    this.nextAttackThreshold = Phaser.Math.Between(2, 5)
   }
 
   create() {
-    setupPause(this, this.profileSlot)
+    this.preCreate()   // no args — uses boss defaults (width*0.25, height/2-50, scale 2.5, etc.)
     const { width, height } = this.scale
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e2a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-
-    // Prominent Avatar on the left
-    this.add.image(width * 0.25, height / 2 - 50, avatarKey).setScale(2.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, width * 0.25, height / 2 - 50, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
 
     // HUD
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
@@ -94,15 +56,7 @@ export class MiniBossTypical extends Phaser.Scene {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
 
-    // Word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-
-    // Shuffle words
-    const shuffledWords = [...this.words]
-    Phaser.Utils.Array.Shuffle(shuffledWords)
-    this.wordQueue = shuffledWords
-
+    // Apply weakness reduction to word queue
     const rawHp = this.wordQueue.length
     this.bossMaxHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
     this.bossHp = this.bossMaxHp
@@ -132,22 +86,6 @@ export class MiniBossTypical extends Phaser.Scene {
     this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 160,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    // Typing hands overlay (player setting)
-    const p = loadProfile(this.profileSlot)
-    if (p?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 50)
-    }
 
     this.input.keyboard?.on('keydown', () => {
       if (this.wordQueue.length > 0 && this.typingHands) {
@@ -198,10 +136,9 @@ export class MiniBossTypical extends Phaser.Scene {
 
   private bossAttack() {
     if (this.finished) return
-    
+
     // Simple visual attack cue
-    // Assuming original baseScale for boss is 4 as we set earlier
-    const baseScale = this.bossSprite.scaleX; // getting scaleX to be safe if it's ogre (4) or rect (1)
+    const baseScale = this.bossSprite.scaleX;
 
     this.tweens.add({
       targets: this.bossSprite,
@@ -226,7 +163,7 @@ export class MiniBossTypical extends Phaser.Scene {
     })
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -267,7 +204,7 @@ export class MiniBossTypical extends Phaser.Scene {
     this.loadNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
 
     if (this.gameMode === 'regular' && !this.finished) {
@@ -280,31 +217,17 @@ export class MiniBossTypical extends Phaser.Scene {
     }
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
     this.attackTimer?.remove()
-    this.typingHands?.fadeOut()
-    this.engine.destroy()
-
     if (passed) {
       this.bossSprite.destroy()
       this.bossHpText.setText('DEFEATED!')
     }
+    super.endLevel(passed)
+  }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(1000, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+  update(time: number, delta: number) {
+    super.update(time, delta)
   }
 }
