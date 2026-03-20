@@ -5,6 +5,7 @@ import { generateCrazedCookTextures } from '../../art/crazedCookArt'
 import { COOK_STATIONS } from '../../data/cookStations'
 import { calcMoveDuration, pickNextStationIndex } from '../../utils/cookMovement'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { KitchenController, KitchenEvent } from '../../controllers/KitchenController'
 
 interface Ingredient {
   word: string
@@ -24,9 +25,9 @@ interface OrcOrder {
   patienceBarBg: Phaser.GameObjects.Rectangle
   ingredients: Ingredient[]
   currentIngredientIndex: number
-  patience: number
-  patienceRate: number
+  patience: number      // visual only — synced from KitchenController each frame
   seat: number
+  seatId: string        // key used in KitchenController
 }
 
 const SEAT_X = [250, 510, 770, 1030]
@@ -45,22 +46,19 @@ export class CrazedCookLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
   private ordersText!: Phaser.GameObjects.Text
   private timeLeft = 0
-  private ordersFilled = 0
-  private walkoffs = 0
   private wordPool: string[] = []
   private wordIndex = 0
   private orders: OrcOrder[] = []
   private activeOrder: OrcOrder | null = null
   private orderQuota = 8
   private maxWalkoffs = 3
+  private kitchenController!: KitchenController
 
   constructor() { super('CrazedCookLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
     this.timeLeft = 0
-    this.ordersFilled = 0
-    this.walkoffs = 0
     this.wordPool = []
     this.wordIndex = 0
     this.orders = []
@@ -75,6 +73,12 @@ export class CrazedCookLevel extends BaseLevelScene {
     generateCrazedCookTextures(this)
 
     this.preCreate(80, height - 120)
+
+    this.kitchenController = new KitchenController({
+      orderQuota: this.orderQuota,
+      maxWalkoffs: this.maxWalkoffs,
+      worldNumber: this.level.world,
+    })
 
     // Background
     this.add.image(width / 2, height / 2, 'kitchen_bg')
@@ -142,10 +146,16 @@ export class CrazedCookLevel extends BaseLevelScene {
     super.update(_time, delta)
     if (this.finished) return
 
-    // Work on a copy to safely remove during iteration
+    const kitchenEvents = this.kitchenController.tick(delta)
+    kitchenEvents.forEach(e => this.handleKitchenEvent(e))
+
+    // Sync patience visuals from controller state and handle visual updates
     const ordersSnapshot = [...this.orders]
     for (const order of ordersSnapshot) {
-      order.patience -= order.patienceRate * (delta / 16.67)
+      const ctrlOrder = this.kitchenController.activeOrders.find(o => o.seatId === order.seatId)
+      if (ctrlOrder) {
+        order.patience = ctrlOrder.patience
+      }
 
       // Update patience bar width (clamped 0–100)
       const barWidth = Math.max(0, order.patience * 100)
@@ -161,10 +171,18 @@ export class CrazedCookLevel extends BaseLevelScene {
       } else if (order.patience >= 0.33) {
         order.orcSprite.clearTint()
       }
+    }
+  }
 
-      if (order.patience <= 0) {
-        this.handleAttack(order)
-      }
+  private handleKitchenEvent(e: KitchenEvent) {
+    if (this.finished) return
+    if (e.type === 'quota_reached') {
+      this.endLevel(true)
+    } else if (e.type === 'game_over') {
+      this.endLevel(false)
+    } else if (e.type === 'walkoff') {
+      const order = this.orders.find(o => o.seatId === e.seatId)
+      if (order) this.handleAttackVisuals(order)
     }
   }
 
@@ -215,8 +233,9 @@ export class CrazedCookLevel extends BaseLevelScene {
       this.add.rectangle(ticketX, 435 + i * 24 + 10, line.width + 4, 2, 0x1a0a00).setOrigin(0.5).setAlpha(0)
     )
 
-    const patienceDuration = 70 - ingredientCount * 10
-    const patienceRate = 1 / (patienceDuration * 60)
+    const seatId = `seat_${seat}`
+    const ingredientWords = ingredients.map(ing => ing.word)
+    this.kitchenController.addOrder(seatId, ingredientWords)
 
     const order: OrcOrder = {
       orcSprite,
@@ -226,8 +245,8 @@ export class CrazedCookLevel extends BaseLevelScene {
       ingredients,
       currentIngredientIndex: 0,
       patience: 1.0,
-      patienceRate,
       seat,
+      seatId,
     }
     this.orders.push(order)
 
@@ -312,10 +331,15 @@ export class CrazedCookLevel extends BaseLevelScene {
     order.ticket.lines[order.currentIngredientIndex].setColor('#44ff44')
     order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(0)
 
-    // More ingredients?
+    // Advance ingredient index in scene (for visual tracking)
     order.currentIngredientIndex++
     const nextIng = order.ingredients[order.currentIngredientIndex]
-    if (nextIng) {
+
+    // Notify controller — it returns events if the order is complete
+    const kitchenEvents = this.kitchenController.completeIngredient(order.seatId, ing.word)
+
+    if (nextIng && kitchenEvents.length === 0) {
+      // More ingredients remain
       this.engine.setWord(nextIng.word)
       order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
       order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(1)
@@ -323,8 +347,13 @@ export class CrazedCookLevel extends BaseLevelScene {
       return
     }
 
-    // All done — serve the orc
-    this.serveOrc(order)
+    // Handle controller events (order_complete, quota_reached)
+    kitchenEvents.forEach(e => this.handleKitchenEvent(e))
+
+    // Serve the orc visually (if not already ending level)
+    if (!this.finished) {
+      this.serveOrc(order)
+    }
   }
 
   private serveOrc(order: OrcOrder) {
@@ -345,14 +374,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     order.patienceBarBg.destroy()
     this.orders = this.orders.filter(o => o !== order)
 
-    this.ordersFilled++
     this.updateOrdersText()
-
-    // Win check
-    if (this.ordersFilled >= this.orderQuota) {
-      this.endLevel(true)
-      return
-    }
 
     // Shift focus to lowest remaining seat
     this.activeOrder = null
@@ -373,7 +395,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     })
   }
 
-  private handleAttack(order: OrcOrder) {
+  private handleAttackVisuals(order: OrcOrder) {
     // Remove from orders immediately to prevent re-entry from update loop
     this.orders = this.orders.filter(o => o !== order)
     const wasActive = order === this.activeOrder
@@ -410,13 +432,6 @@ export class CrazedCookLevel extends BaseLevelScene {
       onComplete: () => {
         order.orcSprite.destroy()
 
-        this.walkoffs++
-
-        if (this.walkoffs >= this.maxWalkoffs) {
-          this.endLevel(false)
-          return
-        }
-
         const seat = order.seat
         this.time.delayedCall(1500, () => {
           if (!this.finished && !this.orders.find(o => o.seat === seat)) {
@@ -428,7 +443,7 @@ export class CrazedCookLevel extends BaseLevelScene {
   }
 
   private updateOrdersText() {
-    this.ordersText.setText(`Orders: ${this.ordersFilled}/${this.orderQuota}`)
+    this.ordersText.setText(`Orders: ${this.kitchenController.ordersFilled}/${this.orderQuota}`)
   }
 
   protected onWrongKey() {
