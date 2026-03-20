@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { PlatformerController } from '../../controllers/PlatformerController'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -18,7 +19,7 @@ interface Obstacle {
 
 export class DungeonPlatformerLevel extends BaseLevelScene {
   // Word state
-  private wordsCompleted = 0
+  private platformerController!: PlatformerController
 
   // Hero
   private hero!: Phaser.GameObjects.Image
@@ -58,7 +59,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.wordsCompleted = 0
     this.playerHp = 3
     this.heartIcons = []
     this.dustParticles = []
@@ -81,6 +81,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
     // preCreate places the player avatar at left side, companion, pet, gold, words, engine
     this.preCreate(100, height * 0.6)
+    this.platformerController = new PlatformerController(this.wordQueue)
 
     // Hero dodging sprite is separate — placed at 35% width for obstacle interaction
     const heroX = width * 0.35
@@ -239,7 +240,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   }
 
   private updateCounterText() {
-    this.counterText.setText(`Obstacles: ${this.wordsCompleted} / ${this.words.length}`)
+    this.counterText.setText(`Obstacles: ${this.platformerController.wordsCompleted} / ${this.words.length}`)
   }
 
   // ── Dust ─────────────────────────────────────────────────────────
@@ -261,14 +262,15 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   // ── Obstacle Spawning ────────────────────────────────────────────
   private spawnNextObstacle() {
-    if (this.finished || this.wordQueue.length === 0) {
-      if (this.wordQueue.length === 0 && !this.currentObstacle) {
+    if (this.finished || !this.platformerController.hasNextWord) {
+      if (!this.platformerController.hasNextWord && !this.currentObstacle) {
         this.endLevel(true)
       }
       return
     }
 
-    const word = this.wordQueue.shift()!
+    const word = this.platformerController.nextWord()
+    if (!word) return  // queue exhausted
     const { width } = this.scale
     const type = this.obstacleTypes[Phaser.Math.Between(0, this.obstacleTypes.length - 1)]
 
@@ -339,8 +341,13 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     if (!this.currentObstacle) return
     const obs = this.currentObstacle
     this.currentObstacle = null  // clear immediately so keydown handler doesn't flash old letter
-    this.wordsCompleted++
+    const events = this.platformerController.completeWord()
     this.updateCounterText()
+    for (const e of events) {
+      if (e.type === 'all_complete') {
+        // Will be handled after clear animation completes via spawnNextObstacle
+      }
+    }
 
     this.playClearAnimation(obs, () => {
       obs.sprite.destroy()
@@ -415,7 +422,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
       obs.sprite.destroy()
       obs.label.destroy()
       this.currentObstacle = null
-      this.wordsCompleted++
+      this.platformerController.completeWord()
       this.updateCounterText()
 
       if (this.playerHp <= 0) {
