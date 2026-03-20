@@ -1,93 +1,46 @@
 // src/scenes/level-types/MagicRuneTypingLevel.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
-import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseLevelScene } from '../BaseLevelScene'
 
-export class MagicRuneTypingLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
-  private wordQueue: string[] = []
-  private engine!: TypingEngine
+export class MagicRuneTypingLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
-  private finished = false
-  
+
   private runeContainer!: Phaser.GameObjects.Container
 
   constructor() { super('MagicRuneTypingLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
+
+    this.preCreate(80, height * 0.6)
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a3a)
-    
+
     // Draw magic circle background
     const graphics = this.add.graphics()
     graphics.lineStyle(2, 0x00ffff, 0.5)
     graphics.strokeCircle(width / 2, height / 2, 200)
     graphics.strokeCircle(width / 2, height / 2, 220)
 
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
-
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
-    
+
     // Timer
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
     }).setOrigin(1, 0)
-    
+
     this.runeContainer = this.add.container(width / 2, height / 2)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height / 2,
-      fontSize: 56,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    // Word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
 
     if (this.level.timeLimit) {
       this.timeLeft = this.level.timeLimit
@@ -112,7 +65,7 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
     }
     const word = this.wordQueue.shift()!
     this.engine.setWord(word)
-    
+
     // Pulse effect
     this.tweens.add({
       targets: this.runeContainer,
@@ -123,12 +76,11 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
     })
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
-    // Drop gold on kill
+  protected onWordComplete(_word: string, _elapsed: number) {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, 5);
     }
 
     // Magic rune flash
@@ -136,34 +88,18 @@ export class MagicRuneTypingLevel extends Phaser.Scene {
     this.showNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
   }
 
   update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+    super.update(_time, delta)
     // Rotate magic circle slightly
     this.runeContainer.rotation += 0.005
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
 }

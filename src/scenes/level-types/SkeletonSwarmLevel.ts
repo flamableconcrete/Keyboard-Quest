@@ -1,17 +1,9 @@
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
-import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
-import { TypingHands } from '../../components/TypingHands'
-import { SpellCaster } from '../../components/SpellCaster'
+import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
-import { GoldManager } from '../../utils/goldSystem'
+import { BaseLevelScene } from '../BaseLevelScene'
 import { computeSlotPositions, applySeparationForce } from '../../utils/skeletonSpacing'
 
 interface Skeleton {
@@ -28,29 +20,20 @@ interface Skeleton {
   prevX: number        // x at start of last frame, used for animation state detection
 }
 
-export class SkeletonSwarmLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
+export class SkeletonSwarmLevel extends BaseLevelScene {
   private skeletons: Skeleton[] = []
   private activeSkeleton: Skeleton | null = null
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
   private playerHp = 3
   private maxSkeletonReach = 265
   private hpHearts: Phaser.GameObjects.Image[] = []
   private waveText!: Phaser.GameObjects.Text
   private skeletonsDefeated = 0
-  private finished = false
   private currentWave = 0
   private maxWaves = 3
   private gameMode: 'regular' | 'advanced' = 'regular'
   private wrongKeyCount = 0
   private nextAttackThreshold = 5
   private letterShieldCount = 0
-  private spellCaster?: SpellCaster
-  private typingHands?: TypingHands
   private barrierLine!: Phaser.GameObjects.Graphics
   private barrierColor = 0x0099ff
   private pathY = 0
@@ -66,17 +49,13 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   constructor() { super('SkeletonSwarmLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.skeletonsDefeated = 0
     this.playerHp = 3
     this.currentWave = 0
-    this.maxWaves = this.level.waveCount ?? 3
+    this.maxWaves = data.level.waveCount ?? 3
     this.skeletons = []
     this.activeSkeleton = null
-    this.words = []
-    this.wordQueue = []
     this.wrongKeyCount = 0
     this.nextAttackThreshold = Phaser.Math.Between(5, 8)
     this.letterShieldCount = 0
@@ -86,9 +65,9 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.pathY = height * 0.55
+    this.preCreate(60, this.pathY)
 
     // Generate all textures
     generateSkeletonSwarmTextures(this)
@@ -205,30 +184,12 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       ease: 'Sine.InOut',
     })
 
-    // Player avatar
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(60, this.pathY, avatarKey).setScale(1.5)
-
-    // Companion / pet
-    const petRenderer = new CompanionAndPetRenderer(this, 60, this.pathY, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId)
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
     // HUD
     this.hpHearts = []
     for (let i = 0; i < this.playerHp; i++) {
       const heart = this.add.image(30 + i * 24, 28, 'heart').setScale(1.5).setDepth(10)
       this.hpHearts.push(heart)
     }
-
 
     this.waveText = this.add.text(width - 20, 20, `Wave 1 / ${this.maxWaves}`, {
       fontSize: '22px', color: '#ffffff'
@@ -237,16 +198,6 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0).setDepth(10)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 80,
-      fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
 
     // Keyboard → typing hands passthrough
     this.input.keyboard?.on('keydown', () => {
@@ -257,51 +208,32 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       }
     })
 
-    // Spell system
-    const spellProfile = loadProfile(this.profileSlot)
-    if (spellProfile && spellProfile.spells.length > 0) {
-      this.spellCaster = new SpellCaster(this, this.profileSlot, this.engine)
-      this.spellCaster.setEffectCallback((effect) => {
-        if (effect === 'time_freeze') {
-          const frozenSpeed = this.skeletons.map(s => s.speed)
-          this.skeletons.forEach(s => { s.speed = 0 })
-          this.time.delayedCall(5000, () => {
-            this.skeletons.forEach((s, i) => { s.speed = frozenSpeed[i] ?? (60 + this.level.world * 10) })
-          })
-        } else if (effect === 'word_blast') {
-          // Target the active skeleton (the one the player is currently typing), falling back to nearest
-          const target = this.activeSkeleton ?? this.skeletons[0] ?? null
-          if (target) {
-            this.removeSkeleton(target)
-            this.skeletonsDefeated++
-            this.setActiveSkeleton(this.skeletons[0] ?? null)
-            this.checkWaveOrWin()
-          }
-        } else if (effect === 'second_chance') {
-          this.playerHp = Math.min(this.playerHp + 2, 5)
-          this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
-        } else if (effect === 'letter_shield') {
-          this.letterShieldCount = 3
-        }
-      })
-    }
-
-    // Typing hands (profile setting)
-    const hintsProfile = loadProfile(this.profileSlot)
-    if (hintsProfile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 100)
-    }
-
-    // Word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    const maxLength = this.level.world === 1 ? 5 : undefined
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, maxLength)
-    const shuffled = [...this.words]
-    Phaser.Utils.Array.Shuffle(shuffled)
-    this.wordQueue = shuffled
-
     // Start wave loop
     this.spawnWave()
+  }
+
+  protected handleSpellEffect(effect: SpellData['effect']) {
+    if (effect === 'time_freeze') {
+      const frozenSpeed = this.skeletons.map(s => s.speed)
+      this.skeletons.forEach(s => { s.speed = 0 })
+      this.time.delayedCall(5000, () => {
+        this.skeletons.forEach((s, i) => { s.speed = frozenSpeed[i] ?? (60 + this.level.world * 10) })
+      })
+    } else if (effect === 'word_blast') {
+      // Target the active skeleton (the one the player is currently typing), falling back to nearest
+      const target = this.activeSkeleton ?? this.skeletons[0] ?? null
+      if (target) {
+        this.removeSkeleton(target)
+        this.skeletonsDefeated++
+        this.setActiveSkeleton(this.skeletons[0] ?? null)
+        this.checkWaveOrWin()
+      }
+    } else if (effect === 'second_chance') {
+      this.playerHp = Math.min(this.playerHp + 2, 5)
+      this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
+    } else if (effect === 'letter_shield') {
+      this.letterShieldCount = 3
+    }
   }
 
   private spawnWave() {
@@ -354,8 +286,8 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
       aura,
       auraTween: null,
       isRiser,
-      isMoving: false,   // NEW
-      prevX: startX,     // NEW
+      isMoving: false,
+      prevX: startX,
     }
     this.skeletons.push(skeleton)
 
@@ -410,7 +342,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
-    this.goldManager?.update(delta)
+    super.update(time, delta)
     this.redrawBarrier(time)
     if (this.finished) return
 
@@ -571,7 +503,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.time.delayedCall(300, () => { this.barrierColor = 0x0099ff })
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
+  protected onWordComplete(word: string, _elapsed: number) {
     const skeleton = this.skeletons.find(s => s.word === word)
     if (skeleton) {
       if (this.goldManager) {
@@ -604,7 +536,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     this.checkWaveOrWin()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     if (this.letterShieldCount > 0) {
       this.letterShieldCount--
       return
@@ -674,25 +606,7 @@ export class SkeletonSwarmLevel extends Phaser.Scene {
     })
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
-    this.spellCaster?.destroy()
-    this.typingHands?.fadeOut()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed,
-      })
-    })
+  protected endLevel(passed: boolean) {
+    super.endLevel(passed)
   }
 }

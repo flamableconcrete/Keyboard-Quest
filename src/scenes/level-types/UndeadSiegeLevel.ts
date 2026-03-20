@@ -1,14 +1,8 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
-import { GoldManager } from '../../utils/goldSystem'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 interface Undead {
   word: string
@@ -19,61 +13,35 @@ interface Undead {
   hp: number
 }
 
-export class UndeadSiegeLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
+export class UndeadSiegeLevel extends BaseLevelScene {
   private undeads: Undead[] = []
   private activeUndead: Undead | null = null
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
   private castleHp = 5
   private maxUndeadReach = 100
   private castleHpText!: Phaser.GameObjects.Text
   private waveText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
   private undeadsDefeated = 0
-  private finished = false
   private currentWave = 1
   private maxWaves = 3
 
   constructor() { super('UndeadSiegeLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.undeadsDefeated = 0
     this.castleHp = 5
     this.currentWave = 1
     this.undeads = []
     this.activeUndead = null
-    this.words = []
-    this.wordQueue = []
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
+    this.preCreate(80, height * 0.65)
+
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a3a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
 
     // Castle
     this.add.rectangle(50, height / 2, 100, height - 200, 0x555555)
@@ -81,16 +49,6 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     this.castleHpText = this.add.text(20, 20, `Castle HP: ${'🛡️'.repeat(this.castleHp)}`, { fontSize: '22px', color: '#88aaff' })
     this.waveText = this.add.text(width - 20, 20, `Wave: 1/${this.maxWaves}`, { fontSize: '22px', color: '#ffffff' }).setOrigin(1, 0)
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
-
-    this.engine = new TypingEngine({
-      scene: this, x: width / 2, y: height - 80, fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
 
     this.spawnTimer = this.time.addEvent({
       delay: 2000, loop: true, callback: this.spawnUndead, callbackScope: this
@@ -112,7 +70,7 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     const label = this.add.text(width + 30, y - 30, word, {
       fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
-    
+
     const undead: Undead = { word, x: width + 30, speed: 40 + this.level.world * 10, sprite, label, hp: 1 }
     this.undeads.push(undead)
 
@@ -132,7 +90,7 @@ export class UndeadSiegeLevel extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+    super.update(_time, delta)
     if (this.finished) return
     this.undeads.forEach(u => {
       u.x -= u.speed * (delta / 1000)
@@ -150,12 +108,11 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     if (this.castleHp <= 0) this.endLevel(false)
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
-    // Drop gold on kill
+  protected onWordComplete(word: string, _elapsed: number) {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, 5);
     }
 
     const undead = this.undeads.find(u => u.word === word)
@@ -183,7 +140,7 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     }
   }
 
-  private onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
+  protected onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
 
   private removeUndead(undead: Undead) {
     undead.sprite.destroy()
@@ -191,21 +148,8 @@ export class UndeadSiegeLevel extends Phaser.Scene {
     this.undeads = this.undeads.filter(u => u !== undead)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.spawnTimer?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level, profileSlot: this.profileSlot,
-        accuracyStars: acc, speedStars: spd, passed
-      })
-    })
+    super.endLevel(passed)
   }
 }

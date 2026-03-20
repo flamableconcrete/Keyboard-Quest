@@ -1,88 +1,42 @@
 // src/scenes/level-types/PotionBrewingLabLevel.ts
-import { GoldManager } from '../../utils/goldSystem'
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
-import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
+import { BaseLevelScene } from '../BaseLevelScene'
 
-export class PotionBrewingLabLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
-  private wordQueue: string[] = []
-  private engine!: TypingEngine
+export class PotionBrewingLabLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
   private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
-  private finished = false
-  
+
   private recipeTexts: Phaser.GameObjects.Text[] = []
 
   constructor() { super('PotionBrewingLabLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
+
+    this.preCreate(80, height * 0.65)
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x2e1a3a)
-
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
 
     // Level name
     this.add.text(width / 2, 20, this.level.name, {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
-    
+
     // Timer
     this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '22px', color: '#ffffff'
     }).setOrigin(1, 0)
 
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2 + 100,
-      y: height / 2,
-      fontSize: 48,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    // Word pool (5-10 words for recipe)
-    const difficulty = Math.ceil(this.level.world / 2)
-    const count = Math.min(10, Math.max(5, this.level.wordCount))
-    this.words = getWordPool(this.level.unlockedLetters, count, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
-
-    // Draw recipe list on left
+    // Override engine position — potion brewing uses a center-stage engine
+    // Note: preCreate places the engine at the default bottom; we use wordQueue from preCreate
+    // but show the recipe list using words
     this.add.text(50, 80, "Potion Recipe:", { fontSize: '28px', color: '#ffaaaa' })
     this.recipeTexts = this.words.map((w, i) => {
       return this.add.text(50, 130 + i * 40, w, {
@@ -112,7 +66,7 @@ export class PotionBrewingLabLevel extends Phaser.Scene {
       return
     }
     const currentIdx = this.words.length - this.wordQueue.length
-    
+
     // Update recipe highlighting
     this.recipeTexts.forEach((t, i) => {
       if (i < currentIdx) t.setColor('#44ff44').setAlpha(0.5) // done
@@ -124,12 +78,11 @@ export class PotionBrewingLabLevel extends Phaser.Scene {
     this.engine.setWord(word)
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
-    // Drop gold on kill
+  protected onWordComplete(_word: string, _elapsed: number) {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, 5);
     }
 
     // Add satisfying potion pop effect
@@ -137,35 +90,17 @@ export class PotionBrewingLabLevel extends Phaser.Scene {
     this.showNextWord()
   }
 
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
-    // Wrong order / wrong key plays error sound (simulated with red flash/shake here)
     this.cameras.main.shake(100, 0.01)
   }
 
   update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
-    // No continuous updates needed
+    super.update(_time, delta)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
 }

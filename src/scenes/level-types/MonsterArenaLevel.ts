@@ -1,14 +1,8 @@
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
-import { GoldManager } from '../../utils/goldSystem'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 interface Monster {
   word: string
@@ -20,72 +14,34 @@ interface Monster {
   maxHp: number
 }
 
-export class MonsterArenaLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
+export class MonsterArenaLevel extends BaseLevelScene {
   private monsters: Monster[] = []
   private activeMonster: Monster | null = null
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
   private playerHp = 3
   private maxMonsterReach = 0
   private hpText!: Phaser.GameObjects.Text
   private monsterHpText!: Phaser.GameObjects.Text
-  private finished = false
 
   constructor() { super('MonsterArenaLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 3
     this.monsters = []
     this.activeMonster = null
-    this.words = []
-    this.wordQueue = []
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxMonsterReach = 80
 
+    this.preCreate(width * 0.2, height / 2)
+
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e1e)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
 
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
     this.monsterHpText = this.add.text(width - 20, 20, '', { fontSize: '22px', color: '#ffffff' }).setOrigin(1, 0)
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
-
-    this.engine = new TypingEngine({
-      scene: this, x: width / 2, y: height - 80, fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    const shuffledWords = [...this.words]
-    Phaser.Utils.Array.Shuffle(shuffledWords)
-    this.wordQueue = shuffledWords
 
     this.spawnMonster()
   }
@@ -102,10 +58,10 @@ export class MonsterArenaLevel extends Phaser.Scene {
     const label = this.add.text(width + 100, y - 60, word, {
       fontSize: '24px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
-    
+
     // Multi-word HP bar logic
     const monsterHp = Math.min(5, this.words.length) // up to 5 words to kill
-    
+
     const monster: Monster = { word, x: width + 100, speed: 20 + this.level.world * 5, sprite, label, hp: monsterHp, maxHp: monsterHp }
     this.monsters.push(monster)
     this.updateMonsterHpText(monster)
@@ -124,7 +80,7 @@ export class MonsterArenaLevel extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+    super.update(_time, delta)
     if (this.finished) return
     this.monsters.forEach(m => {
       m.x -= m.speed * (delta / 1000)
@@ -151,12 +107,11 @@ export class MonsterArenaLevel extends Phaser.Scene {
     else this.spawnMonster() // Spawn next if player survived
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
-    // Drop gold on kill
+  protected onWordComplete(word: string, _elapsed: number) {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, 5);
     }
 
     const monster = this.monsters.find(m => m.word === word)
@@ -186,7 +141,7 @@ export class MonsterArenaLevel extends Phaser.Scene {
     }
   }
 
-  private onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
+  protected onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
 
   private removeMonster(monster: Monster) {
     monster.sprite.destroy()
@@ -195,20 +150,7 @@ export class MonsterArenaLevel extends Phaser.Scene {
     this.monsterHpText.setText('')
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level, profileSlot: this.profileSlot,
-        accuracyStars: acc, speedStars: spd, passed
-      })
-    })
+  protected endLevel(passed: boolean) {
+    super.endLevel(passed)
   }
 }

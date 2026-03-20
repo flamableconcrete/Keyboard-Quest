@@ -1,15 +1,10 @@
 // src/scenes/level-types/CrazedCookLevel.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
-import { TypingHands } from '../../components/TypingHands'
-import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
 import { generateCrazedCookTextures } from '../../art/crazedCookArt'
-import { setupPause } from '../../utils/pauseSetup'
 import { COOK_STATIONS } from '../../data/cookStations'
 import { calcMoveDuration, pickNextStationIndex } from '../../utils/cookMovement'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 interface Ingredient {
   word: string
@@ -45,15 +40,10 @@ const INGREDIENT_WEIGHTS = [
 // ms per 100px for each cook — staggered so they don't move in lockstep
 const COOK_BASE_SPEEDS = [160, 130, 190] // cook_ladle, cook_knife, cook_spoon
 
-export class CrazedCookLevel extends Phaser.Scene {
-  private level!: LevelConfig
-  private profileSlot!: number
-  private engine!: TypingEngine
-  private typingHands?: TypingHands
+export class CrazedCookLevel extends BaseLevelScene {
   private timerEvent?: Phaser.Time.TimerEvent
   private timerText!: Phaser.GameObjects.Text
   private ordersText!: Phaser.GameObjects.Text
-  private finished = false
   private timeLeft = 0
   private ordersFilled = 0
   private walkoffs = 0
@@ -67,9 +57,7 @@ export class CrazedCookLevel extends Phaser.Scene {
   constructor() { super('CrazedCookLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.timeLeft = 0
     this.ordersFilled = 0
     this.walkoffs = 0
@@ -82,10 +70,11 @@ export class CrazedCookLevel extends Phaser.Scene {
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     generateCrazedCookTextures(this)
+
+    this.preCreate(80, height - 120)
 
     // Background
     this.add.image(width / 2, height / 2, 'kitchen_bg')
@@ -112,31 +101,12 @@ export class CrazedCookLevel extends Phaser.Scene {
       fontSize: '16px', color: '#ffaaaa', stroke: '#000', strokeThickness: 2
     }).setOrigin(1, 0)
 
-    // Build word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    const maxLength = this.level.world === 1 ? 5 : undefined
-    const pool = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, maxLength)
-    this.wordPool = Phaser.Utils.Array.Shuffle([...pool])
+    // Use wordQueue from preCreate (already built), build local wordPool from it
+    this.wordPool = [...this.wordQueue]
     this.wordIndex = 0
 
-    // Dark backing panel behind the word display (centered on the text, which renders top-down from height-80)
+    // Dark backing panel behind the word display
     this.add.rectangle(width / 2, height - 58, 500, 56, 0x000000, 0.55).setOrigin(0.5)
-
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: height - 80,
-      fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: () => this.cameras.main.flash(80, 120, 0, 0),
-    })
-
-    // Finger hints
-    const profile = loadProfile(this.profileSlot)
-    if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 160)
-    }
 
     // TAB key to cycle orders
     this.input.keyboard?.on('keydown-TAB', this.cycleActiveOrder, this)
@@ -169,6 +139,7 @@ export class CrazedCookLevel extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
+    super.update(_time, delta)
     if (this.finished) return
 
     // Work on a copy to safely remove during iteration
@@ -177,7 +148,6 @@ export class CrazedCookLevel extends Phaser.Scene {
       order.patience -= order.patienceRate * (delta / 16.67)
 
       // Update patience bar width (clamped 0–100)
-      // Bar origin is (0, 0.5) so width shrinks from the right, position stays fixed
       const barWidth = Math.max(0, order.patience * 100)
       order.patienceBar.setSize(barWidth, 10)
 
@@ -330,7 +300,7 @@ export class CrazedCookLevel extends Phaser.Scene {
     this.setActiveOrder(next)
   }
 
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     if (!this.activeOrder || this.finished) return
     const order = this.activeOrder
     const ing = order.ingredients[order.currentIngredientIndex]
@@ -461,25 +431,12 @@ export class CrazedCookLevel extends Phaser.Scene {
     this.ordersText.setText(`Orders: ${this.ordersFilled}/${this.orderQuota}`)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected onWrongKey() {
+    this.cameras.main.flash(80, 120, 0, 0)
+  }
+
+  protected endLevel(passed: boolean) {
     this.timerEvent?.remove()
-    this.typingHands?.fadeOut()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = passed ? calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes) : 0
-    const spd = passed ? calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world) : 0
-    this.engine.destroy()
-
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        level: this.level,
-        profileSlot: this.profileSlot,
-        accuracyStars: acc,
-        speedStars: spd,
-        passed
-      })
-    })
+    super.endLevel(passed)
   }
 }

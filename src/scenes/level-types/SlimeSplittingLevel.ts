@@ -1,14 +1,8 @@
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
-import { GoldManager } from '../../utils/goldSystem'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 interface Slime {
   word: string
@@ -20,69 +14,33 @@ interface Slime {
   hp: number
 }
 
-export class SlimeSplittingLevel extends Phaser.Scene {
-  private goldManager!: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-  private words: string[] = []
+export class SlimeSplittingLevel extends BaseLevelScene {
   private slimes: Slime[] = []
   private activeSlime: Slime | null = null
-  private engine!: TypingEngine
-  private wordQueue: string[] = []
   private playerHp = 3
   private maxSlimeReach = 0
   private hpText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
-  private finished = false
 
   constructor() { super('SlimeSplittingLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.playerHp = 3
     this.slimes = []
     this.activeSlime = null
-    this.words = []
-    this.wordQueue = []
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
     this.maxSlimeReach = 80
 
+    this.preCreate(80, height * 0.6)
+
     this.add.rectangle(width / 2, height / 2, width, height, 0x1e4a4a)
-
-    const pProfileAvatar = loadProfile(this.profileSlot)
-    generateAllCompanionTextures(this)
-    const avatarKey = this.textures.exists(pProfileAvatar?.avatarChoice || '') ? pProfileAvatar!.avatarChoice : 'avatar_0'
-    this.add.image(100, height - 100, avatarKey).setScale(1.5).setDepth(5)
-
-    const petRenderer = new CompanionAndPetRenderer(this, 100, height - 100, this.profileSlot)
-    this.goldManager = new GoldManager(this)
-    if (petRenderer.getPetSprite()) {
-      const pProfile = loadProfile(this.profileSlot)!;
-      const p = pProfile.pets.find(pet => pet.id === pProfile.activePetId);
-      if (p) {
-        this.goldManager.registerPet(petRenderer.getPetSprite()!, 100 + (p.level * 25), petRenderer.getStartPetX(), petRenderer.getStartPetY())
-      }
-    }
-
 
     this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
-
-    this.engine = new TypingEngine({
-      scene: this, x: width / 2, y: height - 80, fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(this.level.unlockedLetters, this.level.wordCount, difficulty, this.level.world === 1 ? 5 : undefined)
-    this.wordQueue = [...this.words]
 
     this.spawnTimer = this.time.addEvent({
       delay: 4000, loop: true, callback: this.spawnInitialSlime, callbackScope: this
@@ -103,7 +61,7 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     const label = this.add.text(x, y - size / 2 - 10, word, {
       fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
-    
+
     const slime: Slime = { word, x, y, speed: 40 + this.level.world * 5, sprite, label, hp: 1 }
     this.slimes.push(slime)
 
@@ -122,7 +80,7 @@ export class SlimeSplittingLevel extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    this.goldManager?.update(delta)
+    super.update(_time, delta)
     if (this.finished) return
     this.slimes.forEach(s => {
       s.x -= s.speed * (delta / 1000)
@@ -148,12 +106,11 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
-  private onWordComplete(word: string, _elapsed: number) {
-    // Drop gold on kill
+  protected onWordComplete(word: string, _elapsed: number) {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, 5);
     }
 
     const slime = this.slimes.find(s => s.word === word)
@@ -173,7 +130,7 @@ export class SlimeSplittingLevel extends Phaser.Scene {
           this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
         }
       }
-      
+
       if (word.length > 2) {
         const [w1, w2] = this.splitWord(word)
         this.createSlime(w1, oldX, oldY - 40, 30)
@@ -188,7 +145,7 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     }
   }
 
-  private onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
+  protected onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
 
   private removeSlime(slime: Slime) {
     slime.sprite.destroy()
@@ -196,21 +153,8 @@ export class SlimeSplittingLevel extends Phaser.Scene {
     this.slimes = this.slimes.filter(s => s !== slime)
   }
 
-  private endLevel(passed: boolean) {
-    if (this.finished) return
-    this.finished = true
+  protected endLevel(passed: boolean) {
     this.spawnTimer?.remove()
-    this.engine.destroy()
-
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world)
-    this.time.delayedCall(500, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level, profileSlot: this.profileSlot,
-        accuracyStars: acc, speedStars: spd, passed
-      })
-    })
+    super.endLevel(passed)
   }
 }

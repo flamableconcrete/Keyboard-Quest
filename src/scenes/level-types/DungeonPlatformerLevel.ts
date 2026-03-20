@@ -1,17 +1,10 @@
 // src/scenes/level-types/DungeonPlatformerLevel.ts
 import Phaser from 'phaser'
-import { GoldManager } from '../../utils/goldSystem'
 import { LevelConfig } from '../../types'
-import { TypingEngine } from '../../components/TypingEngine'
 import { loadProfile } from '../../utils/profile'
-import { getWordPool } from '../../utils/words'
-import { calcAccuracyStars, calcSpeedStars } from '../../utils/scoring'
-import { setupPause } from '../../utils/pauseSetup'
-import { generateAllCompanionTextures } from '../../art/companionsArt'
-import { CompanionAndPetRenderer } from '../../components/CompanionAndPetRenderer'
 import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
-import { TypingHands } from '../../components/TypingHands'
+import { BaseLevelScene } from '../BaseLevelScene'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -23,17 +16,9 @@ interface Obstacle {
   x: number
 }
 
-export class DungeonPlatformerLevel extends Phaser.Scene {
-  public goldManager?: GoldManager
-  private level!: LevelConfig
-  private profileSlot!: number
-
+export class DungeonPlatformerLevel extends BaseLevelScene {
   // Word state
-  private words: string[] = []
-  private wordQueue: string[] = []
-  private engine!: TypingEngine
   private wordsCompleted = 0
-  private finished = false
 
   // Hero
   private hero!: Phaser.GameObjects.Image
@@ -63,9 +48,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   private timerText!: Phaser.GameObjects.Text
   private counterText!: Phaser.GameObjects.Text
 
-  // Finger hints
-  private typingHands?: TypingHands
-
   // Dust
   private dustParticles: Array<{ img: Phaser.GameObjects.Image; speedY: number; speedX: number }> = []
 
@@ -75,9 +57,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   constructor() { super('DungeonPlatformerLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
-    this.level = data.level
-    this.profileSlot = data.profileSlot
-    this.finished = false
+    super.init(data)
     this.wordsCompleted = 0
     this.playerHp = 3
     this.heartIcons = []
@@ -85,17 +65,24 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
     this.floorTiles = []
     this.currentObstacle = null
     this.scrolling = false
-    this.isAdvanced = this.level.world >= 3
+    this.isAdvanced = data.level.world >= 3
   }
 
   create() {
-    setupPause(this, this.profileSlot)
     const { width, height } = this.scale
 
     // ── Art generation ─────────────────────────────────────────────
     generateDungeonTrapTextures(this)
     generateDungeonPlatformerTextures(this)
-    generateAllCompanionTextures(this)
+
+    // Floor at ~62% height (matching GoblinWhacker's pathY) so finger hints fit below
+    const floorY = height * 0.62
+    this.heroBaseY = floorY
+
+    // preCreate places the avatar (our walking hero), companion, pet, gold, words, engine
+    // Avatar at heroX = width*0.35 so companion/pet render relative to that position
+    const heroX = width * 0.35
+    this.preCreate(heroX, this.heroBaseY)
 
     // ── Scrolling background (two tiles for seamless loop) ────────
     this.bgTile1 = this.add.image(width / 2, height / 2, 'dungeon_bg')
@@ -104,9 +91,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       .setDisplaySize(width, height).setDepth(0)
 
     // ── Floor tiles ───────────────────────────────────────────────
-    // Floor at ~62% height (matching GoblinWhacker's pathY) so finger hints fit below
-    const floorY = height * 0.62
-    this.heroBaseY = floorY
     const tileW = 160
     const tilesNeeded = Math.ceil(width / tileW) + 2
     for (let i = 0; i < tilesNeeded; i++) {
@@ -115,17 +99,14 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       this.floorTiles.push(tile)
     }
 
-    // ── Hero (just left of center) ───────────────────────────────
-    const heroX = width * 0.35
+    // ── Hero reference for walking animation ────────────────────
+    // preCreate already placed the avatar at (heroX, heroBaseY); we create a tracked
+    // copy here so we can tween it for the walking bob effect.
     const profile = loadProfile(this.profileSlot)
     const avatarKey = this.textures.exists(profile?.avatarChoice || '')
       ? profile!.avatarChoice : 'avatar_0'
     this.hero = this.add.image(heroX, this.heroBaseY, avatarKey)
       .setScale(1.5).setDepth(5)
-    // Companion/pet to the LEFT of the hero
-    // CompanionAndPetRenderer places pet at anchor+70, companion at anchor+145
-    // So anchor = heroX-215 puts pet at heroX-145, companion at heroX-70
-    new CompanionAndPetRenderer(this, heroX - 215, this.heroBaseY, this.profileSlot)
 
     // ── HUD: Hearts ───────────────────────────────────────────────
     this.buildHeartHUD()
@@ -148,18 +129,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 3, fill: true }
     }).setOrigin(1, 0).setDepth(11)
 
-    // ── Typing Engine (below floor) ──────────────────────────────
-    this.engine = new TypingEngine({
-      scene: this, x: width / 2, y: height - 80, fontSize: 40,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
-
-    // ── Finger Hints (below floor, like GoblinWhacker) ───────────
-    if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - 100)
-    }
-
     // Update finger hints after each keystroke
     this.input.keyboard?.on('keydown', () => {
       if (this.currentObstacle && this.typingHands) {
@@ -169,13 +138,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       }
     })
 
-    // ── Word Pool ─────────────────────────────────────────────────
-    const difficulty = Math.ceil(this.level.world / 2)
-    this.words = getWordPool(
-      this.level.unlockedLetters, this.level.wordCount, difficulty,
-      this.level.world === 1 ? 5 : undefined
-    )
-    this.wordQueue = [...this.words]
     this.updateCounterText()
 
     // ── Timer ─────────────────────────────────────────────────────
@@ -365,7 +327,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   }
 
   // ── Word Complete ────────────────────────────────────────────────
-  private onWordComplete(_word: string, _elapsed: number) {
+  protected onWordComplete(_word: string, _elapsed: number) {
     // Drop gold on kill
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
@@ -433,7 +395,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   }
 
   // ── Wrong Key ────────────────────────────────────────────────────
-  private onWrongKey() {
+  protected onWrongKey() {
     this.cameras.main.flash(80, 120, 0, 0)
 
     if (this.isAdvanced && this.currentObstacle) {
@@ -466,9 +428,7 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
 
   // ── Update (scrolling + dust) ────────────────────────────────────
   update(_time: number, delta: number) {
-    // @ts-ignore
-    this.goldManager?.update(delta)
-    // @ts-ignore
+    super.update(_time, delta)
     if (this.finished) return
     const dt = delta / 1000
     const { width, height } = this.scale
@@ -497,13 +457,10 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
   }
 
   // ── End Level ────────────────────────────────────────────────────
-  private endLevel(passed: boolean) {
+  protected endLevel(passed: boolean) {
     if (this.finished) return
-    this.finished = true
     this.stopWalking()
     this.timerEvent?.remove()
-    this.engine.destroy()
-    this.typingHands?.fadeOut()
 
     if (!passed) {
       const { width, height } = this.scale
@@ -517,17 +474,6 @@ export class DungeonPlatformerLevel extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(600)
     }
 
-    const elapsed = Date.now() - this.engine.sessionStartTime
-    const acc = calcAccuracyStars(this.engine.correctKeystrokes, this.engine.totalKeystrokes)
-    const spd = calcSpeedStars(
-      Math.round(this.engine.completedWords / (elapsed / 60000)), this.level.world
-    )
-    this.time.delayedCall(passed ? 500 : 1400, () => {
-      this.scene.start('LevelResult', {
-        extraGold: this.goldManager ? this.goldManager.getCollectedGold() : 0,
-        level: this.level, profileSlot: this.profileSlot,
-        accuracyStars: acc, speedStars: spd, passed
-      })
-    })
+    super.endLevel(passed)
   }
 }
