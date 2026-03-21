@@ -3,12 +3,14 @@ import Phaser from 'phaser'
 import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
+import { ProgressionController } from '../../controllers/ProgressionController'
 
 export class PotionBrewingLabLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
   private timerEvent?: Phaser.Time.TimerEvent
 
   private recipeTexts: Phaser.GameObjects.Text[] = []
+  private progression!: ProgressionController
 
   constructor() { super('PotionBrewingLabLevel') }
 
@@ -44,6 +46,9 @@ export class PotionBrewingLabLevel extends BaseLevelScene {
       })
     })
 
+    this.progression = new ProgressionController([...this.wordQueue])
+    this.wordQueue = []
+
     if (this.level.timeLimit) {
       this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
@@ -53,21 +58,27 @@ export class PotionBrewingLabLevel extends BaseLevelScene {
 
   private showNextWord() {
     if (this.finished) return
-    if (this.wordQueue.length === 0) {
-      this.endLevel(true)
-      return
+    const events = this.progression.advance()
+    for (const e of events) {
+      switch (e.type) {
+        case 'next_word': {
+          const currentIdx = this.words.length - this.progression.wordsRemaining - 1
+
+          // Update recipe highlighting
+          this.recipeTexts.forEach((t, i) => {
+            if (i < currentIdx) t.setColor('#44ff44').setAlpha(0.5) // done
+            else if (i === currentIdx) t.setColor('#ffffff').setAlpha(1) // current
+            else t.setColor('#888888').setAlpha(0.8) // pending
+          })
+
+          this.engine.setWord(e.word)
+          break
+        }
+        case 'level_complete':
+          this.endLevel(true)
+          break
+      }
     }
-    const currentIdx = this.words.length - this.wordQueue.length
-
-    // Update recipe highlighting
-    this.recipeTexts.forEach((t, i) => {
-      if (i < currentIdx) t.setColor('#44ff44').setAlpha(0.5) // done
-      else if (i === currentIdx) t.setColor('#ffffff').setAlpha(1) // current
-      else t.setColor('#888888').setAlpha(0.8) // pending
-    })
-
-    const word = this.wordQueue.shift()!
-    this.engine.setWord(word)
   }
 
   protected onWordComplete(_word: string, _elapsed: number) {

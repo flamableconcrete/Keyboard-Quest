@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { ProgressionController } from '../../controllers/ProgressionController'
 
 export class DungeonEscapeLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
@@ -9,6 +10,7 @@ export class DungeonEscapeLevel extends BaseLevelScene {
 
   private crackFill!: Phaser.GameObjects.Rectangle
   private totalWords = 0
+  private progression!: ProgressionController
 
   constructor() { super('DungeonEscapeLevel') }
 
@@ -42,6 +44,9 @@ export class DungeonEscapeLevel extends BaseLevelScene {
 
     this.totalWords = this.words.length
 
+    this.progression = new ProgressionController([...this.wordQueue])
+    this.wordQueue = []
+
     if (this.level.timeLimit) {
       this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
@@ -51,18 +56,23 @@ export class DungeonEscapeLevel extends BaseLevelScene {
 
   private showNextWord() {
     if (this.finished) return
-    if (this.wordQueue.length === 0) {
-      this.endLevel(true)
-      return
+    const events = this.progression.advance()
+    for (const e of events) {
+      switch (e.type) {
+        case 'next_word':
+          this.engine.setWord(e.word)
+          break
+        case 'level_complete':
+          this.endLevel(true)
+          break
+      }
     }
-    const word = this.wordQueue.shift()!
-    this.engine.setWord(word)
   }
 
   protected onWordComplete(_word: string, _elapsed: number) {
     this.spawnWordGold()
 
-    const completed = this.totalWords - this.wordQueue.length
+    const completed = this.totalWords - this.progression.wordsRemaining
     const pct = completed / this.totalWords
     this.crackFill.setDisplaySize((this.scale.width * 0.8) * pct, 30)
 

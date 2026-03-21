@@ -3,10 +3,12 @@ import Phaser from 'phaser'
 import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
+import { ProgressionController } from '../../controllers/ProgressionController'
 
 export class GuildRecruitmentLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
   private timerEvent?: Phaser.Time.TimerEvent
+  private progression!: ProgressionController
 
   constructor() { super('GuildRecruitmentLevel') }
 
@@ -40,12 +42,29 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
       fontSize: '24px', color: '#ffffff', wordWrap: { width: 800 }, align: 'center'
     }).setOrigin(0.5, 0)
 
-    // Set first word
-    this.engine.setWord(this.wordQueue.shift()!)
+    this.progression = new ProgressionController([...this.wordQueue])
+    this.wordQueue = []
 
     // Timer
     if (this.level.timeLimit) {
       this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
+    }
+
+    this.showNextWord()
+  }
+
+  private showNextWord() {
+    if (this.finished) return
+    const events = this.progression.advance()
+    for (const e of events) {
+      switch (e.type) {
+        case 'next_word':
+          this.engine.setWord(e.word)
+          break
+        case 'level_complete':
+          this.endLevel(true)
+          break
+      }
     }
   }
 
@@ -56,11 +75,7 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
       this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
-    if (this.wordQueue.length === 0) {
-      this.endLevel(true)
-    } else {
-      this.engine.setWord(this.wordQueue.shift()!)
-    }
+    this.showNextWord()
   }
 
   protected onWrongKey() {
