@@ -54,8 +54,11 @@ export abstract class BaseBossScene extends BaseLevelScene {
   }
 
   /**
-   * Set up a boss countdown timer. The `onExpire` callback is invoked when
-   * the timer reaches zero. Returns the TimerEvent so callers can remove it.
+   * Set up a boss countdown timer. Calls onExpire when the countdown reaches zero.
+   * Returns the TimerEvent.
+   *
+   * Unlike setupLevelTimer (BaseLevelScene), accepts a custom onExpire callback
+   * rather than hardcoding endLevel(false), to support boss-specific expiry logic.
    */
   protected setupBossTimer(
     seconds: number,
@@ -66,7 +69,7 @@ export abstract class BaseBossScene extends BaseLevelScene {
     timerText.setText(`${timeLeft}s`)
     return this.time.addEvent({
       delay: 1000,
-      repeat: seconds - 1,
+      repeat: seconds - 1, // Phaser fires repeat+1 times total
       callback: () => {
         timeLeft--
         timerText.setText(`${timeLeft}s`)

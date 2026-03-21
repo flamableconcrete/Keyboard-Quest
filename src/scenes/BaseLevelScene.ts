@@ -170,7 +170,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     displayText.setText(`${timeLeft}s`)
     return this.time.addEvent({
       delay: 1000,
-      repeat: seconds - 1,
+      repeat: seconds - 1, // Phaser fires repeat+1 times total
       callback: () => {
         timeLeft--
         displayText.setText(`${timeLeft}s`)
