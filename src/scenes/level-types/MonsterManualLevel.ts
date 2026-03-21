@@ -2,8 +2,11 @@
 import { LevelConfig } from '../../types'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { ProgressionController } from '../../controllers/ProgressionController'
 
 export class MonsterManualLevel extends BaseLevelScene {
+  private progression!: ProgressionController
+
   constructor() { super('MonsterManualLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
@@ -33,16 +36,20 @@ export class MonsterManualLevel extends BaseLevelScene {
       fontSize: '24px', color: '#ffffff', wordWrap: { width: 800 }, align: 'center'
     }).setOrigin(0.5, 0)
 
-    this.engine.setWord(this.wordQueue.shift()!)
+    this.progression = new ProgressionController([...this.wordQueue])
+    this.wordQueue = []
+    const first = this.progression.advance()
+    if (first[0].type === 'next_word') this.engine.setWord(first[0].word)
   }
 
   protected onWordComplete(_word: string, _elapsed: number) {
     this.spawnWordGold()
-
-    if (this.wordQueue.length === 0) {
-      this.endLevel(true)
-    } else {
-      this.engine.setWord(this.wordQueue.shift()!)
+    const events = this.progression.advance()
+    for (const e of events) {
+      switch (e.type) {
+        case 'next_word': this.engine.setWord(e.word); break
+        case 'level_complete': this.endLevel(true); break
+      }
     }
   }
 
