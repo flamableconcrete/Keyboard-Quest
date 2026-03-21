@@ -164,7 +164,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     world: 2,
     unlockedLetters: W2_AFTER_MB2,
     wordCount: 15,
-    timeLimit: null,
+    timeLimit: 90,
     dialogue: [
       { speaker: "enemy", text: "You've made it further than most. Our guild watches. We'd like to walk with you a while." },
       { speaker: "hero", text: "I'd be glad for the company. Welcome." },
