@@ -28,6 +28,8 @@ export class SlimeSplittingLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
+    this.preCreate(80, height * 0.6)
+
     this.slimeCtrl = new SlimeController({
       words: [...this.wordQueue],
       worldNumber: this.level.world,
@@ -39,8 +41,6 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     // The controller owns the word queue now — clear the scene's copy so
     // BaseLevelScene doesn't try to use it independently.
     this.wordQueue = []
-
-    this.preCreate(80, height * 0.6)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1e4a4a)
 
