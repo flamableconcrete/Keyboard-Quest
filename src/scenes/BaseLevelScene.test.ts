@@ -87,7 +87,7 @@ describe('BaseLevelScene._preCreateCalled guard', () => {
     scene = new TestLevelScene()
   })
 
-  it('throws if endLevel is called before preCreate (guard always active in test env)', () => {
+  it('throws if endLevel is called before preCreate', () => {
     ;(scene as any).init({
       level: mockLevel as LevelConfig,
       profileSlot: 0,
