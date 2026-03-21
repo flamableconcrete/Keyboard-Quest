@@ -95,7 +95,7 @@ export class CrazedCookLevel extends BaseLevelScene {
       fontSize: '20px', color: '#ffd700', stroke: '#000', strokeThickness: 3
     }).setOrigin(0.5, 0)
 
-    this.timerText = this.add.text(width - 20, 20, `${this.level.timeLimit}s`, {
+    this.timerText = this.add.text(width - 20, 20, '', {
       fontSize: '20px', color: '#ffffff', stroke: '#000', strokeThickness: 3
     }).setOrigin(1, 0)
 
