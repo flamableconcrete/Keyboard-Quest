@@ -49,7 +49,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     super.init(data)
     this.skeletonsDefeated = 0
     this.playerHp = DEFAULT_PLAYER_HP
-    this.maxWaves = data.level.waveCount ?? 3
+    this.maxWaves = data.level.waveCount
     this.skeletons = []
     this.activeSkeleton = null
     this.wrongKeyCount = 0

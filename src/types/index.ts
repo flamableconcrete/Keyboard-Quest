@@ -101,7 +101,7 @@ export interface LevelConfig {
   phases?: number
   orderQuota?: number       // for CrazedCook: orders needed to win
   maxWalkoffs?: number      // for CrazedCook: max angry walk-offs before losing
-  waveCount?: number        // for SkeletonSwarm: number of waves before victory
+  waveCount?: number        // for SkeletonSwarm: number of waves before victory; see WaveLevelConfig
 }
 
 /** Config for wave-based levels (SkeletonSwarm, UndeadSiege, etc.) */
