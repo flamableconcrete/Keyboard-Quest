@@ -5,7 +5,6 @@ import { BaseLevelScene } from '../BaseLevelScene'
 
 export class DungeonEscapeLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
 
   private crackFill!: Phaser.GameObjects.Rectangle
@@ -44,15 +43,7 @@ export class DungeonEscapeLevel extends BaseLevelScene {
     this.totalWords = this.words.length
 
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
 
     this.showNextWord()
