@@ -148,7 +148,9 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
     wordCount: 20,
-    timeLimit: null,
+    timeLimit: 120,
+    orderQuota: 8,
+    maxWalkoffs: 3,
     dialogue: [
       { speaker: "enemy", text: "A word duel in the valley! The jester challenges all comers! Ha-HA!" },
       { speaker: "hero",  text: "Fine. But if I lose I'm going to be annoyed for days." },

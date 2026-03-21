@@ -131,7 +131,9 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
     wordCount: 22,
-    timeLimit: null,
+    timeLimit: 120,
+    orderQuota: 8,
+    maxWalkoffs: 3,
     dialogue: [
       { speaker: "enemy", text: "The Mad King's jester! With the zaniest words in the KNOWN WORLD! Ha ha HA!" },
       { speaker: "hero",  text: "I've heard worse. Let's go." },
