@@ -153,6 +153,32 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected handleSpellEffect(_effect: SpellData['effect']): void {}
 
   /**
+   * Set up a countdown timer that calls endLevel(false) when it reaches zero.
+   * Returns the TimerEvent so the caller can remove it in endLevel cleanup.
+   *
+   * Usage in create():
+   *   if (this.level.timeLimit) {
+   *     this.timerEvent = this.setupLevelTimer(this.level.timeLimit, timerText)
+   *   }
+   */
+  protected setupLevelTimer(
+    seconds: number,
+    displayText: Phaser.GameObjects.Text
+  ): Phaser.Time.TimerEvent {
+    let timeLeft = seconds
+    displayText.setText(`${timeLeft}s`)
+    return this.time.addEvent({
+      delay: 1000,
+      repeat: seconds - 1,
+      callback: () => {
+        timeLeft--
+        displayText.setText(`${timeLeft}s`)
+        if (timeLeft <= 0) this.endLevel(false)
+      },
+    })
+  }
+
+  /**
    * Call to end the level. Handles guard flag, shared cleanup,
    * scoring, and transition to LevelResult.
    *

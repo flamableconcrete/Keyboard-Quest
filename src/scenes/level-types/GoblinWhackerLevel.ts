@@ -24,7 +24,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   private hpHearts: Phaser.GameObjects.Image[] = []
   private timerText!: Phaser.GameObjects.Text
   private counterText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
   private goblinsDefeated = 0
@@ -44,7 +43,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.playerHp = 3
     this.goblins = []
     this.activeGoblin = null
-    this.timeLeft = 0
     this.letterShieldCount = 0
     this.wrongKeyCount = 0
     this.nextAttackThreshold = Phaser.Math.Between(5, 8)
@@ -98,15 +96,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
 
     // Spawn goblins

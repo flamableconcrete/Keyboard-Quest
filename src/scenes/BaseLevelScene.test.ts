@@ -80,6 +80,41 @@ describe('BaseLevelScene.init()', () => {
   })
 })
 
+describe('BaseLevelScene.setupLevelTimer', () => {
+  it('calls endLevel(false) when timer expires', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).init({ level: mockLevel, profileSlot: 0 })
+    ;(scene as any)._preCreateCalled = true
+
+    // Mock the timer: capture the callback when addEvent is called
+    let timerCallback: (() => void) | null = null
+    ;(scene as any).time = {
+      addEvent: (_opts: { delay: number; repeat: number; callback: () => void }) => {
+        timerCallback = _opts.callback
+        return { remove: () => {} }
+      },
+      delayedCall: (_ms: number, cb: () => void) => cb(),
+    }
+    ;(scene as any).scene = { start: () => {}, key: 'Test' }
+
+    // Mock endLevel to spy on it
+    const endLevelSpy = vi.fn()
+    ;(scene as any).endLevel = endLevelSpy
+
+    const fakeText = { setText: () => {} }
+    ;(scene as any).setupLevelTimer(3, fakeText)
+
+    expect(timerCallback).not.toBeNull()
+
+    // Fire the callback 3 times (simulating 3 seconds)
+    timerCallback!()
+    timerCallback!()
+    timerCallback!()
+
+    expect(endLevelSpy).toHaveBeenCalledWith(false)
+  })
+})
+
 describe('BaseLevelScene._preCreateCalled guard', () => {
   let scene: TestLevelScene
 

@@ -45,7 +45,6 @@ export class CrazedCookLevel extends BaseLevelScene {
   private timerEvent?: Phaser.Time.TimerEvent
   private timerText!: Phaser.GameObjects.Text
   private ordersText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private wordPool: string[] = []
   private wordIndex = 0
   private orders: OrcOrder[] = []
@@ -58,7 +57,6 @@ export class CrazedCookLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.timeLeft = 0
     this.wordPool = []
     this.wordIndex = 0
     this.orders = []
@@ -126,16 +124,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     })
 
     // Timer
-    this.timeLeft = this.level.timeLimit ?? 90
-    this.timerEvent = this.time.addEvent({
-      delay: 1000,
-      repeat: (this.level.timeLimit ?? 90) - 1,
-      callback: () => {
-        this.timeLeft--
-        this.timerText.setText(`${this.timeLeft}s`)
-        if (this.timeLeft <= 0) this.endLevel(false)
-      }
-    })
+    this.timerEvent = this.setupLevelTimer(this.level.timeLimit ?? 90, this.timerText)
 
     // Spawn 2 initial orcs
     this.spawnOrc(0)
