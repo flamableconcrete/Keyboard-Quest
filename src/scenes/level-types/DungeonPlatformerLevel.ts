@@ -45,7 +45,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   private obstacleTypes: ObstacleType[] = ['pit', 'spikes', 'boulder', 'door']
 
   // Timer
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private timerText!: Phaser.GameObjects.Text
   private counterText!: Phaser.GameObjects.Text
@@ -145,16 +144,12 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
     // ── Timer ─────────────────────────────────────────────────────
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.updateTimerDisplay()
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.updateTimerDisplay()
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      const formatTimer = (remaining: number) => {
+        this.timerText.setText(`⏳ ${remaining}s`)
+        this.timerText.setColor(remaining <= 10 ? '#ff4444' : '#ffcc44')
+      }
+      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText, formatTimer)
+      formatTimer(this.level.timeLimit) // fix up initial display (setupLevelTimer sets plain text first)
     }
 
     // ── Vignette ──────────────────────────────────────────────────
@@ -231,13 +226,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     g.fillRect(0, height - t, width, t)
     g.fillRect(0, 0, t, height)
     g.fillRect(width - t, 0, t, height)
-  }
-
-  // ── Timer ────────────────────────────────────────────────────────
-  private updateTimerDisplay() {
-    const urgent = this.timeLeft <= 10
-    this.timerText.setText(`⏳ ${this.timeLeft}s`)
-    this.timerText.setColor(urgent ? '#ff4444' : '#ffcc44')
   }
 
   private updateCounterText() {
