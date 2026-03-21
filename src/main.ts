@@ -48,6 +48,30 @@ import { TypemancerBoss } from './scenes/boss-types/TypemancerBoss'
 
 const mobile = window.innerWidth < 768;
 
+const utilityScenes = [
+  BootScene, PreloadScene, MainMenuScene, ProfileSelectScene,
+  AvatarCustomizerScene, OverlandMapScene, LevelIntroScene,
+  LevelResultScene, LevelScene, BossBattleScene, CharacterScene,
+  TavernScene, StableScene, CutsceneScene, VictoryScene,
+  SettingsScene, ShopScene, TrophyRoomScene,
+  MobileLevelIntroScene, MobileOverlandMapScene, PauseScene,
+]
+
+const levelTypeScenes = [
+  GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel,
+  UndeadSiegeLevel, SlimeSplittingLevel, DungeonPlatformerLevel,
+  DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
+  MonsterManualLevel, WoodlandFestivalLevel, CrazedCookLevel,
+  GuildRecruitmentLevel,
+  // CharacterCreatorLevel is handled by LevelScene dispatcher
+]
+
+const bossTypeScenes = [
+  MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss,
+  ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss,
+  BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss,
+]
+
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   width: mobile ? window.innerWidth : 1280,
@@ -58,13 +82,7 @@ const game = new Phaser.Game({
     mode: mobile ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [
-    BootScene, PreloadScene, MainMenuScene, ProfileSelectScene, AvatarCustomizerScene, OverlandMapScene, LevelIntroScene, LevelResultScene, LevelScene,
-    GoblinWhackerLevel, SkeletonSwarmLevel, MonsterArenaLevel, UndeadSiegeLevel, SlimeSplittingLevel,
-    DungeonPlatformerLevel, DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
-    MonsterManualLevel, WoodlandFestivalLevel, CrazedCookLevel, GuildRecruitmentLevel,
-    BossBattleScene, CharacterScene, TavernScene, StableScene, CutsceneScene, VictoryScene, SettingsScene, ShopScene, TrophyRoomScene, MobileLevelIntroScene, MobileOverlandMapScene, MiniBossTypical, GrizzlefangBoss, HydraBoss, SlimeKingBoss, ClockworkDragonBoss, BaronTypoBoss, SpiderBoss, FlashWordBoss, BoneKnightBoss, DiceLichBoss, AncientDragonBoss, TypemancerBoss, PauseScene
-  ],
+  scene: [...utilityScenes, ...levelTypeScenes, ...bossTypeScenes],
 });
 
 (window as any).__PHASER_GAME__ = game;
