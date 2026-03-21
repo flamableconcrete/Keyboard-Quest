@@ -572,7 +572,4 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     })
   }
 
-  protected endLevel(passed: boolean) {
-    super.endLevel(passed)
-  }
 }

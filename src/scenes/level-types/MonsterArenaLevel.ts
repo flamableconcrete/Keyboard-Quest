@@ -151,7 +151,4 @@ export class MonsterArenaLevel extends BaseLevelScene {
     this.monsterHpText.setText('')
   }
 
-  protected endLevel(passed: boolean) {
-    super.endLevel(passed)
-  }
 }
