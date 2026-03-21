@@ -5,21 +5,19 @@ import { TimedLevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { WrongKeyAttackController } from '../../controllers/WrongKeyAttackController'
+import { GoblinController } from '../../controllers/GoblinController'
 
-interface Goblin {
-  word: string
-  x: number
-  speed: number
+interface GoblinSprite {
   sprite: Phaser.GameObjects.Image
   label: Phaser.GameObjects.Text
-  hp: number
 }
 
 export class GoblinWhackerLevel extends BaseLevelScene {
-  private goblins: Goblin[] = []
-  private activeGoblin: Goblin | null = null
+  private goblinCtrl!: GoblinController
+  private goblinSprites = new Map<string, GoblinSprite>()
+  private activeWord: string | null = null
   private playerHp = DEFAULT_PLAYER_HP
   private maxGoblinReach = 0  // x position where goblin damages player
   private hpHearts: Phaser.GameObjects.Image[] = []
@@ -41,8 +39,8 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     super.init(data)   // handles: level, profileSlot, finished
     this.goblinsDefeated = 0
     this.playerHp = DEFAULT_PLAYER_HP
-    this.goblins = []
-    this.activeGoblin = null
+    this.goblinSprites = new Map()
+    this.activeWord = null
     this.letterShieldCount = 0
     this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
@@ -55,6 +53,18 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.maxGoblinReach = 80
     this.preCreate(80, this.pathY)   // handles avatar, companion, gold, word pool, engine, spells, hands
     this.wrongKeyCtrl = new WrongKeyAttackController({ threshold: Phaser.Math.Between(5, 8) })
+
+    // Initialize goblin controller with the word queue from preCreate
+    this.goblinCtrl = new GoblinController({
+      words: [...this.wordQueue],
+      worldNumber: this.level.world,
+      canvasWidth: width,
+      barrierX: this.maxGoblinReach,
+      battleX: this.BATTLE_X,
+      goblinSpacing: this.GOBLIN_SPACING,
+    })
+    // Controller owns the word queue now — clear scene's copy to avoid double-management
+    this.wordQueue = []
 
     // Generate pixel art textures
     generateGoblinWhackerTextures(this)
@@ -84,9 +94,9 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     }).setOrigin(0.5, 0)
 
     this.input.keyboard?.on('keydown', () => {
-      if (this.activeGoblin && this.typingHands) {
+      if (this.activeWord && this.typingHands) {
         const nextIdx = this.engine.getTypedSoFar().length
-        const nextCh = this.activeGoblin.word[nextIdx]
+        const nextCh = this.activeWord[nextIdx]
         if (nextCh) this.typingHands.highlightFinger(nextCh)
       }
     })
@@ -100,21 +110,35 @@ export class GoblinWhackerLevel extends BaseLevelScene {
 
     // Spawn goblins
     this.spawnTimer = this.time.addEvent({
-      delay: 2500, loop: true, callback: this.spawnGoblin, callbackScope: this
+      delay: 2500, loop: true, callback: this.doSpawnGoblin, callbackScope: this
     })
-    this.spawnGoblin()
+    this.doSpawnGoblin()
   }
 
   protected handleSpellEffect(effect: SpellData['effect']) {
     if (effect === 'time_freeze') {
-      this.goblins.forEach(g => { g.speed = 0 })
+      this.goblinCtrl.freezeGoblins()
       this.time.delayedCall(5000, () => {
-        this.goblins.forEach(g => { g.speed = SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD })
+        this.goblinCtrl.restoreGoblinSpeeds()
       })
     } else if (effect === 'word_blast') {
-      const nearest = this.goblins.reduce<Goblin | null>((min, g) =>
-        !min || g.x < min.x ? g : min, null)
-      if (nearest) { this.removeGoblin(nearest); this.goblinsDefeated++ }
+      // Defeat the nearest goblin (lowest x)
+      const nearest = this.goblinCtrl.activeGoblins.reduce<string | null>((minWord, g) => {
+        if (minWord === null) return g.word
+        const minG = this.goblinCtrl.activeGoblins.find(x => x.word === minWord)!
+        return g.x < minG.x ? g.word : minWord
+      }, null)
+      if (nearest) {
+        const events = this.goblinCtrl.removeGoblinByWord(nearest)
+        for (const e of events) {
+          if (e.type === 'goblin_defeated') {
+            this.destroyGoblinSprite(e.word)
+            this.goblinsDefeated++
+            this.updateCounterText()
+          }
+        }
+        this.syncActiveWord()
+      }
     } else if (effect === 'second_chance') {
       this.playerHp = Math.min(this.playerHp + 2, 5)
       this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
@@ -123,36 +147,42 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     }
   }
 
-  private spawnGoblin() {
-    if (this.finished || this.wordQueue.length === 0) return
-    // Don't spawn if the last goblin is still near the right edge (prevents overlap)
-    const lastGoblin = this.goblins[this.goblins.length - 1]
-    if (lastGoblin && lastGoblin.x > this.scale.width - this.GOBLIN_SPACING) return
-    const word = this.wordQueue.shift()!
-    const { width } = this.scale
-    const y = this.pathY
-    const sprite = this.add.image(width + SPAWN_OFFSCREEN_MARGIN, y, 'goblin')
-    const label = this.add.text(width + SPAWN_OFFSCREEN_MARGIN, y - 60, word, {
-      fontSize: '20px', color: '#ffffff',
-      backgroundColor: '#000000', padding: { x: 4, y: 2 }
-    }).setOrigin(0.5)
-    const goblin: Goblin = { word, x: width + SPAWN_OFFSCREEN_MARGIN, speed: SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD, sprite, label, hp: 1 }
-    this.goblins.push(goblin)
+  private doSpawnGoblin() {
+    if (this.finished) return
+    const events = this.goblinCtrl.spawnGoblin()
+    for (const e of events) {
+      if (e.type === 'goblin_spawned') {
+        const y = this.pathY
+        const sprite = this.add.image(e.x, y, 'goblin')
+        const label = this.add.text(e.x, y - 60, e.word, {
+          fontSize: '20px', color: '#ffffff',
+          backgroundColor: '#000000', padding: { x: 4, y: 2 }
+        }).setOrigin(0.5)
+        this.goblinSprites.set(e.word, { sprite, label })
 
-    // Auto-focus first goblin
-    if (!this.activeGoblin) this.setActiveGoblin(goblin)
+        // Sync active word and tint if this is the first goblin
+        this.syncActiveWord()
+      }
+    }
   }
 
-  private setActiveGoblin(goblin: Goblin | null) {
-    if (this.activeGoblin) {
-      this.activeGoblin.sprite.clearTint()
+  /** Sync scene's activeWord and typing engine to controller's activeWord. */
+  private syncActiveWord() {
+    const newActiveWord = this.goblinCtrl.activeWord
+    if (newActiveWord === this.activeWord) return
+
+    // Clear tint on old active sprite
+    if (this.activeWord) {
+      this.goblinSprites.get(this.activeWord)?.sprite.clearTint()
     }
-    this.activeGoblin = goblin
-    if (goblin) {
-      goblin.sprite.setTint(0xffff44)
-      this.engine.setWord(goblin.word)
+
+    this.activeWord = newActiveWord
+
+    if (newActiveWord) {
+      this.goblinSprites.get(newActiveWord)?.sprite.setTint(0xffff44)
+      this.engine.setWord(newActiveWord)
       if (this.typingHands) {
-        this.typingHands.highlightFinger(goblin.word[0])
+        this.typingHands.highlightFinger(newActiveWord[0])
       }
     } else {
       this.engine.clearWord()
@@ -163,31 +193,30 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     super.update(time, delta)   // handles goldManager.update
     if (this.finished) return
 
-    if (this.gameMode === 'advanced') {
-      this.goblins.forEach(g => {
-        g.x -= g.speed * (delta / 1000)
-        g.sprite.setX(g.x)
-        g.label.setX(g.x)
-        if (g.x <= this.maxGoblinReach) {
-          this.goblinReachedPlayer(g)
-        }
-      })
-    } else {
-      // Regular mode: lead stops at BATTLE_X, others queue behind with spacing
-      this.goblins.forEach((g, i) => {
-        const targetX = this.BATTLE_X + i * this.GOBLIN_SPACING
-        if (g.x > targetX) {
-          g.x -= g.speed * (delta / 1000)
-          if (g.x < targetX) g.x = targetX
-        }
-        g.sprite.setX(g.x)
-        g.label.setX(g.x)
-      })
+    const events = this.goblinCtrl.tick(delta, this.gameMode)
+    for (const e of events) {
+      if (e.type === 'goblin_breached') {
+        this.handleGoblinBreached(e.word)
+      } else if (e.type === 'level_complete') {
+        this.endLevel(true)
+        return
+      }
+    }
+
+    // Sync sprite positions from controller state
+    for (const g of this.goblinCtrl.activeGoblins) {
+      const sprites = this.goblinSprites.get(g.word)
+      if (sprites) {
+        sprites.sprite.setX(g.x)
+        sprites.label.setX(g.x)
+      }
     }
   }
 
-  private goblinReachedPlayer(goblin: Goblin) {
-    this.removeGoblin(goblin)
+  private handleGoblinBreached(word: string) {
+    this.destroyGoblinSprite(word)
+    this.syncActiveWord()
+
     const pProfile = loadProfile(this.profileSlot)
     const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
     const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
@@ -201,9 +230,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       this.hpHearts[this.playerHp].setVisible(false)
     }
     this.cameras.main.shake(200, 0.01)
-    if (this.activeGoblin === goblin) {
-      this.setActiveGoblin(this.goblins[0] ?? null)
-    }
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
@@ -212,42 +238,52 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   }
 
   protected onWordComplete(word: string, _elapsed: number) {
-    const goblin = this.goblins.find(g => g.word === word)
-    if (goblin) {
-      // Drop gold on kill below the goblin
-      if (this.goldManager) {
-        const dropX = goblin.x + (Math.random() * 40 - 20);
-        const dropY = goblin.sprite.y + 40 + (Math.random() * 20 - 10);
-        this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
-      }
-
-      this.removeGoblin(goblin)
-      this.goblinsDefeated++
-
-      const pProfileWep = loadProfile(this.profileSlot)
-      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
-      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
-      if (Math.random() < cleaveChance) {
-        const nextEnemy = this.goblins.find(g => g !== goblin)
-        if (nextEnemy) {
-          this.removeGoblin(nextEnemy)
-          this.goblinsDefeated++
-          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
-          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+    const events = this.goblinCtrl.wordTyped(word)
+    for (const e of events) {
+      if (e.type === 'goblin_defeated') {
+        // Drop gold on kill below the goblin
+        if (this.goldManager) {
+          const sprites = this.goblinSprites.get(e.word)
+          const dropX = e.x + (Math.random() * 40 - 20)
+          const dropY = (sprites?.sprite.y ?? this.pathY) + 40 + (Math.random() * 20 - 10)
+          this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL)
         }
+
+        this.destroyGoblinSprite(e.word)
+        this.goblinsDefeated++
+
+        // Cleave weapon effect: defeat an additional nearby goblin
+        const pProfileWep = loadProfile(this.profileSlot)
+        const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+        const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+        if (Math.random() < cleaveChance) {
+          const nextEnemy = this.goblinCtrl.activeGoblins[0]
+          if (nextEnemy) {
+            const cleaveWord = nextEnemy.word
+            const cleaveX = nextEnemy.x
+            const cleaveSprites = this.goblinSprites.get(cleaveWord)
+            this.goblinCtrl.removeGoblinByWord(cleaveWord)
+            this.destroyGoblinSprite(cleaveWord)
+            this.goblinsDefeated++
+            const cleaveText = this.add.text(cleaveX, (cleaveSprites?.sprite.y ?? this.pathY) - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+            this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+          }
+        }
+
+        this.updateCounterText()
+      } else if (e.type === 'level_complete') {
+        this.syncActiveWord()
+        if (this.gameMode === 'regular') {
+          this.doSpawnGoblin()
+        }
+        this.endLevel(true)
+        return
       }
-
-      this.updateCounterText()
     }
-    // Focus next goblin
-    const next = this.goblins[0] ?? null
-    this.setActiveGoblin(next)
+
+    this.syncActiveWord()
     if (this.gameMode === 'regular') {
-      this.spawnGoblin()
-    }
-
-    if (this.wordQueue.length === 0 && this.goblins.length === 0) {
-      this.endLevel(true)
+      this.doSpawnGoblin()
     }
   }
 
@@ -263,31 +299,44 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       for (const e of events) {
         if (e.type === 'enemy_attacks') {
           // Find goblin to attack (active one, or closest)
-          const attacker = this.activeGoblin || this.goblins.reduce<Goblin | null>((min, g) =>
-              !min || g.x < min.x ? g : min, null)
+          const attackerWord = this.activeWord ??
+            this.goblinCtrl.activeGoblins.reduce<string | null>((minWord, g) => {
+              if (minWord === null) return g.word
+              const minG = this.goblinCtrl.activeGoblins.find(x => x.word === minWord)!
+              return g.x < minG.x ? g.word : minWord
+            }, null)
 
-          if (attacker) {
-              // Visual attack cue
+          if (attackerWord) {
+            const attackerSprites = this.goblinSprites.get(attackerWord)
+            if (attackerSprites) {
               this.tweens.add({
-                targets: attacker.sprite,
+                targets: attackerSprites.sprite,
                 scaleX: 1.5,
                 scaleY: 1.5,
                 yoyo: true,
                 duration: 150,
                 onComplete: () => {
-                  if (attacker.sprite && attacker.sprite.active) {
-                    this.goblinReachedPlayer(attacker)
+                  if (attackerSprites.sprite && attackerSprites.sprite.active) {
+                    // Re-check the goblin still exists in the controller
+                    const stillExists = this.goblinCtrl.activeGoblins.find(g => g.word === attackerWord)
+                    if (stillExists) {
+                      this.goblinCtrl.removeGoblinByWord(attackerWord)
+                      this.handleGoblinBreached(attackerWord)
+                    }
                   }
                 }
               })
+            }
           }
         }
       }
     }
   }
 
-  private removeGoblin(goblin: Goblin) {
-    const poof = this.add.image(goblin.x, goblin.sprite.y, 'goblin_death')
+  private destroyGoblinSprite(word: string) {
+    const sprites = this.goblinSprites.get(word)
+    if (!sprites) return
+    const poof = this.add.image(sprites.sprite.x, sprites.sprite.y, 'goblin_death')
     this.tweens.add({
       targets: poof,
       alpha: 0,
@@ -296,9 +345,9 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       duration: 400,
       onComplete: () => poof.destroy()
     })
-    goblin.sprite.destroy()
-    goblin.label.destroy()
-    this.goblins = this.goblins.filter(g => g !== goblin)
+    sprites.sprite.destroy()
+    sprites.label.destroy()
+    this.goblinSprites.delete(word)
   }
 
   protected endLevel(passed: boolean) {
