@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 interface Shield {
@@ -25,10 +25,7 @@ export class BoneKnightBoss extends BaseBossScene {
     private hpText!: Phaser.GameObjects.Text
     private timerText!: Phaser.GameObjects.Text
 
-    private bossHp = 0
-    private bossMaxHp = 0
-    private playerHp = 5
-    private timeLeft = 0
+    private hp!: BossHPState
     private timerEvent?: Phaser.Time.TimerEvent
 
     constructor() {
@@ -37,7 +34,6 @@ export class BoneKnightBoss extends BaseBossScene {
 
     init(data: { level: LevelConfig; profileSlot: number }) {
         super.init(data)
-        this.playerHp = 5
         this.phase = 1
         this.activeShieldIndex = 0
     }
@@ -50,7 +46,9 @@ export class BoneKnightBoss extends BaseBossScene {
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a0a)
 
         // HUD
-        this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+        this.hp = this.setupBossHP(this.level.wordCount)
+
+        this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
             fontSize: '22px', color: '#ff4444'
         })
         this.timerText = this.add.text(width - 20, 20, '', {
@@ -69,22 +67,12 @@ export class BoneKnightBoss extends BaseBossScene {
         this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 350, 0xbdc3c7)
         this.add.rectangle(width / 2, height * 0.42 - 225, 100, 100, 0xbdc3c7) // Head
 
-        this.bossMaxHp = this.level.wordCount
-        this.bossHp = this.bossMaxHp
-        this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Bone Knight HP: ${this.bossHp}/${this.bossMaxHp}`, {
+        this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Bone Knight HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
             fontSize: '24px', color: '#e0e0e0'
         }).setOrigin(0.5)
 
         if (this.level.timeLimit) {
-            this.timeLeft = this.level.timeLimit
-            this.timerEvent = this.time.addEvent({
-                delay: 1000, repeat: this.level.timeLimit - 1,
-                callback: () => {
-                    this.timeLeft--
-                    this.timerText.setText(`${this.timeLeft}s`)
-                    if (this.timeLeft <= 0) this.endLevel(false)
-                }
-            })
+            this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
         }
 
         this.startPhase()
@@ -176,12 +164,12 @@ export class BoneKnightBoss extends BaseBossScene {
         const pProfileBoss = loadProfile(this.profileSlot)
         const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
         const powerBonus = weaponItemBoss?.effect?.power || 0
-        this.bossHp -= (1 + powerBonus)
-        this.bossHpText.setText(`Bone Knight HP: ${Math.max(0, this.bossHp)}/${this.bossMaxHp}`)
+        this.hp.bossHp -= (1 + powerBonus)
+        this.bossHpText.setText(`Bone Knight HP: ${Math.max(0, this.hp.bossHp)}/${this.hp.bossMaxHp}`)
 
         this.activeShieldIndex++
         if (this.activeShieldIndex >= this.shields.length) {
-            if (this.bossHp <= 0) {
+            if (this.hp.bossHp <= 0) {
                 this.endLevel(true)
             } else {
                 this.phase++
@@ -222,12 +210,12 @@ export class BoneKnightBoss extends BaseBossScene {
             const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
             this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-            this.playerHp--
+            this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(200, 0.01)
 
-        if (this.playerHp <= 0) {
+        if (this.hp.playerHp <= 0) {
             this.endLevel(false)
         }
     }
