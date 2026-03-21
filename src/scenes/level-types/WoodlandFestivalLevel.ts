@@ -3,10 +3,10 @@ import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
+import { WoodlandFestivalController } from '../../controllers/WoodlandFestivalController'
 
 export class WoodlandFestivalLevel extends BaseLevelScene {
-  private playerScore = 0
-  private aiScore = 0
+  private festCtrl!: WoodlandFestivalController
   private playerScoreText!: Phaser.GameObjects.Text
   private aiScoreText!: Phaser.GameObjects.Text
   private aiTimer?: Phaser.Time.TimerEvent
@@ -15,14 +15,20 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerScore = 0
-    this.aiScore = 0
   }
 
   create() {
     const { width, height } = this.scale
 
     this.preCreate(80, height * 0.65)
+
+    // Initialize controller with the word queue
+    this.festCtrl = new WoodlandFestivalController({
+      words: [...this.wordQueue],
+      worldNumber: this.level.world,
+    })
+    // Controller owns the word queue from here; drain the scene's copy
+    this.wordQueue.length = 0
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x2d4a1e)
@@ -44,16 +50,24 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
       fontSize: '24px', color: '#ff4444'
     })
 
-    this.engine.setWord(this.wordQueue.shift()!)
+    // Set first word from controller
+    if (this.festCtrl.currentWord) {
+      this.engine.setWord(this.festCtrl.currentWord)
+    }
 
-    // AI logic
+    // AI timer — fires at the world-appropriate interval; delegates to controller
     this.aiTimer = this.time.addEvent({
-      delay: Math.max(1000, 3000 - this.level.world * 200), // AI types faster in later worlds
+      delay: this.festCtrl.aiInterval,
       loop: true,
       callback: () => {
-        if (this.finished) return
-        this.aiScore++
-        this.aiScoreText.setText(`Animal Score: ${this.aiScore}`)
+        const events = this.festCtrl.aiTick()
+        for (const ev of events) {
+          switch (ev.type) {
+            case 'ai_scored':
+              this.aiScoreText.setText(`Animal Score: ${ev.aiScore}`)
+              break
+          }
+        }
       }
     })
   }
@@ -65,13 +79,19 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
       this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
-    this.playerScore++
-    this.playerScoreText.setText(`Player Score: ${this.playerScore}`)
-
-    if (this.wordQueue.length === 0) {
-      this.endLevel(true)
-    } else {
-      this.engine.setWord(this.wordQueue.shift()!)
+    const events = this.festCtrl.wordTyped()
+    for (const ev of events) {
+      switch (ev.type) {
+        case 'player_scored':
+          this.playerScoreText.setText(`Player Score: ${ev.playerScore}`)
+          break
+        case 'word_changed':
+          this.engine.setWord(ev.word)
+          break
+        case 'level_complete':
+          this.endLevel(true)
+          break
+      }
     }
   }
 
