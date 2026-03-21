@@ -5,19 +5,16 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 export class MiniBossTypical extends BaseBossScene {
   private bossSprite!: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
-  private bossHp = 0
-  private bossMaxHp = 0
+  private hp!: BossHPState
 
-  private playerHp = 3
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private weaknessActive = false
@@ -29,7 +26,6 @@ export class MiniBossTypical extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)   // handles level, profileSlot, finished
-    this.playerHp = 3
     this.wrongKeyCount = 0
     this.nextAttackThreshold = Phaser.Math.Between(2, 5)
     const profile = loadProfile(data.profileSlot)
@@ -44,8 +40,17 @@ export class MiniBossTypical extends BaseBossScene {
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e2a)
 
+    // Apply weakness reduction to word queue and initialize HP state
+    const rawHp = this.wordQueue.length
+    const effectiveHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
+    // Trim word queue to match reduced HP
+    if (this.weaknessActive) {
+      this.wordQueue = this.wordQueue.slice(0, effectiveHp)
+    }
+    this.hp = this.setupBossHP(effectiveHp)
+
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -56,15 +61,6 @@ export class MiniBossTypical extends BaseBossScene {
     this.add.text(width / 2, 20, this.level.name + ' (Mini-Boss)', {
       fontSize: '22px', color: '#ffd700'
     }).setOrigin(0.5, 0)
-
-    // Apply weakness reduction to word queue
-    const rawHp = this.wordQueue.length
-    this.bossMaxHp = this.weaknessActive ? Math.max(1, Math.floor(rawHp * 0.8)) : rawHp
-    this.bossHp = this.bossMaxHp
-    // Trim word queue to match reduced HP
-    if (this.weaknessActive) {
-      this.wordQueue = this.wordQueue.slice(0, this.bossMaxHp)
-    }
 
     // Prominent Boss Sprite on the right
     const isOgre = this.level.name.toLowerCase().includes('ogre') ||
@@ -84,7 +80,7 @@ export class MiniBossTypical extends BaseBossScene {
         fontSize: '16px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Boss HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Boss HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
@@ -99,15 +95,7 @@ export class MiniBossTypical extends BaseBossScene {
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
     }
 
     // Boss Attack Timer (Attacks every X seconds if not defeated)
@@ -155,11 +143,11 @@ export class MiniBossTypical extends BaseBossScene {
       const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
       this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
     } else {
-      this.playerHp--
+      this.hp.playerHp--
     }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(200, 0.01)
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
@@ -178,8 +166,8 @@ export class MiniBossTypical extends BaseBossScene {
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (1 + powerBonus)
-    this.bossHpText.setText(`Boss HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.hp.bossHp -= (1 + powerBonus)
+    this.bossHpText.setText(`Boss HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`)
 
     // Visual damage cue
     if (this.bossSprite instanceof Phaser.GameObjects.Image) {
@@ -197,7 +185,7 @@ export class MiniBossTypical extends BaseBossScene {
 
     // If HP has reached 0 (possible when weapon power bonus causes >1 damage),
     // defeat the boss immediately regardless of remaining words.
-    if (this.bossHp <= 0) {
+    if (this.hp.bossHp <= 0) {
       this.endLevel(true)
       return
     }

@@ -9,6 +9,12 @@ import {
   BOSS_AVATAR_Y_OFFSET,
 } from '../constants'
 
+export interface BossHPState {
+  bossHp: number
+  bossMaxHp: number
+  playerHp: number
+}
+
 /**
  * Abstract base for all boss battle scenes.
  * Extends BaseLevelScene with boss-appropriate defaults:
@@ -45,5 +51,43 @@ export abstract class BaseBossScene extends BaseLevelScene {
         ...options,
       }
     )
+  }
+
+  /**
+   * Set up a boss countdown timer. The `onExpire` callback is invoked when
+   * the timer reaches zero. Returns the TimerEvent so callers can remove it.
+   */
+  protected setupBossTimer(
+    seconds: number,
+    timerText: Phaser.GameObjects.Text,
+    onExpire: () => void
+  ): Phaser.Time.TimerEvent {
+    let timeLeft = seconds
+    timerText.setText(`${timeLeft}s`)
+    return this.time.addEvent({
+      delay: 1000,
+      repeat: seconds - 1,
+      callback: () => {
+        timeLeft--
+        timerText.setText(`${timeLeft}s`)
+        if (timeLeft <= 0) onExpire()
+      },
+    })
+  }
+
+  /**
+   * Returns an initialized HP state object. The SCENE owns this object and
+   * updates its values directly (hp.bossHp--, hp.playerHp--) as the fight
+   * progresses. This is NOT a controller — it does not own the state after
+   * returning it. This is intentionally different from the controller pattern
+   * used elsewhere: boss HP is deeply intertwined with rendering and Phaser
+   * tween state, making a pure controller impractical.
+   */
+  protected setupBossHP(bossWordCount: number, playerStartHp = 3): BossHPState {
+    return {
+      bossHp: bossWordCount,
+      bossMaxHp: bossWordCount,
+      playerHp: playerStartHp,
+    }
   }
 }
