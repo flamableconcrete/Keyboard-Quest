@@ -41,25 +41,4 @@ export class InventoryController {
       return item?.slot === slot
     })
   }
-
-  /** Returns a stat delta description when equipping an item vs. current. */
-  getStatDelta(slot: EquipmentSlot, newItemId: string): Record<string, number> {
-    const current = this._equipment[slot]
-    const currentItem = current ? getItem(current) : null
-    const newItem = getItem(newItemId)
-    if (!newItem) return {}
-
-    const delta: Record<string, number> = {}
-    const currentEffect = currentItem?.effect ?? {}
-    const newEffect = newItem.effect ?? {}
-
-    const allKeys = new Set([...Object.keys(currentEffect), ...Object.keys(newEffect)])
-    allKeys.forEach(key => {
-      const curr = (currentEffect as Record<string, number>)[key] ?? 0
-      const next = (newEffect as Record<string, number>)[key] ?? 0
-      const diff = next - curr
-      if (diff !== 0) delta[key] = diff
-    })
-    return delta
-  }
 }
