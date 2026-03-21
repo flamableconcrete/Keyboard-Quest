@@ -6,7 +6,6 @@ import { GOLD_PER_KILL } from '../../constants'
 
 export class MagicRuneTypingLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
 
   private runeContainer!: Phaser.GameObjects.Container
@@ -44,15 +43,7 @@ export class MagicRuneTypingLevel extends BaseLevelScene {
     this.runeContainer = this.add.container(width / 2, height / 2)
 
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
 
     this.showNextWord()
