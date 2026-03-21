@@ -6,6 +6,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { WrongKeyAttackController } from '../../controllers/WrongKeyAttackController'
 
 interface Goblin {
   word: string
@@ -32,8 +33,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   private readonly BATTLE_X = 300        // where lead goblin stops in regular mode
   private readonly GOBLIN_SPACING = 120  // horizontal gap between queued goblins
   private pathY = 0                      // fixed Y for all goblins (set in create)
-  private wrongKeyCount = 0
-  private nextAttackThreshold = 0
+  private wrongKeyCtrl!: WrongKeyAttackController
 
   constructor() { super('GoblinWhackerLevel') }
 
@@ -44,8 +44,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.goblins = []
     this.activeGoblin = null
     this.letterShieldCount = 0
-    this.wrongKeyCount = 0
-    this.nextAttackThreshold = Phaser.Math.Between(5, 8)
     this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
     this.gameMode = profile?.gameMode ?? 'regular'
@@ -56,6 +54,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.pathY = height * 0.62
     this.maxGoblinReach = 80
     this.preCreate(80, this.pathY)   // handles avatar, companion, gold, word pool, engine, spells, hands
+    this.wrongKeyCtrl = new WrongKeyAttackController({ threshold: Phaser.Math.Between(5, 8) })
 
     // Generate pixel art textures
     generateGoblinWhackerTextures(this)
@@ -260,29 +259,28 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.flashOnWrongKey()
 
     if (!this.finished) {
-      this.wrongKeyCount++
-      if (this.wrongKeyCount >= this.nextAttackThreshold) {
-        this.wrongKeyCount = 0
-        this.nextAttackThreshold = Phaser.Math.Between(5, 8)
+      const events = this.wrongKeyCtrl.recordWrongKey()
+      for (const e of events) {
+        if (e.type === 'enemy_attacks') {
+          // Find goblin to attack (active one, or closest)
+          const attacker = this.activeGoblin || this.goblins.reduce<Goblin | null>((min, g) =>
+              !min || g.x < min.x ? g : min, null)
 
-        // Find goblin to attack (active one, or closest)
-        const attacker = this.activeGoblin || this.goblins.reduce<Goblin | null>((min, g) =>
-            !min || g.x < min.x ? g : min, null)
-
-        if (attacker) {
-            // Visual attack cue
-            this.tweens.add({
-              targets: attacker.sprite,
-              scaleX: 1.5,
-              scaleY: 1.5,
-              yoyo: true,
-              duration: 150,
-              onComplete: () => {
-                if (attacker.sprite && attacker.sprite.active) {
-                  this.goblinReachedPlayer(attacker)
+          if (attacker) {
+              // Visual attack cue
+              this.tweens.add({
+                targets: attacker.sprite,
+                scaleX: 1.5,
+                scaleY: 1.5,
+                yoyo: true,
+                duration: 150,
+                onComplete: () => {
+                  if (attacker.sprite && attacker.sprite.active) {
+                    this.goblinReachedPlayer(attacker)
+                  }
                 }
-              }
-            })
+              })
+          }
         }
       }
     }

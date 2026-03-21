@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
+import { WrongKeyAttackController } from '../../controllers/WrongKeyAttackController'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_BARRIER_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Skeleton {
@@ -31,8 +32,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private maxWaves = 3
   private gameMode: 'regular' | 'advanced' = 'regular'
   private waveController!: WaveController
-  private wrongKeyCount = 0
-  private nextAttackThreshold = 5
+  private wrongKeyCtrl!: WrongKeyAttackController
   private letterShieldCount = 0
   private barrierLine!: Phaser.GameObjects.Graphics
   private barrierColor = 0x0099ff
@@ -49,8 +49,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.maxWaves = data.level.waveCount
     this.skeletons = []
     this.activeSkeleton = null
-    this.wrongKeyCount = 0
-    this.nextAttackThreshold = Phaser.Math.Between(5, 8)
     this.letterShieldCount = 0
     this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
@@ -61,6 +59,9 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     const { width, height } = this.scale
     this.pathY = height * 0.55
     this.preCreate(60, this.pathY)
+
+    const threshold = Phaser.Math.Between(5, 8)
+    this.wrongKeyCtrl = new WrongKeyAttackController({ threshold })
 
     this.waveController = new WaveController({
       words: this.wordQueue,
@@ -516,23 +517,23 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.cameras.main.flash(80, 120, 0, 0)
     // Wrong-key attacks are regular mode only — in advanced mode, skeletons damage on contact instead
     if (!this.finished && this.gameMode === 'regular') {
-      this.wrongKeyCount++
-      if (this.wrongKeyCount >= this.nextAttackThreshold) {
-        this.wrongKeyCount = 0
-        this.nextAttackThreshold = Phaser.Math.Between(5, 8)
-        const attacker = this.activeSkeleton || this.skeletons[0] || null
-        if (attacker) {
-          this.tweens.add({
-            targets: attacker.sprite,
-            scaleX: 1.5,
-            scaleY: 1.5,
-            yoyo: true,
-            duration: 150,
-            onComplete: () => {
-              if (this.finished || !attacker.sprite?.active) return
-              this.skeletonReachedPlayer(attacker)
-            }
-          })
+      const events = this.wrongKeyCtrl.recordWrongKey()
+      for (const e of events) {
+        if (e.type === 'enemy_attacks') {
+          const attacker = this.activeSkeleton || this.skeletons[0] || null
+          if (attacker) {
+            this.tweens.add({
+              targets: attacker.sprite,
+              scaleX: 1.5,
+              scaleY: 1.5,
+              yoyo: true,
+              duration: 150,
+              onComplete: () => {
+                if (this.finished || !attacker.sprite?.active) return
+                this.skeletonReachedPlayer(attacker)
+              }
+            })
+          }
         }
       }
     }
