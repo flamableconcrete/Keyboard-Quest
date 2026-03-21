@@ -257,7 +257,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       this.letterShieldCount--
       return
     }
-    this.cameras.main.flash(80, 120, 0, 0)
+    this.flashOnWrongKey()
 
     if (!this.finished) {
       this.wrongKeyCount++
