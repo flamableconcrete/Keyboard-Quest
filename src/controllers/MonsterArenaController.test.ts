@@ -210,24 +210,24 @@ describe('MonsterArenaController — monsterReachedPlayer', () => {
   it('returns player_damaged event when not blocked', () => {
     const ctrl = new MonsterArenaController(baseConfig)
     ctrl.spawnMonster()
-    const events = ctrl.monsterReachedPlayer(0) // absorbChance = 0
+    const events = ctrl.monsterReachedPlayer(false)
     expect(events.find(e => e.type === 'player_damaged')).toBeDefined()
   })
 
   it('player_damaged event contains new playerHp', () => {
     const ctrl = new MonsterArenaController(baseConfig)
     ctrl.spawnMonster()
-    const events = ctrl.monsterReachedPlayer(0)
+    const events = ctrl.monsterReachedPlayer(false)
     const ev = events.find(e => e.type === 'player_damaged')
     if (ev?.type === 'player_damaged') {
       expect(ev.playerHp).toBe(2) // started at 3, now 2
     }
   })
 
-  it('returns attack_blocked event when absorbed (absorbChance=1)', () => {
+  it('returns attack_blocked event when absorbed (blocked=true)', () => {
     const ctrl = new MonsterArenaController(baseConfig)
     ctrl.spawnMonster()
-    const events = ctrl.monsterReachedPlayer(1) // fully absorbed
+    const events = ctrl.monsterReachedPlayer(true)
     expect(events.find(e => e.type === 'attack_blocked')).toBeDefined()
     expect(events.find(e => e.type === 'player_damaged')).toBeUndefined()
   })
@@ -235,28 +235,28 @@ describe('MonsterArenaController — monsterReachedPlayer', () => {
   it('player HP does not decrease when attack is blocked', () => {
     const ctrl = new MonsterArenaController(baseConfig)
     ctrl.spawnMonster()
-    ctrl.monsterReachedPlayer(1) // block
+    ctrl.monsterReachedPlayer(true)
     expect(ctrl.playerHp).toBe(3)
   })
 
   it('returns level_failed when player HP reaches 0', () => {
     const ctrl = new MonsterArenaController({ ...baseConfig, playerHp: 1 })
     ctrl.spawnMonster()
-    const events = ctrl.monsterReachedPlayer(0)
+    const events = ctrl.monsterReachedPlayer(false)
     expect(events.find(e => e.type === 'level_failed')).toBeDefined()
   })
 
   it('removes the monster when it reaches the player', () => {
     const ctrl = new MonsterArenaController(baseConfig)
     ctrl.spawnMonster()
-    ctrl.monsterReachedPlayer(0)
+    ctrl.monsterReachedPlayer(false)
     expect(ctrl.activeMonster).toBeNull()
   })
 
   it('does not return level_failed when player survives', () => {
     const ctrl = new MonsterArenaController(baseConfig) // HP 3
     ctrl.spawnMonster()
-    const events = ctrl.monsterReachedPlayer(0) // HP → 2
+    const events = ctrl.monsterReachedPlayer(false) // HP → 2
     expect(events.find(e => e.type === 'level_failed')).toBeUndefined()
   })
 })

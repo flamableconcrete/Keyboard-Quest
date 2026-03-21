@@ -104,17 +104,16 @@ export class MonsterArenaController {
 
   /**
    * Called when the monster walks to the player (reaches barrierX).
-   * `absorbChance` is the armor's block probability (0–1).
+   * `blocked` is true if the armor absorbed this attack.
    * Handles: block check, player damage, level_failed.
    * Does NOT spawn the next monster (scene calls spawnMonster separately).
    */
-  monsterReachedPlayer(absorbChance: number): MonsterArenaEvent[] {
+  monsterReachedPlayer(blocked: boolean): MonsterArenaEvent[] {
     if (!this._monster) return []
 
     this._monster = null
-    const events: MonsterArenaEvent[] = [{ type: 'monster_reached' }]
+    const events: MonsterArenaEvent[] = []
 
-    const blocked = absorbChance >= 1
     if (blocked) {
       events.push({ type: 'attack_blocked' })
       return events

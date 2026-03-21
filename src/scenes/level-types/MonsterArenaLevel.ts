@@ -115,10 +115,11 @@ export class MonsterArenaLevel extends BaseLevelScene {
 
     this.destroyMonsterVisual()
 
-    const events = this.monsterCtrl.monsterReachedPlayer(Math.random() < absorbChance ? 1 : 0)
+    const events = this.monsterCtrl.monsterReachedPlayer(Math.random() < absorbChance)
     for (const ev of events) {
       switch (ev.type) {
         case 'attack_blocked': {
+          this.cameras.main.shake(200, 0.01)
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
           break
