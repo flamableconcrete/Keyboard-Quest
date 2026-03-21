@@ -1,6 +1,6 @@
 // src/scenes/level-types/CrazedCookLevel.ts
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
+import { OrderLevelConfig } from '../../types'
 import { generateCrazedCookTextures } from '../../art/crazedCookArt'
 import { COOK_STATIONS } from '../../data/cookStations'
 import { calcMoveDuration, pickNextStationIndex } from '../../utils/cookMovement'
@@ -55,13 +55,13 @@ export class CrazedCookLevel extends BaseLevelScene {
 
   constructor() { super('CrazedCookLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: OrderLevelConfig; profileSlot: number }) {
     super.init(data)
     this.wordPool = []
     this.wordIndex = 0
     this.orders = []
     this.activeOrder = null
-    this.orderQuota = data.level.orderQuota ?? 8
+    this.orderQuota = data.level.orderQuota
     this.maxWalkoffs = data.level.maxWalkoffs ?? 3
   }
 
@@ -124,7 +124,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     })
 
     // Timer
-    this.timerEvent = this.setupLevelTimer(this.level.timeLimit ?? 90, this.timerText)
+    this.timerEvent = this.setupLevelTimer((this.level as OrderLevelConfig).timeLimit, this.timerText)
 
     // Spawn 2 initial orcs
     this.spawnOrc(0)
