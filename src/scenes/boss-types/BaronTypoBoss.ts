@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 export class BaronTypoBoss extends BaseBossScene {
@@ -17,13 +17,10 @@ export class BaronTypoBoss extends BaseBossScene {
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
 
-  private bossHp = 0
-  private bossMaxHp = 0
+  private hp!: BossHPState
 
-  private playerHp = 5
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
 
@@ -31,7 +28,6 @@ export class BaronTypoBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
     // Number of words is dictated by config, distributed across 3 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(data.level.wordCount / this.maxPhases))
@@ -45,7 +41,8 @@ export class BaronTypoBoss extends BaseBossScene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2a)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hp = this.setupBossHP(this.level.wordCount)
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -65,24 +62,12 @@ export class BaronTypoBoss extends BaseBossScene {
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
 
-    this.bossMaxHp = this.level.wordCount
-    this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc88ff'
     }).setOrigin(0.5)
 
     // Timer
-    if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
-    }
+    if (this.level.timeLimit) { this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false)) }
 
     this.startPhase()
   }
@@ -93,7 +78,7 @@ export class BaronTypoBoss extends BaseBossScene {
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
 
     // Ensure we don't generate more words than remaining boss HP
-    const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
+    const wordsToGenerate = Math.min(this.wordsPerPhase, this.hp.bossHp)
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
 
     const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.phaseWordQueue = shuffledWords
@@ -126,7 +111,7 @@ export class BaronTypoBoss extends BaseBossScene {
 
   private loadNextWord() {
     if (this.phaseWordQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
+      if (this.phase < this.maxPhases && this.hp.bossHp > 0) {
         this.phase++
         this.startPhase()
       } else {
@@ -166,12 +151,12 @@ export class BaronTypoBoss extends BaseBossScene {
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-          this.playerHp--
+          this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
 
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
@@ -190,8 +175,8 @@ export class BaronTypoBoss extends BaseBossScene {
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (1 + powerBonus)
-    this.bossHpText.setText(`Baron Typo HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.hp.bossHp -= (1 + powerBonus)
+    this.bossHpText.setText(`Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`)
 
     // Visual damage cue
     this.bossSprite.setFillStyle(0xddaabb)
