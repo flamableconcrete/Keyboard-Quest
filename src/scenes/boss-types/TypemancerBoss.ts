@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 export class TypemancerBoss extends BaseBossScene {
@@ -17,13 +17,9 @@ export class TypemancerBoss extends BaseBossScene {
   private phaseText!: Phaser.GameObjects.Text
   private mechanicText!: Phaser.GameObjects.Text
 
-  private bossHp = 0
-  private bossMaxHp = 0
-
-  private playerHp = 5
+  private hp!: BossHPState
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private visibilityTimer?: Phaser.Time.TimerEvent
@@ -32,7 +28,6 @@ export class TypemancerBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
     this.wordQueue = []
     // Number of words is dictated by config, distributed across 5 phases
@@ -46,8 +41,10 @@ export class TypemancerBoss extends BaseBossScene {
     // Pitch black background for the ultimate boss
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000)
 
+    this.hp = this.setupBossHP(this.level.wordCount)
+
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -71,23 +68,13 @@ export class TypemancerBoss extends BaseBossScene {
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 300, 350, 0x111111)
     this.bossSprite.setStrokeStyle(4, 0xffffff)
 
-    this.bossMaxHp = this.level.wordCount
-    this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Typemancer HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Typemancer HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
     }
 
     this.startPhase()
@@ -108,7 +95,7 @@ export class TypemancerBoss extends BaseBossScene {
     const difficulty = 5 // Typemancer uses all letters and hard words
 
     // Ensure we don't generate more words than remaining boss HP
-    const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
+    const wordsToGenerate = Math.min(this.wordsPerPhase, this.hp.bossHp)
 
     if (this.phase === 5) {
       // Sentence mode: 15 words distributed in sentences of 5
@@ -152,7 +139,7 @@ export class TypemancerBoss extends BaseBossScene {
 
   private loadNextWord() {
     if (this.wordQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
+      if (this.phase < this.maxPhases && this.hp.bossHp > 0) {
         this.phase++
         this.startPhase()
       } else {
@@ -196,12 +183,12 @@ export class TypemancerBoss extends BaseBossScene {
       const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
       this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
     } else {
-      this.playerHp--
+      this.hp.playerHp--
     }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
 
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
@@ -218,8 +205,8 @@ export class TypemancerBoss extends BaseBossScene {
 
     const wordsCompleted = this.phase === 5 ? word.split(' ').length : 1
     this.wordQueue.shift()
-    this.bossHp -= wordsCompleted
-    this.bossHpText.setText(`Typemancer HP: ${Math.max(0, this.bossHp)}/${this.bossMaxHp}`)
+    this.hp.bossHp -= wordsCompleted
+    this.bossHpText.setText(`Typemancer HP: ${Math.max(0, this.hp.bossHp)}/${this.hp.bossMaxHp}`)
 
     // Visual damage cue (invert colors)
     this.bossSprite.setFillStyle(0xffffff)
@@ -245,16 +232,16 @@ export class TypemancerBoss extends BaseBossScene {
       const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
       this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
     } else {
-      this.playerHp--
+      this.hp.playerHp--
     }
-      this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+      this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
       this.cameras.main.shake(300, 0.02)
 
       // Reset current word
       const word = this.wordQueue[0]
       this.engine.setWord(word)
 
-      if (this.playerHp <= 0) this.endLevel(false)
+      if (this.hp.playerHp <= 0) this.endLevel(false)
     }
   }
 
