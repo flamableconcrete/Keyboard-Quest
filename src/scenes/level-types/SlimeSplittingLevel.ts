@@ -4,7 +4,7 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
-import { SlimeController, SlimeEvent, SLIME_INITIAL_SIZE, SLIME_CHILD_SIZE } from '../../controllers/SlimeController'
+import { SlimeController, SlimeEvent } from '../../controllers/SlimeController'
 
 interface SlimeSprite {
   word: string
@@ -66,7 +66,10 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     super.update(_time, delta)
     if (this.finished) return
 
-    // Sync sprite positions from controller state
+    // Tick first so controller state is up to date, then sync sprites
+    const events = this.slimeCtrl.tick(delta)
+    this._handleEvents(events)
+
     for (const ss of this.slimeSprites) {
       const state = this.slimeCtrl.activeSlimes.find(s => s.word === ss.word)
       if (state) {
@@ -74,9 +77,6 @@ export class SlimeSplittingLevel extends BaseLevelScene {
         ss.label.setX(state.x)
       }
     }
-
-    const events = this.slimeCtrl.tick(delta)
-    this._handleEvents(events)
   }
 
   protected onWordComplete(word: string, _elapsed: number) {
@@ -153,15 +153,15 @@ export class SlimeSplittingLevel extends BaseLevelScene {
             this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, ev.newHp))}`)
             this.cameras.main.shake(200, 0.01)
           }
+          // Check for death after armor may have restored HP
+          if (this.slimeCtrl.playerHp <= 0) {
+            this.endLevel(false)
+          }
           break
         }
 
         case 'level_won':
           this.endLevel(true)
-          break
-
-        case 'level_lost':
-          this.endLevel(false)
           break
       }
     }
@@ -184,6 +184,3 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     this.slimeSprites.splice(idx, 1)
   }
 }
-
-// Re-export constants so callers have access if needed
-export { SLIME_INITIAL_SIZE, SLIME_CHILD_SIZE }

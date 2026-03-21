@@ -155,15 +155,20 @@ describe('SlimeController — tick / movement', () => {
     expect(ctrl.playerHp).toBe(2)
   })
 
-  it('tick returns level_lost when playerHp reaches 0', () => {
+  it('tick returns player_damaged with newHp 0 when last HP is lost (no level_lost event)', () => {
     const ctrl = new SlimeController({ ...baseConfig, playerHp: 1, words: ['ant', 'bat'] })
     ctrl.spawnSlime(SPAWN_X, SPAWN_Y)
     ;(ctrl as any)._slimes[0].x = baseConfig.barrierX + 1
     const events = ctrl.tick(1000)
-    expect(events.find(e => e.type === 'level_lost')).toBeDefined()
+    const dmgEv = events.find(e => e.type === 'player_damaged')
+    expect(dmgEv).toBeDefined()
+    if (dmgEv?.type === 'player_damaged') {
+      expect(dmgEv.newHp).toBe(0)
+    }
+    expect((events as Array<{ type: string }>).find(e => e.type === 'level_lost')).toBeUndefined()
   })
 
-  it('isLost is true after level_lost', () => {
+  it('isLost is true after playerHp reaches 0', () => {
     const ctrl = new SlimeController({ ...baseConfig, playerHp: 1, words: ['ant'] })
     ctrl.spawnSlime(SPAWN_X, SPAWN_Y)
     ;(ctrl as any)._slimes[0].x = baseConfig.barrierX + 1
@@ -184,6 +189,25 @@ describe('SlimeController — tick / movement', () => {
     const ctrl = new SlimeController(baseConfig)
     const events = spawnAndBreach(ctrl)
     expect(events.find(e => e.type === 'active_word_changed')).toBeDefined()
+  })
+
+  it('armor absorbs hit when playerHp is 1 — restoreHp brings HP back to 1, no level_lost event', () => {
+    const ctrl = new SlimeController({ ...baseConfig, playerHp: 1, words: ['ant', 'bat'] })
+    const events = spawnAndBreach(ctrl)
+    // player_damaged emitted with newHp: 0; no level_lost in the same array
+    const dmgEv = events.find(e => e.type === 'player_damaged')
+    expect(dmgEv).toBeDefined()
+    if (dmgEv?.type === 'player_damaged') {
+      expect(dmgEv.newHp).toBe(0)
+    }
+    expect((events as Array<{ type: string }>).find(e => e.type === 'level_lost')).toBeUndefined()
+    // isLost is computed — currently true since playerHp is 0
+    expect(ctrl.isLost).toBe(true)
+    // Scene calls restoreHp(1) — simulating armor absorb
+    ctrl.restoreHp(1)
+    expect(ctrl.playerHp).toBe(1)
+    // isLost is now false because playerHp > 0 — controller can continue ticking
+    expect(ctrl.isLost).toBe(false)
   })
 })
 
@@ -405,25 +429,48 @@ describe('SlimeController — removeSlimeByWord (cleave / spell)', () => {
 })
 
 // ---------------------------------------------------------------------------
-describe('SlimeController — _splitWord', () => {
+describe('SlimeController — _splitWord (tested via wordTyped + slime_split event)', () => {
   it('splits even-length word equally', () => {
-    const ctrl = new SlimeController(baseConfig)
-    expect(ctrl._splitWord('abcd')).toEqual(['ab', 'cd'])
+    const ctrl = new SlimeController({ ...baseConfig, words: ['abcd'] })
+    ctrl.spawnSlime(SPAWN_X, SPAWN_Y)
+    const events = ctrl.wordTyped('abcd')
+    const ev = events.find(e => e.type === 'slime_split')
+    expect(ev).toBeDefined()
+    if (ev?.type === 'slime_split') {
+      expect(ev.children[0].word).toBe('ab')
+      expect(ev.children[1].word).toBe('cd')
+    }
   })
 
   it('splits odd-length word with first half larger', () => {
     const ctrl = new SlimeController(baseConfig)
-    expect(ctrl._splitWord('hello')).toEqual(['hel', 'lo'])
+    ctrl.spawnSlime(SPAWN_X, SPAWN_Y)  // 'hello'
+    const events = ctrl.wordTyped('hello')
+    const ev = events.find(e => e.type === 'slime_split')
+    expect(ev).toBeDefined()
+    if (ev?.type === 'slime_split') {
+      expect(ev.children[0].word).toBe('hel')
+      expect(ev.children[1].word).toBe('lo')
+    }
   })
 
   it('splits 3-char word: first 2 + last 1', () => {
-    const ctrl = new SlimeController(baseConfig)
-    expect(ctrl._splitWord('ant')).toEqual(['an', 't'])
+    const ctrl = new SlimeController({ ...baseConfig, words: ['ant'] })
+    ctrl.spawnSlime(SPAWN_X, SPAWN_Y)
+    const events = ctrl.wordTyped('ant')
+    const ev = events.find(e => e.type === 'slime_split')
+    expect(ev).toBeDefined()
+    if (ev?.type === 'slime_split') {
+      expect(ev.children[0].word).toBe('an')
+      expect(ev.children[1].word).toBe('t')
+    }
   })
 
-  it('splits 2-char word: first 1 + last 1', () => {
-    const ctrl = new SlimeController(baseConfig)
-    expect(ctrl._splitWord('ab')).toEqual(['a', 'b'])
+  it('2-char word does NOT split (tested via wordTyped)', () => {
+    const ctrl = new SlimeController({ ...baseConfig, words: ['ab'] })
+    ctrl.spawnSlime(SPAWN_X, SPAWN_Y)
+    const events = ctrl.wordTyped('ab')
+    expect(events.find(e => e.type === 'slime_split')).toBeUndefined()
   })
 })
 

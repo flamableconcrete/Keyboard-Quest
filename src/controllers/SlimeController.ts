@@ -20,7 +20,6 @@ export type SlimeEvent =
   | { type: 'active_word_changed'; word: string | null }
   | { type: 'player_damaged'; word: string; newHp: number }
   | { type: 'level_won' }
-  | { type: 'level_lost' }
 
 export interface SlimeState {
   word: string
@@ -45,7 +44,6 @@ export class SlimeController {
   private _activeWord: string | null = null
   private _playerHp: number
   private _isWon = false
-  private _isLost = false
   readonly wordQueue: string[]
   private readonly speed: number
 
@@ -59,7 +57,8 @@ export class SlimeController {
   get activeWord(): string | null { return this._activeWord }
   get playerHp(): number { return this._playerHp }
   get isWon(): boolean { return this._isWon }
-  get isLost(): boolean { return this._isLost }
+  /** True when playerHp has reached 0 and armor has not restored it. */
+  get isLost(): boolean { return this._playerHp <= 0 }
 
   /**
    * Dequeue one word and register it as a new slime.
@@ -67,7 +66,7 @@ export class SlimeController {
    * Returns spawn event(s), or empty array if the queue is empty.
    */
   spawnSlime(x: number, y: number): SlimeEvent[] {
-    if (this._isWon || this._isLost) return []
+    if (this._isWon || this.isLost) return []
     if (this.wordQueue.length === 0) return []
 
     const word = this.wordQueue.shift()!
@@ -86,10 +85,11 @@ export class SlimeController {
 
   /**
    * Advance all slime positions by `delta` ms.
-   * Returns player_damaged / level_lost events for slimes that reach the barrier.
+   * Returns player_damaged events for slimes that reach the barrier.
+   * The scene should check `playerHp <= 0` after handling player_damaged to decide game-over.
    */
   tick(delta: number): SlimeEvent[] {
-    if (this._isWon || this._isLost) return []
+    if (this._isWon || this.isLost) return []
 
     const dt = delta / 1000
     const events: SlimeEvent[] = []
@@ -115,7 +115,7 @@ export class SlimeController {
    * Returns events for the scene to act on.
    */
   wordTyped(word: string): SlimeEvent[] {
-    if (this._isWon || this._isLost) return []
+    if (this._isWon || this.isLost) return []
 
     const slime = this._slimes.find(s => s.word === word)
     if (!slime) return []
@@ -157,7 +157,7 @@ export class SlimeController {
    * Does NOT split — removes the slime directly.
    */
   removeSlimeByWord(word: string): SlimeEvent[] {
-    if (this._isWon || this._isLost) return []
+    if (this._isWon || this.isLost) return []
 
     const slime = this._slimes.find(s => s.word === word)
     if (!slime) return []
@@ -178,11 +178,10 @@ export class SlimeController {
 
   /**
    * Restore playerHp by `amount` (used when armor absorbs an attack).
-   * Clamps to the original starting HP. Clears the lost flag if HP is restored above 0.
+   * Clamps to the original starting HP.
    */
   restoreHp(amount: number): void {
     this._playerHp = Math.min(this._playerHp + amount, this.config.playerHp)
-    if (this._playerHp > 0) this._isLost = false
   }
 
   // ---------------------------------------------------------------------------
@@ -193,7 +192,7 @@ export class SlimeController {
    * Split a word into two halves: left = first ceil(len/2) chars, right = remainder.
    * This matches the existing scene logic exactly.
    */
-  _splitWord(word: string): [string, string] {
+  private _splitWord(word: string): [string, string] {
     const mid = Math.ceil(word.length / 2)
     return [word.slice(0, mid), word.slice(mid)]
   }
@@ -212,11 +211,6 @@ export class SlimeController {
     if (nextWord !== this._activeWord) {
       this._activeWord = nextWord
       events.push({ type: 'active_word_changed', word: nextWord })
-    }
-
-    if (this._playerHp <= 0) {
-      this._isLost = true
-      events.push({ type: 'level_lost' })
     }
 
     return events
