@@ -116,6 +116,43 @@ describe('BaseLevelScene.setupLevelTimer', () => {
   })
 })
 
+describe('BaseLevelScene.setupLevelTimer with onTick', () => {
+  it('calls onTick with the new remaining value after each decrement', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).init({ level: mockLevel, profileSlot: 0 })
+    ;(scene as any)._preCreateCalled = true
+
+    let timerCallback: (() => void) | null = null
+    ;(scene as any).time = {
+      addEvent: (_opts: { delay: number; repeat: number; callback: () => void }) => {
+        timerCallback = _opts.callback
+        return { remove: () => {} }
+      },
+      delayedCall: (_ms: number, cb: () => void) => cb(),
+    }
+    ;(scene as any).scene = { start: () => {}, key: 'Test' }
+
+    const endLevelSpy = vi.fn()
+    ;(scene as any).endLevel = endLevelSpy
+
+    const onTickSpy = vi.fn()
+    const fakeText = { setText: () => {} }
+    ;(scene as any).setupLevelTimer(3, fakeText, onTickSpy)
+
+    expect(timerCallback).not.toBeNull()
+
+    // Fire 3 ticks
+    timerCallback!()  // remaining = 2
+    timerCallback!()  // remaining = 1
+    timerCallback!()  // remaining = 0
+
+    expect(onTickSpy).toHaveBeenCalledTimes(3)
+    expect(onTickSpy).toHaveBeenNthCalledWith(1, 2)
+    expect(onTickSpy).toHaveBeenNthCalledWith(2, 1)
+    expect(onTickSpy).toHaveBeenNthCalledWith(3, 0)
+  })
+})
+
 describe('BaseLevelScene._preCreateCalled guard', () => {
   let scene: TestLevelScene
 

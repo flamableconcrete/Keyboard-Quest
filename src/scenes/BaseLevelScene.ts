@@ -161,10 +161,13 @@ export abstract class BaseLevelScene extends Phaser.Scene {
    *   if (this.level.timeLimit) {
    *     this.timerEvent = this.setupLevelTimer(this.level.timeLimit, timerText)
    *   }
+   *
+   * @param onTick Optional callback fired after each decrement with the new remaining value
    */
   protected setupLevelTimer(
     seconds: number,
-    displayText: Phaser.GameObjects.Text
+    displayText: Phaser.GameObjects.Text,
+    onTick?: (remaining: number) => void
   ): Phaser.Time.TimerEvent {
     let timeLeft = seconds
     displayText.setText(`${timeLeft}s`)
@@ -174,6 +177,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       callback: () => {
         timeLeft--
         displayText.setText(`${timeLeft}s`)
+        onTick?.(timeLeft)
         if (timeLeft <= 0) this.endLevel(false)
       },
     })
