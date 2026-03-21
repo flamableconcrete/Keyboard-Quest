@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 export class DiceLichBoss extends BaseBossScene {
@@ -20,12 +20,9 @@ export class DiceLichBoss extends BaseBossScene {
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
 
-  private bossHp = 0
-  private bossMaxHp = 0
-  private playerHp = 5
+  private hp!: BossHPState
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private currentCurse = 0
@@ -34,7 +31,6 @@ export class DiceLichBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
     this.wordsPerPhase = Math.max(1, Math.ceil(data.level.wordCount / this.maxPhases))
   }
@@ -46,7 +42,8 @@ export class DiceLichBoss extends BaseBossScene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x050505)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hp = this.setupBossHP(this.level.wordCount)
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -75,24 +72,12 @@ export class DiceLichBoss extends BaseBossScene {
       fontSize: '18px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.bossMaxHp = this.level.wordCount
-    this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#00ff88'
     }).setOrigin(0.5)
 
     // Timer
-    if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
-    }
+    if (this.level.timeLimit) { this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false)) }
 
     this.startPhase()
   }
@@ -104,7 +89,7 @@ export class DiceLichBoss extends BaseBossScene {
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
 
     // Ensure we don't generate more words than remaining boss HP
-    const wordsToGenerate = Math.min(this.wordsPerPhase, this.bossHp)
+    const wordsToGenerate = Math.min(this.wordsPerPhase, this.hp.bossHp)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
 
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
@@ -139,7 +124,7 @@ export class DiceLichBoss extends BaseBossScene {
 
   private loadNextWord() {
     if (this.phaseWordQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
+      if (this.phase < this.maxPhases && this.hp.bossHp > 0) {
         this.phase++
         this.startPhase()
       } else {
@@ -205,15 +190,15 @@ export class DiceLichBoss extends BaseBossScene {
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-          this.playerHp -= damage
+          this.hp.playerHp -= damage
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
         if (this.currentCurse === 6) {
            this.cameras.main.flash(200, 255, 0, 0)
         }
 
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
@@ -231,10 +216,10 @@ export class DiceLichBoss extends BaseBossScene {
     const damageToBoss = (this.currentCurse === 6) ? 2 : 1
 
     this.phaseWordQueue.shift()
-    this.bossHp -= damageToBoss
-    if (this.bossHp < 0) this.bossHp = 0
+    this.hp.bossHp -= damageToBoss
+    if (this.hp.bossHp < 0) this.hp.bossHp = 0
 
-    this.bossHpText.setText(`Dice Lich HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.bossHpText.setText(`Dice Lich HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`)
 
     // Visual damage cue
     this.bossSprite.setFillStyle(0xffffff)
@@ -262,12 +247,12 @@ export class DiceLichBoss extends BaseBossScene {
   protected onWrongKey() {
     if (this.currentCurse === 6) {
         // Critical Strike: Typo deals 2 damage and resets
-        this.playerHp -= 2
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hp.playerHp -= 2
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(400, 0.03)
         this.cameras.main.flash(200, 255, 0, 0)
 
-        if (this.playerHp <= 0) {
+        if (this.hp.playerHp <= 0) {
             this.endLevel(false)
         } else {
             // Reset word progress
