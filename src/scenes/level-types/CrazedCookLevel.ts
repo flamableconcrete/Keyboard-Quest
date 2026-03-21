@@ -50,6 +50,7 @@ export class CrazedCookLevel extends BaseLevelScene {
   private orders: OrcOrder[] = []
   private activeOrder: OrcOrder | null = null
   private orderQuota = 8
+  private timeLimit!: number
   private maxWalkoffs = 3
   private kitchenController!: KitchenController
 
@@ -62,6 +63,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     this.orders = []
     this.activeOrder = null
     this.orderQuota = data.level.orderQuota
+    this.timeLimit = data.level.timeLimit
     this.maxWalkoffs = data.level.maxWalkoffs ?? 3
   }
 
@@ -124,7 +126,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     })
 
     // Timer
-    this.timerEvent = this.setupLevelTimer(this.level.timeLimit ?? 90, this.timerText)
+    this.timerEvent = this.setupLevelTimer(this.timeLimit, this.timerText)
 
     // Spawn 2 initial orcs
     this.spawnOrc(0)
