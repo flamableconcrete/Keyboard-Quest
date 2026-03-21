@@ -56,8 +56,6 @@ export class MonsterManualLevel extends BaseLevelScene {
   }
 
   protected endLevel(passed: boolean) {
-    if (this.finished) return
-
     const profile = loadProfile(this.profileSlot)// Record that the player has learned the boss weakness for this world
     if (profile && passed) {
       const worldBossMap: Record<number, string> = {
