@@ -27,7 +27,6 @@ export interface PreCreateOptions {
   engineY?: number
   engineFontSize?: number
   handsYOffset?: number
-  endDelayMs?: number
 }
 
 export abstract class BaseLevelScene extends Phaser.Scene {
@@ -76,11 +75,12 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       avatarScale = LEVEL_AVATAR_SCALE,
       engineFontSize = LEVEL_ENGINE_FONT_SIZE,
       handsYOffset = TYPING_HANDS_Y_OFFSET,
+      engineY: engineYOverride,
     } = options
 
     setupPause(this, this.profileSlot)
     const { width, height } = this.scale
-    const engineY = options.engineY ?? (height - LEVEL_ENGINE_Y_OFFSET)
+    const engineY = engineYOverride ?? (height - LEVEL_ENGINE_Y_OFFSET)
 
     // Resolve optional avatar position defaults
     const ax = avatarX ?? 100

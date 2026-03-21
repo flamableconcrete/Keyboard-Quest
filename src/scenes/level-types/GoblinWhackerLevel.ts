@@ -5,7 +5,7 @@ import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Goblin {
   word: string
@@ -120,7 +120,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     if (effect === 'time_freeze') {
       this.goblins.forEach(g => { g.speed = 0 })
       this.time.delayedCall(5000, () => {
-        this.goblins.forEach(g => { g.speed = 60 + this.level.world * 10 })
+        this.goblins.forEach(g => { g.speed = SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD })
       })
     } else if (effect === 'word_blast') {
       const nearest = this.goblins.reduce<Goblin | null>((min, g) =>
@@ -147,7 +147,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       fontSize: '20px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
-    const goblin: Goblin = { word, x: width + 30, speed: 60 + this.level.world * 10, sprite, label, hp: 1 }
+    const goblin: Goblin = { word, x: width + 30, speed: SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD, sprite, label, hp: 1 }
     this.goblins.push(goblin)
 
     // Auto-focus first goblin
