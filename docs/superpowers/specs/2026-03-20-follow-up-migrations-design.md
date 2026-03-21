@@ -51,20 +51,22 @@ verifying `onTick` is called each tick with the correct `remaining` value.
 - Replace inline `time.addEvent` block with `this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)`
 - Verify `endLevel` override still calls `this.timerEvent?.remove()`
 
-**`DungeonPlatformerLevel`** — uses `onTick` for color effects:
+**`DungeonPlatformerLevel`** — uses `onTick` for emoji + color effects:
 - Remove `private timeLeft` field
-- Replace inline timer with:
+- The existing `updateTimerDisplay()` method sets `⏳ ${timeLeft}s` text and
+  applies `#ffcc44` (normal) / `#ff4444` (≤10s urgent) color. Preserve this
+  behavior in the `onTick` callback.
+- Replace the inline timer block (in `create()`) and its `updateTimerDisplay()`
+  calls with:
   ```typescript
-  this.timerEvent = this.setupLevelTimer(
-    this.level.timeLimit,
-    this.timerText,
-    (remaining) => {
-      this.timerText.setColor(remaining <= 10 ? '#ff4444' : '#ffffff')
-    }
-  )
+  const formatTimer = (remaining: number) => {
+    this.timerText.setText(`⏳ ${remaining}s`)
+    this.timerText.setColor(remaining <= 10 ? '#ff4444' : '#ffcc44')
+  }
+  this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText, formatTimer)
+  formatTimer(this.level.timeLimit) // fix up initial display (setupLevelTimer sets plain text first)
   ```
-- Remove the `updateTimerDisplay()` call from `update()` (and the method itself
-  if it only contained the color logic)
+- Delete the `updateTimerDisplay()` method entirely after migration
 
 ### Files changed
 
@@ -82,7 +84,7 @@ verifying `onTick` is called each tick with the correct `remaining` value.
 
 ### Summary
 
-Migrate 9 remaining boss scenes to `setupBossHP` / `setupBossTimer`. All extend
+Migrate 11 remaining boss scenes to `setupBossHP` / `setupBossTimer`. All extend
 `BaseBossScene` directly.
 
 ### HP migration
@@ -125,6 +127,8 @@ this.timerEvent = this.setupBossTimer(
 - `src/scenes/boss-types/SlimeKingBoss.ts`
 - `src/scenes/boss-types/TypemancerBoss.ts`
 - `src/scenes/boss-types/DiceLichBoss.ts`
+- `src/scenes/boss-types/AncientDragonBoss.ts`
+- `src/scenes/boss-types/BaronTypoBoss.ts`
 
 ---
 
@@ -211,8 +215,15 @@ Six `init` signatures updated:
 | `CrazedCookLevel` | `OrderLevelConfig` |
 
 `CrazedCookLevel` also removes the `?? 8` fallback on `orderQuota` since
-`OrderLevelConfig` makes it required. Build verifies all data entries have the
-field.
+`OrderLevelConfig` makes it required.
+
+**Data fix required before narrowing `CrazedCookLevel`:** The world4 and world5
+`CrazedCook` entries currently have no `orderQuota` field and `timeLimit: null`.
+Before applying `OrderLevelConfig` (which requires both `timeLimit: number` and
+`orderQuota: number`):
+1. Add `orderQuota` to each entry (match the world's difficulty intent)
+2. Replace `timeLimit: null` with a real time limit (e.g. `90`)
+3. Run `npm run build` — TypeScript will surface any remaining data gaps
 
 ### Files changed
 
