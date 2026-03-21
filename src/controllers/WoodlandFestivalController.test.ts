@@ -226,9 +226,12 @@ describe('WoodlandFestivalController — winner determination', () => {
     ctrl.wordTyped() // player 1, AI 0
     ctrl.aiTick()    // player 1, AI 1
     ctrl.wordTyped() // player 2, AI 1
-    ctrl.wordTyped() // player 3, AI 1 → level_complete, player wins
-    const ev = ctrl.playerScore > ctrl.aiScore
-    expect(ev).toBe(true)
+    const events = ctrl.wordTyped() // player 3, AI 1 → level_complete, player wins
+    const ev = events.find(e => e.type === 'level_complete')
+    expect(ev).toBeDefined()
+    if (ev?.type === 'level_complete') {
+      expect(ev.winner).toBe('player')
+    }
     expect(ctrl.isFinished).toBe(true)
   })
 })

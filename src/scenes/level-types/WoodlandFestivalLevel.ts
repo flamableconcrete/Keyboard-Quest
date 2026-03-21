@@ -1,6 +1,5 @@
 // src/scenes/level-types/WoodlandFestivalLevel.ts
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
 import { WoodlandFestivalController } from '../../controllers/WoodlandFestivalController'
@@ -12,10 +11,6 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
   private aiTimer?: Phaser.Time.TimerEvent
 
   constructor() { super('WoodlandFestivalLevel') }
-
-  init(data: { level: LevelConfig; profileSlot: number }) {
-    super.init(data)
-  }
 
   create() {
     const { width, height } = this.scale
@@ -89,6 +84,7 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
           this.engine.setWord(ev.word)
           break
         case 'level_complete':
+          // winner (e.winner) is computed but not displayed yet — reserved for future UI
           this.endLevel(true)
           break
       }
