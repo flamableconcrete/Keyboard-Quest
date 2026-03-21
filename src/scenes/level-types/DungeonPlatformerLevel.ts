@@ -6,7 +6,7 @@ import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { PlatformerController } from '../../controllers/PlatformerController'
-import { GOLD_PER_KILL } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -28,7 +28,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   private isAdvanced = false
 
   // HP (advanced mode only)
-  private playerHp = 3
+  private playerHp = DEFAULT_PLAYER_HP
   private heartIcons: Phaser.GameObjects.Image[] = []
   private vignette!: Phaser.GameObjects.Graphics
   private lowHpTween?: Phaser.Tweens.Tween
@@ -59,7 +59,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 3
+    this.playerHp = DEFAULT_PLAYER_HP
     this.heartIcons = []
     this.dustParticles = []
     this.floorTiles = []
