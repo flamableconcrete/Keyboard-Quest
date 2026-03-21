@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
-import { LevelConfig, SpellData } from '../../types'
+import { WaveLevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
@@ -45,7 +45,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
 
   constructor() { super('SkeletonSwarmLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: WaveLevelConfig; profileSlot: number }) {
     super.init(data)
     this.skeletonsDefeated = 0
     this.playerHp = DEFAULT_PLAYER_HP

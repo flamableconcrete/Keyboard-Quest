@@ -104,6 +104,26 @@ export interface LevelConfig {
   waveCount?: number        // for SkeletonSwarm: number of waves before victory
 }
 
+/** Config for wave-based levels (SkeletonSwarm, UndeadSiege, etc.) */
+export interface WaveLevelConfig extends LevelConfig {
+  waveCount: number
+}
+
+/** Config for timed levels (GoblinWhacker, CrazedCook, etc.) */
+export interface TimedLevelConfig extends LevelConfig {
+  timeLimit: number
+}
+
+/** Config for order-quota levels (CrazedCook) */
+export interface OrderLevelConfig extends TimedLevelConfig {
+  orderQuota: number
+}
+
+/** Config for siege levels with castle HP (UndeadSiege) */
+export interface SiegeLevelConfig extends WaveLevelConfig {
+  castleHp: number
+}
+
 export interface ItemData {
   id: string
   name: string
