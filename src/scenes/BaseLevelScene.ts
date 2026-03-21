@@ -20,6 +20,7 @@ import {
   LEVEL_END_DELAY_MS,
   PET_SPEED_BASE,
   PET_SPEED_COEFF,
+  GOLD_PER_KILL,
 } from '../constants'
 
 export interface PreCreateOptions {
@@ -225,6 +226,21 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   /** Advance GoldManager each frame. Subclasses should call super.update(). */
   update(_time: number, delta: number) {
     this.goldManager?.update(delta)
+  }
+
+  /** Spawn a gold drop near the center of the screen. Call from onWordComplete. */
+  protected spawnWordGold(): void {
+    if (!this.goldManager) return
+    const cx = this.scale.width / 2
+    const cy = this.scale.height / 2
+    const dropX = cx + (Math.random() * 200 - 100)
+    const dropY = cy + (Math.random() * 100 - 50)
+    this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL)
+  }
+
+  /** Flash the screen red briefly. Call from onWrongKey. */
+  protected flashOnWrongKey(): void {
+    this.cameras.main.flash(80, 120, 0, 0)
   }
 
   protected abstract onWordComplete(word: string, elapsed: number): void

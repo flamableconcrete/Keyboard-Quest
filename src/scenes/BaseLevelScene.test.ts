@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BaseLevelScene } from './BaseLevelScene'
 import { LevelConfig } from '../types'
+import { GOLD_PER_KILL } from '../constants'
 
 // Mock Phaser.Scene for unit tests
 vi.mock('phaser', () => ({
@@ -156,5 +157,40 @@ describe('BaseLevelScene._preCreateCalled guard', () => {
     expect(() => {
       ;(scene as any).endLevel(true)
     }).not.toThrow()
+  })
+})
+
+describe('BaseLevelScene.spawnWordGold', () => {
+  it('calls goldManager.spawnGold with GOLD_PER_KILL', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).init({ level: mockLevel, profileSlot: 0 })
+    const spawnSpy = vi.fn()
+    ;(scene as any).goldManager = { spawnGold: spawnSpy }
+    ;(scene as any).scale = { width: 1280, height: 720 }
+
+    ;(scene as any).spawnWordGold()
+
+    expect(spawnSpy).toHaveBeenCalledOnce()
+    expect(spawnSpy.mock.calls[0][2]).toBe(GOLD_PER_KILL)
+  })
+
+  it('does nothing if goldManager is absent', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).goldManager = null
+    ;(scene as any).scale = { width: 1280, height: 720 }
+    expect(() => (scene as any).spawnWordGold()).not.toThrow()
+  })
+})
+
+describe('BaseLevelScene.flashOnWrongKey', () => {
+  it('calls cameras.main.flash with correct arguments', () => {
+    const scene = new TestLevelScene()
+    const flashSpy = vi.fn()
+    ;(scene as any).cameras = { main: { flash: flashSpy } }
+
+    ;(scene as any).flashOnWrongKey()
+
+    expect(flashSpy).toHaveBeenCalledOnce()
+    expect(flashSpy).toHaveBeenCalledWith(80, 120, 0, 0)
   })
 })

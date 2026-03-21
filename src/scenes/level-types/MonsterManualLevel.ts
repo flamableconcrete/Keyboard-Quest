@@ -2,7 +2,6 @@
 import { LevelConfig } from '../../types'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
 
 export class MonsterManualLevel extends BaseLevelScene {
   constructor() { super('MonsterManualLevel') }
@@ -38,11 +37,7 @@ export class MonsterManualLevel extends BaseLevelScene {
   }
 
   protected onWordComplete(_word: string, _elapsed: number) {
-    if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
-    }
+    this.spawnWordGold()
 
     if (this.wordQueue.length === 0) {
       this.endLevel(true)
@@ -52,7 +47,7 @@ export class MonsterManualLevel extends BaseLevelScene {
   }
 
   protected onWrongKey() {
-    this.cameras.main.flash(50, 100, 0, 0)
+    this.flashOnWrongKey()
   }
 
   protected endLevel(passed: boolean) {

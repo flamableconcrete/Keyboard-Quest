@@ -2,7 +2,6 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
 
 export class DungeonEscapeLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
@@ -70,11 +69,7 @@ export class DungeonEscapeLevel extends BaseLevelScene {
   }
 
   protected onWordComplete(_word: string, _elapsed: number) {
-    if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
-    }
+    this.spawnWordGold()
 
     const completed = this.totalWords - this.wordQueue.length
     const pct = completed / this.totalWords
@@ -87,7 +82,7 @@ export class DungeonEscapeLevel extends BaseLevelScene {
   }
 
   protected onWrongKey() {
-    this.cameras.main.flash(80, 120, 0, 0)
+    this.flashOnWrongKey()
   }
 
   update(_time: number, delta: number) {
