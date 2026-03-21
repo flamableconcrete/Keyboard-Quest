@@ -3,7 +3,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 export class FlashWordBoss extends BaseBossScene {
@@ -15,9 +15,7 @@ export class FlashWordBoss extends BaseBossScene {
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
 
-  private bossHp = 0
-  private bossMaxHp = 0
-  private playerHp = 5
+  private hp!: BossHPState
   private hpText!: Phaser.GameObjects.Text
 
   private wordIsHidden = false
@@ -27,7 +25,6 @@ export class FlashWordBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
   }
 
@@ -36,7 +33,8 @@ export class FlashWordBoss extends BaseBossScene {
     const { width, height } = this.scale
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2e)
 
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hp = this.setupBossHP(this.level.wordCount)
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
 
@@ -46,9 +44,7 @@ export class FlashWordBoss extends BaseBossScene {
 
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 250, 250, 0x9b30ff)
 
-    this.bossMaxHp = this.level.wordCount
-    this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc33ff'
     }).setOrigin(0.5)
 
@@ -58,7 +54,7 @@ export class FlashWordBoss extends BaseBossScene {
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
-    const wordsToGenerate = Math.min(Math.ceil(this.level.wordCount / this.maxPhases), this.bossHp)
+    const wordsToGenerate = Math.min(Math.ceil(this.level.wordCount / this.maxPhases), this.hp.bossHp)
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
     const shuffledWords = [...words]; Phaser.Utils.Array.Shuffle(shuffledWords); this.wordQueue = shuffledWords
     this.loadNextWord()
@@ -66,7 +62,7 @@ export class FlashWordBoss extends BaseBossScene {
 
   private loadNextWord() {
     if (this.wordQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
+      if (this.phase < this.maxPhases && this.hp.bossHp > 0) {
         this.phase++
         this.startPhase()
       } else {
@@ -99,8 +95,8 @@ export class FlashWordBoss extends BaseBossScene {
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (1 + powerBonus)
-    this.bossHpText.setText(`Flash Void HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.hp.bossHp -= (1 + powerBonus)
+    this.bossHpText.setText(`Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`)
 
     // Visual damage cue
     this.bossSprite.setFillStyle(0xffffff)
@@ -122,11 +118,11 @@ export class FlashWordBoss extends BaseBossScene {
       const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
       this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
     } else {
-      this.playerHp--
+      this.hp.playerHp--
     }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.01)
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
     }
   }
 
