@@ -5,7 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
-import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_BARRIER_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Skeleton {
   word: string
@@ -40,9 +40,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private riseEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
   private boneBurstEmitter?: Phaser.GameObjects.Particles.ParticleEmitter
 
-  // Barrier constant (used for WaveController config and barrier rendering)
-  private readonly BARRIER_X = 265
-
   constructor() { super('SkeletonSwarmLevel') }
 
   init(data: { level: WaveLevelConfig; profileSlot: number }) {
@@ -69,7 +66,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       words: this.wordQueue,
       maxWaves: this.maxWaves,
       worldNumber: this.level.world,
-      barrierX: this.BARRIER_X,
+      barrierX: SKELETON_BARRIER_X,
       canvasWidth: this.scale.width,
     })
     // Clear wordQueue — WaveController owns it now
@@ -156,7 +153,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.barrierLine = this.add.graphics().setDepth(6)
     this.redrawBarrier(0)
     // Energy motes rising along the barrier
-    this.add.particles(this.BARRIER_X, 0, 'ss_ash_particle', {
+    this.add.particles(SKELETON_BARRIER_X, 0, 'ss_ash_particle', {
       x: { min: -8, max: 8 },
       y: { min: height * 0.2, max: height * 0.85 },
       speedX: { min: -18, max: 18 },
@@ -169,7 +166,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       quantity: 1,
     }).setDepth(7)
     // Electric sparks shooting toward skeletons
-    this.add.particles(this.BARRIER_X, 0, 'ss_ash_particle', {
+    this.add.particles(SKELETON_BARRIER_X, 0, 'ss_ash_particle', {
       x: { min: -4, max: 4 },
       y: { min: height * 0.2, max: height * 0.85 },
       speedX: { min: 50, max: 200 },
@@ -411,7 +408,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
 
   private redrawBarrier(time: number) {
     const { height } = this.scale
-    const bx = this.BARRIER_X
+    const bx = SKELETON_BARRIER_X
     const top = height * 0.2
     const bot = height * 0.85
     const color = this.barrierColor
