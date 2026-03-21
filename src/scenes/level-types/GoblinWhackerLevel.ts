@@ -5,7 +5,7 @@ import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
 
 interface Goblin {
   word: string
@@ -132,12 +132,12 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     const word = this.wordQueue.shift()!
     const { width } = this.scale
     const y = this.pathY
-    const sprite = this.add.image(width + 30, y, 'goblin')
-    const label = this.add.text(width + 30, y - 60, word, {
+    const sprite = this.add.image(width + SPAWN_OFFSCREEN_MARGIN, y, 'goblin')
+    const label = this.add.text(width + SPAWN_OFFSCREEN_MARGIN, y - 60, word, {
       fontSize: '20px', color: '#ffffff',
       backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
-    const goblin: Goblin = { word, x: width + 30, speed: SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD, sprite, label, hp: 1 }
+    const goblin: Goblin = { word, x: width + SPAWN_OFFSCREEN_MARGIN, speed: SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD, sprite, label, hp: 1 }
     this.goblins.push(goblin)
 
     // Auto-focus first goblin

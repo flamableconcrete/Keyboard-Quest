@@ -3,7 +3,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
 
 interface Slime {
   word: string
@@ -54,7 +54,7 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     const word = this.wordQueue.shift()!
     const { width, height } = this.scale
     const y = Phaser.Math.Between(150, height - 150)
-    this.createSlime(word, width + 30, y, 40)
+    this.createSlime(word, width + SPAWN_OFFSCREEN_MARGIN, y, 40)
   }
 
   private createSlime(word: string, x: number, y: number, size: number) {

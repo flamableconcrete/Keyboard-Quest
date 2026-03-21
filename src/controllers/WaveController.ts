@@ -1,7 +1,7 @@
 // src/controllers/WaveController.ts
 // Pure TypeScript — NO Phaser imports.
 import { computeSlotPositions, applySeparationForce } from '../utils/skeletonSpacing'
-import { BATTLE_STOP_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../constants'
+import { BATTLE_STOP_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD, SPAWN_OFFSCREEN_MARGIN } from '../constants'
 
 export type WaveEvent =
   | { type: 'spawn'; word: string; x: number; isRiser: boolean }
@@ -80,7 +80,7 @@ export class WaveController {
       // Spread risers evenly across the field; add small jitter via rng
       const x = isRiser
         ? 300 + i * riserSpread + this.rng() * 30 - 15
-        : this.config.canvasWidth + 30
+        : this.config.canvasWidth + SPAWN_OFFSCREEN_MARGIN
       const id = `skel_${this._currentWave}_${i}`
       this._skeletons.push({ id, word, x, speed: this.speed, isRiser })
       events.push({ type: 'spawn', word, x, isRiser })

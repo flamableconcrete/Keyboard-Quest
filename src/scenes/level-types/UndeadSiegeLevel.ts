@@ -3,7 +3,7 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
 
 interface Undead {
   word: string
@@ -67,12 +67,12 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     const word = this.wordQueue.shift()!
     const { width, height } = this.scale
     const y = Phaser.Math.Between(150, height - 150)
-    const sprite = this.add.rectangle(width + 30, y, 40, 40, 0x336633)
-    const label = this.add.text(width + 30, y - 30, word, {
+    const sprite = this.add.rectangle(width + SPAWN_OFFSCREEN_MARGIN, y, 40, 40, 0x336633)
+    const label = this.add.text(width + SPAWN_OFFSCREEN_MARGIN, y - 30, word, {
       fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
     }).setOrigin(0.5)
 
-    const undead: Undead = { word, x: width + 30, speed: 40 + this.level.world * 10, sprite, label, hp: 1 }
+    const undead: Undead = { word, x: width + SPAWN_OFFSCREEN_MARGIN, speed: 40 + this.level.world * 10, sprite, label, hp: 1 }
     this.undeads.push(undead)
 
     if (!this.activeUndead) this.setActiveUndead(undead)
