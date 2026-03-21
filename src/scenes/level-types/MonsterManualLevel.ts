@@ -46,6 +46,13 @@ export class MonsterManualLevel extends BaseLevelScene {
     }
   }
 
+  protected flashOnWrongKey(): void {
+    // MonsterManualLevel intentionally uses a lighter/faster flash (50, 100) —
+    // consistent with GuildRecruitmentLevel and WoodlandFestivalLevel which also use (50, 100, 0, 0).
+    // Do not normalize to the standard (80, 120, 0, 0) without a deliberate design decision.
+    this.cameras.main.flash(50, 100, 0, 0)
+  }
+
   protected onWrongKey() {
     this.flashOnWrongKey()
   }
