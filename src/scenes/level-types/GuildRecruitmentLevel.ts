@@ -6,7 +6,6 @@ import { GOLD_PER_KILL } from '../../constants'
 
 export class GuildRecruitmentLevel extends BaseLevelScene {
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
 
   constructor() { super('GuildRecruitmentLevel') }
@@ -46,15 +45,7 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
     }
   }
 
