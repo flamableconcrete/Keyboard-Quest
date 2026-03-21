@@ -3,7 +3,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 
 interface Monster {
   word: string
@@ -18,7 +18,7 @@ interface Monster {
 export class MonsterArenaLevel extends BaseLevelScene {
   private monsters: Monster[] = []
   private activeMonster: Monster | null = null
-  private playerHp = 3
+  private playerHp = DEFAULT_PLAYER_HP
   private maxMonsterReach = 0
   private hpText!: Phaser.GameObjects.Text
   private monsterHpText!: Phaser.GameObjects.Text
@@ -27,7 +27,7 @@ export class MonsterArenaLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 3
+    this.playerHp = DEFAULT_PLAYER_HP
     this.monsters = []
     this.activeMonster = null
   }

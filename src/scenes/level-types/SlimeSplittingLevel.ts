@@ -3,7 +3,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
 
 interface Slime {
   word: string
@@ -18,7 +18,7 @@ interface Slime {
 export class SlimeSplittingLevel extends BaseLevelScene {
   private slimes: Slime[] = []
   private activeSlime: Slime | null = null
-  private playerHp = 3
+  private playerHp = DEFAULT_PLAYER_HP
   private maxSlimeReach = 0
   private hpText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
@@ -27,7 +27,7 @@ export class SlimeSplittingLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 3
+    this.playerHp = DEFAULT_PLAYER_HP
     this.slimes = []
     this.activeSlime = null
   }
