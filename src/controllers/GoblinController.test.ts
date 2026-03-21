@@ -195,6 +195,35 @@ describe('GoblinController — tick / movement', () => {
   })
 })
 
+describe('GoblinController — removeGoblinByWord', () => {
+  it('removeGoblinByWord returns goblin_defeated event', () => {
+    const ctrl = new GoblinController(baseConfig)
+    ctrl.spawnGoblin()
+    const events = ctrl.removeGoblinByWord('ant')
+    expect(events.find(e => e.type === 'goblin_defeated')).toBeDefined()
+  })
+
+  it('removeGoblinByWord returns empty array for unknown word', () => {
+    const ctrl = new GoblinController(baseConfig)
+    ctrl.spawnGoblin()
+    expect(ctrl.removeGoblinByWord('xyz')).toEqual([])
+  })
+
+  it('removeGoblinByWord returns level_complete when last goblin is removed', () => {
+    const ctrl = new GoblinController({ ...baseConfig, words: ['ant'] })
+    ctrl.spawnGoblin()
+    const events = ctrl.removeGoblinByWord('ant')
+    expect(events.find(e => e.type === 'level_complete')).toBeDefined()
+  })
+
+  it('removeGoblinByWord does not return level_complete when goblins or queue remain', () => {
+    const ctrl = new GoblinController({ ...baseConfig, words: ['ant', 'bat'] })
+    ctrl.spawnGoblin()  // 'ant' spawned, 'bat' still in queue
+    const events = ctrl.removeGoblinByWord('ant')
+    expect(events.find(e => e.type === 'level_complete')).toBeUndefined()
+  })
+})
+
 describe('GoblinController — freeze / speed restore', () => {
   it('freezeGoblins sets all speeds to 0', () => {
     const ctrl = new GoblinController(baseConfig)

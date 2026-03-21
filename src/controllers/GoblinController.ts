@@ -127,7 +127,10 @@ export class GoblinController {
     return events
   }
 
-  /** Remove a goblin from active list by reference (internal helper). */
+  /**
+   * Removes a goblin by word and returns defeat event(s) and possibly level_complete.
+   * Used by the scene for spell effects (word_blast), cleave, and wrong-key attack callbacks.
+   */
   removeGoblinByWord(word: string): GoblinEvent[] {
     const goblin = this._goblins.find(g => g.word === word)
     if (!goblin) return []
@@ -136,7 +139,9 @@ export class GoblinController {
     if (this._activeWord === word) {
       this._activeWord = this._goblins[0]?.word ?? null
     }
-    return [{ type: 'goblin_defeated', word, x }]
+    const events: GoblinEvent[] = [{ type: 'goblin_defeated', word, x }]
+    events.push(...this._checkLevelComplete())
+    return events
   }
 
   /** Set all goblin speeds to 0 (time_freeze spell effect). */

@@ -135,6 +135,10 @@ export class GoblinWhackerLevel extends BaseLevelScene {
             this.destroyGoblinSprite(e.word)
             this.goblinsDefeated++
             this.updateCounterText()
+          } else if (e.type === 'level_complete') {
+            this.syncActiveWord()
+            this.endLevel(true)
+            return
           }
         }
         this.syncActiveWord()
@@ -262,11 +266,17 @@ export class GoblinWhackerLevel extends BaseLevelScene {
             const cleaveWord = nextEnemy.word
             const cleaveX = nextEnemy.x
             const cleaveSprites = this.goblinSprites.get(cleaveWord)
-            this.goblinCtrl.removeGoblinByWord(cleaveWord)
+            const cleaveEvents = this.goblinCtrl.removeGoblinByWord(cleaveWord)
             this.destroyGoblinSprite(cleaveWord)
             this.goblinsDefeated++
             const cleaveText = this.add.text(cleaveX, (cleaveSprites?.sprite.y ?? this.pathY) - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
             this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+            if (cleaveEvents.find(e => e.type === 'level_complete')) {
+              this.updateCounterText()
+              this.syncActiveWord()
+              this.endLevel(true)
+              return
+            }
           }
         }
 
@@ -320,8 +330,11 @@ export class GoblinWhackerLevel extends BaseLevelScene {
                     // Re-check the goblin still exists in the controller
                     const stillExists = this.goblinCtrl.activeGoblins.find(g => g.word === attackerWord)
                     if (stillExists) {
-                      this.goblinCtrl.removeGoblinByWord(attackerWord)
+                      const attackEvents = this.goblinCtrl.removeGoblinByWord(attackerWord)
                       this.handleGoblinBreached(attackerWord)
+                      if (attackEvents.find(e => e.type === 'level_complete')) {
+                        this.endLevel(true)
+                      }
                     }
                   }
                 }
