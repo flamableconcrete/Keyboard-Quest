@@ -46,10 +46,10 @@ export const SKELETON_SPEED_PER_WORLD = 10
 /** Default player HP at the start of a level */
 export const DEFAULT_PLAYER_HP = 3
 
-/** X offset from canvas right edge for enemy spawn position */
-export const ENEMY_SPAWN_X_OFFSET = 30
+/** Pixels past the canvas right edge for spawning enemies off-screen (add to canvas width) */
+export const SPAWN_OFFSCREEN_MARGIN = 30
 
-/** Default boss/enemy stop X in battle scenes */
+/** Default enemy stop X for wave-based levels (right edge of the player zone) */
 export const BATTLE_STOP_X = 350
 
 /** Skeleton barrier X position (right edge of safe zone) */
