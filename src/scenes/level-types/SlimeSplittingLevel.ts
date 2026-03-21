@@ -4,22 +4,17 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { SlimeController, SlimeEvent, SLIME_INITIAL_SIZE, SLIME_CHILD_SIZE } from '../../controllers/SlimeController'
 
-interface Slime {
+interface SlimeSprite {
   word: string
-  x: number
-  y: number
-  speed: number
   sprite: Phaser.GameObjects.Rectangle
   label: Phaser.GameObjects.Text
-  hp: number
 }
 
 export class SlimeSplittingLevel extends BaseLevelScene {
-  private slimes: Slime[] = []
-  private activeSlime: Slime | null = null
-  private playerHp = DEFAULT_PLAYER_HP
-  private maxSlimeReach = 0
+  private slimeCtrl!: SlimeController
+  private slimeSprites: SlimeSprite[] = []
   private hpText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
 
@@ -27,20 +22,29 @@ export class SlimeSplittingLevel extends BaseLevelScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = DEFAULT_PLAYER_HP
-    this.slimes = []
-    this.activeSlime = null
+    this.slimeSprites = []
   }
 
   create() {
     const { width, height } = this.scale
-    this.maxSlimeReach = 80
+
+    this.slimeCtrl = new SlimeController({
+      words: [...this.wordQueue],
+      worldNumber: this.level.world,
+      canvasWidth: width,
+      canvasHeight: height,
+      barrierX: 80,
+      playerHp: DEFAULT_PLAYER_HP,
+    })
+    // The controller owns the word queue now — clear the scene's copy so
+    // BaseLevelScene doesn't try to use it independently.
+    this.wordQueue = []
 
     this.preCreate(80, height * 0.6)
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1e4a4a)
 
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.slimeCtrl.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
     this.spawnTimer = this.time.addEvent({
@@ -50,112 +54,136 @@ export class SlimeSplittingLevel extends BaseLevelScene {
   }
 
   private spawnInitialSlime() {
-    if (this.finished || this.wordQueue.length === 0) return
-    const word = this.wordQueue.shift()!
+    if (this.finished) return
     const { width, height } = this.scale
     const y = Phaser.Math.Between(150, height - 150)
-    this.createSlime(word, width + SPAWN_OFFSCREEN_MARGIN, y, 40)
-  }
-
-  private createSlime(word: string, x: number, y: number, size: number) {
-    const sprite = this.add.rectangle(x, y, size, size, 0x44aaaa)
-    const label = this.add.text(x, y - size / 2 - 10, word, {
-      fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
-    }).setOrigin(0.5)
-
-    const slime: Slime = { word, x, y, speed: 40 + this.level.world * 5, sprite, label, hp: 1 }
-    this.slimes.push(slime)
-
-    if (!this.activeSlime) this.setActiveSlime(slime)
-  }
-
-  private splitWord(word: string): [string, string] {
-    const mid = Math.ceil(word.length / 2)
-    return [word.slice(0, mid), word.slice(mid)]
-  }
-
-  private setActiveSlime(slime: Slime | null) {
-    this.activeSlime = slime
-    if (slime) this.engine.setWord(slime.word)
-    else this.engine.clearWord()
+    const x = width + SPAWN_OFFSCREEN_MARGIN
+    const events = this.slimeCtrl.spawnSlime(x, y)
+    this._handleEvents(events)
   }
 
   update(_time: number, delta: number) {
     super.update(_time, delta)
     if (this.finished) return
-    this.slimes.forEach(s => {
-      s.x -= s.speed * (delta / 1000)
-      s.sprite.setX(s.x)
-      s.label.setX(s.x)
-      if (s.x <= this.maxSlimeReach) this.slimeReachedPlayer(s)
-    })
-  }
 
-  private slimeReachedPlayer(slime: Slime) {
-    this.removeSlime(slime)
-    const pProfile = loadProfile(this.profileSlot)
-    const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
-    const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
-    if (Math.random() < absorbChance) {
-      const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
-      this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
-    } else {
-      this.playerHp--
+    // Sync sprite positions from controller state
+    for (const ss of this.slimeSprites) {
+      const state = this.slimeCtrl.activeSlimes.find(s => s.word === ss.word)
+      if (state) {
+        ss.sprite.setX(state.x)
+        ss.label.setX(state.x)
+      }
     }
-    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
-    this.cameras.main.shake(200, 0.01)
-    if (this.playerHp <= 0) this.endLevel(false)
+
+    const events = this.slimeCtrl.tick(delta)
+    this._handleEvents(events)
   }
 
   protected onWordComplete(word: string, _elapsed: number) {
     if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100)
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50)
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL)
     }
 
-    const slime = this.slimes.find(s => s.word === word)
-    if (slime) {
-      const oldX = slime.x
-      const oldY = slime.y
-      this.removeSlime(slime)
+    const events = this.slimeCtrl.wordTyped(word)
+    this._handleEvents(events)
 
-      const pProfileWep = loadProfile(this.profileSlot)
-      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
-      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
-      if (Math.random() < cleaveChance) {
-        const nextEnemy = this.slimes.find(s => s !== slime)
-        if (nextEnemy) {
-          this.removeSlime(nextEnemy)
-          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
-          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
-        }
+    // Cleave weapon effect — happens after normal defeat logic
+    const pProfileWep = loadProfile(this.profileSlot)
+    const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+    const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+    if (Math.random() < cleaveChance) {
+      const nextEnemy = this.slimeCtrl.activeSlimes[0]
+      if (nextEnemy) {
+        const ss = this.slimeSprites.find(s => s.word === nextEnemy.word)
+        const spriteY = ss?.sprite.y ?? this.scale.height / 2
+        const spriteX = ss?.sprite.x ?? nextEnemy.x
+        const cleaveText = this.add.text(spriteX, spriteY - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
+        this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        const cleaveEvents = this.slimeCtrl.removeSlimeByWord(nextEnemy.word)
+        this._handleEvents(cleaveEvents)
       }
-
-      if (word.length > 2) {
-        const [w1, w2] = this.splitWord(word)
-        this.createSlime(w1, oldX, oldY - 40, 30)
-        this.createSlime(w2, oldX, oldY + 40, 30)
-      }
-    }
-    const next = this.slimes[0] ?? null
-    this.setActiveSlime(next)
-
-    if (this.wordQueue.length === 0 && this.slimes.length === 0) {
-      this.endLevel(true)
     }
   }
 
   protected onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
 
-  private removeSlime(slime: Slime) {
-    slime.sprite.destroy()
-    slime.label.destroy()
-    this.slimes = this.slimes.filter(s => s !== slime)
-  }
-
   protected endLevel(passed: boolean) {
     this.spawnTimer?.remove()
     super.endLevel(passed)
   }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  private _handleEvents(events: SlimeEvent[]) {
+    for (const ev of events) {
+      switch (ev.type) {
+        case 'slime_spawned':
+          this._createSlimeSprite(ev.word, ev.x, ev.y, ev.size)
+          break
+
+        case 'slime_defeated':
+          this._destroySlimeSprite(ev.word)
+          break
+
+        case 'slime_split':
+          for (const child of ev.children) {
+            this._createSlimeSprite(child.word, child.x, child.y, child.size)
+          }
+          break
+
+        case 'active_word_changed':
+          if (ev.word !== null) this.engine.setWord(ev.word)
+          else this.engine.clearWord()
+          break
+
+        case 'player_damaged': {
+          const pProfile = loadProfile(this.profileSlot)
+          const armorItem = pProfile?.equipment?.armor ? getItem(pProfile.equipment.armor) : null
+          const absorbChance = armorItem?.effect?.absorbAttacksChance || 0
+          if (Math.random() < absorbChance) {
+            // Undo the HP decrement — armor absorbed the hit
+            this.slimeCtrl.restoreHp(1)
+            const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
+            this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
+          } else {
+            this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, ev.newHp))}`)
+            this.cameras.main.shake(200, 0.01)
+          }
+          break
+        }
+
+        case 'level_won':
+          this.endLevel(true)
+          break
+
+        case 'level_lost':
+          this.endLevel(false)
+          break
+      }
+    }
+  }
+
+  private _createSlimeSprite(word: string, x: number, y: number, size: number) {
+    const sprite = this.add.rectangle(x, y, size, size, 0x44aaaa)
+    const label = this.add.text(x, y - size / 2 - 10, word, {
+      fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
+    }).setOrigin(0.5)
+    this.slimeSprites.push({ word, sprite, label })
+  }
+
+  private _destroySlimeSprite(word: string) {
+    const idx = this.slimeSprites.findIndex(s => s.word === word)
+    if (idx === -1) return
+    const ss = this.slimeSprites[idx]
+    ss.sprite.destroy()
+    ss.label.destroy()
+    this.slimeSprites.splice(idx, 1)
+  }
 }
+
+// Re-export constants so callers have access if needed
+export { SLIME_INITIAL_SIZE, SLIME_CHILD_SIZE }
