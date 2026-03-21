@@ -4,8 +4,8 @@ import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
-import { getLevelsForWorld } from '../data/levels'
 import { rotateShopItems } from '../utils/shop'
+import { MapNavigationController } from '../controllers/MapNavigationController'
 
 interface ResultData {
   level: LevelConfig
@@ -99,7 +99,13 @@ export class LevelResultScene extends Phaser.Scene {
     }
 
     // Unlock next level(s)
-    this.unlockNextLevels(level)
+    const navCtrl = new MapNavigationController(this.profile)
+    const newUnlocks = navCtrl.getNewUnlocks(level.id, level.world, level.isBoss ?? false)
+    for (const id of newUnlocks) {
+      if (!this.profile.unlockedLevelIds.includes(id)) {
+        this.profile.unlockedLevelIds.push(id)
+      }
+    }
 
     // Letter unlock if mini-boss
     if (level.isMiniBoss && level.miniBossUnlocksLetter && !this.profile.unlockedLetters.includes(level.miniBossUnlocksLetter)) {
@@ -258,24 +264,4 @@ export class LevelResultScene extends Phaser.Scene {
     })
   }
 
-  private unlockNextLevels(completedLevel: LevelConfig) {
-    // Find subsequent levels in the same world and unlock the next one
-    const worldLevels = getLevelsForWorld(completedLevel.world)
-    const idx = worldLevels.findIndex((l: LevelConfig) => l.id === completedLevel.id)
-    if (idx >= 0 && idx + 1 < worldLevels.length) {
-      const next = worldLevels[idx + 1]
-      if (!this.profile.unlockedLevelIds.includes(next.id)) {
-        this.profile.unlockedLevelIds.push(next.id)
-      }
-    } else if (completedLevel.isBoss) {
-      // If this is the last level (a boss), unlock the first level of the next world
-      const nextWorldLevels = getLevelsForWorld(completedLevel.world + 1)
-      if (nextWorldLevels && nextWorldLevels.length > 0) {
-        const nextWorldFirstLevel = nextWorldLevels[0]
-        if (!this.profile.unlockedLevelIds.includes(nextWorldFirstLevel.id)) {
-          this.profile.unlockedLevelIds.push(nextWorldFirstLevel.id)
-        }
-      }
-    }
-  }
 }

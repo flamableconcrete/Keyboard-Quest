@@ -5,6 +5,8 @@ import { ProfileData } from '../types'
 import { getLevelsForWorld } from '../data/levels'
 
 const world1Levels = getLevelsForWorld(1)
+const world2Levels = getLevelsForWorld(2)
+const w1BossLevel = world1Levels[world1Levels.length - 1]
 
 const mockProfile = (unlockedIds: string[]) => ({
   unlockedLevelIds: unlockedIds,
@@ -77,5 +79,20 @@ describe('MapNavigationController — unlock propagation', () => {
     const ctrl = new MapNavigationController(mockProfile([lastLevel.id]))
     const unlocks = ctrl.getNewUnlocks(lastLevel.id, 1)
     expect(unlocks).toHaveLength(0)
+  })
+})
+
+describe('getNewUnlocks — boss level', () => {
+  it('unlocks first level of next world when completing a world boss', () => {
+    const ctrl = new MapNavigationController(mockProfile([w1BossLevel.id]))
+    const result = ctrl.getNewUnlocks(w1BossLevel.id, 1, true)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toBe(world2Levels[0].id)
+  })
+
+  it('returns [] for boss completion if next world first level is already unlocked', () => {
+    const ctrl = new MapNavigationController(mockProfile([w1BossLevel.id, world2Levels[0].id]))
+    const result = ctrl.getNewUnlocks(w1BossLevel.id, 1, true)
+    expect(result).toHaveLength(0)
   })
 })

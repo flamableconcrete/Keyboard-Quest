@@ -19,14 +19,27 @@ export class MapNavigationController {
    * Returns all level IDs that should be unlocked after completing `justCompletedId`.
    * Matches the logic currently in OverlandMapScene / profile.ts.
    */
-  getNewUnlocks(justCompletedId: string, world: number): string[] {
+  getNewUnlocks(justCompletedId: string, world: number, isBoss = false): string[] {
     const levels = getLevelsForWorld(world)
     const idx = levels.findIndex(l => l.id === justCompletedId)
     if (idx < 0) return []
+
     const nextLevel = levels[idx + 1]
-    if (!nextLevel) return []
-    if (this.isUnlocked(nextLevel.id)) return []
-    return [nextLevel.id]
+    if (nextLevel) {
+      if (this.isUnlocked(nextLevel.id)) return []
+      return [nextLevel.id]
+    }
+
+    // No next level in this world — if this is a boss, unlock first level of next world
+    if (isBoss) {
+      const nextWorldLevels = getLevelsForWorld(world + 1)
+      if (nextWorldLevels && nextWorldLevels.length > 0) {
+        const first = nextWorldLevels[0]
+        if (!this.isUnlocked(first.id)) return [first.id]
+      }
+    }
+
+    return []
   }
 
   /**
