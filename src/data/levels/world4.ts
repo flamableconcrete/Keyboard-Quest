@@ -1,4 +1,4 @@
-import { LevelConfig } from '../../types'
+import { LevelConfig, SiegeLevelConfig } from '../../types'
 import { W3_AFTER_MB4 } from './world3'
 
 const W4_BASE = W3_AFTER_MB4
@@ -31,13 +31,15 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     unlockedLetters: W4_BASE,
     wordCount: 35,
     timeLimit: 130,
+    castleHp: 5,
+    waveCount: 3,
     dialogue: [
       { speaker: "enemy", text: "The drowned rise with terrible purpose. They remember what you forget." },
       { speaker: "hero",  text: "I remember enough. Step aside." },
     ],
     rewards: { xp: 340 },
     bossGate: null,
-  },
+  } satisfies SiegeLevelConfig,
   {
     id: 'w4_l3',
     name: 'Forgotten Stone Pass',

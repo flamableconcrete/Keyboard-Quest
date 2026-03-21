@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
+import { SiegeLevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
@@ -17,7 +17,7 @@ interface Undead {
 export class UndeadSiegeLevel extends BaseLevelScene {
   private undeads: Undead[] = []
   private activeUndead: Undead | null = null
-  private castleHp = 5
+  private castleHp = 0
   private maxUndeadReach = 100
   private castleHpText!: Phaser.GameObjects.Text
   private waveText!: Phaser.GameObjects.Text
@@ -28,10 +28,10 @@ export class UndeadSiegeLevel extends BaseLevelScene {
 
   constructor() { super('UndeadSiegeLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: SiegeLevelConfig; profileSlot: number }) {
     super.init(data)
     this.undeadsDefeated = 0
-    this.castleHp = 5
+    this.castleHp = data.level.castleHp
     this.currentWave = 1
     this.undeads = []
     this.activeUndead = null

@@ -1,4 +1,4 @@
-import { LevelConfig } from '../../types'
+import { LevelConfig, SiegeLevelConfig } from '../../types'
 import { W2_AFTER_MB4 } from './world2'
 
 const W3_BASE = W2_AFTER_MB4
@@ -31,13 +31,15 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     unlockedLetters: W3_BASE,
     wordCount: 30,
     timeLimit: 120,
+    castleHp: 5,
+    waveCount: 3,
     dialogue: [
       { speaker: "enemy", text: "Ash walkers do not tire. They do not fear. They simply advance." },
       { speaker: "hero", text: "And they simply fall. I've done this before." }
     ],
     rewards: { xp: 260 },
     bossGate: null,
-  },
+  } satisfies SiegeLevelConfig,
   {
     id: 'w3_l3',
     name: 'Dragon\'s Tooth Tunnels',

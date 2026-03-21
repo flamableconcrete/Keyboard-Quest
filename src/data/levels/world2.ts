@@ -1,4 +1,4 @@
-import { LevelConfig } from '../../types'
+import { LevelConfig, SiegeLevelConfig } from '../../types'
 import { W1_AFTER_MB4 } from './world1'
 
 const W2_BASE = W1_AFTER_MB4
@@ -48,13 +48,15 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     unlockedLetters: W2_BASE,
     wordCount: 25,
     timeLimit: 110,
+    castleHp: 5,
+    waveCount: 3,
     dialogue: [
       { speaker: "enemy", text: "This road runs red with more than moss. Hold the line... if you can." },
       { speaker: "hero", text: "I've held worse. Let's see what you've got." },
     ],
     rewards: { xp: 200 },
     bossGate: null,
-  },
+  } satisfies SiegeLevelConfig,
   {
     id: 'w2_mb1',
     name: 'Bramblegate Watch',
