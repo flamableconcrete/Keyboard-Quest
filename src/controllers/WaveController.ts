@@ -1,6 +1,7 @@
 // src/controllers/WaveController.ts
 // Pure TypeScript — NO Phaser imports.
 import { computeSlotPositions, applySeparationForce } from '../utils/skeletonSpacing'
+import { SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../constants'
 
 export type WaveEvent =
   | { type: 'spawn'; word: string; x: number; isRiser: boolean }
@@ -45,7 +46,7 @@ export class WaveController {
     this.battleX = config.battleX ?? 350
     this.minSpacing = config.minSpacing ?? 80
     this.labelPad = config.labelPad ?? 24
-    this.speed = 60 + config.worldNumber * 10
+    this.speed = SKELETON_SPEED_BASE + config.worldNumber * SKELETON_SPEED_PER_WORLD
   }
 
   get currentWave() { return this._currentWave }

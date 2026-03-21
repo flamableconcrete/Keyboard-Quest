@@ -37,3 +37,8 @@ export const GOLD_PER_KILL = 5
 export const PET_SPEED_COEFF = 25
 /** Gold manager pet speed base */
 export const PET_SPEED_BASE = 100
+
+/** Base skeleton movement speed (px/s) at world 1 */
+export const SKELETON_SPEED_BASE = 60
+/** Speed increase per world number */
+export const SKELETON_SPEED_PER_WORLD = 10

@@ -5,7 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Skeleton {
   word: string
@@ -223,7 +223,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       const frozenSpeed = this.skeletons.map(s => s.speed)
       this.skeletons.forEach(s => { s.speed = 0 })
       this.time.delayedCall(5000, () => {
-        this.skeletons.forEach((s, i) => { s.speed = frozenSpeed[i] ?? (60 + this.level.world * 10) })
+        this.skeletons.forEach((s, i) => { s.speed = frozenSpeed[i] ?? (SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD) })
       })
     } else if (effect === 'word_blast') {
       // Target the active skeleton (the one the player is currently typing), falling back to nearest
@@ -276,7 +276,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     const skeleton: Skeleton = {
       word,
       x: startX,
-      speed: 60 + this.level.world * 10,
+      speed: SKELETON_SPEED_BASE + this.level.world * SKELETON_SPEED_PER_WORLD,
       sprite,
       label,
       hp: 1,
