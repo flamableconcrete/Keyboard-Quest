@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 interface Gear {
@@ -32,8 +32,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
 
   private coreSprite!: Phaser.GameObjects.Arc
 
-  private playerHp = 5
-  private timeLeft = 0
+  private hp!: BossHPState
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
 
@@ -43,7 +42,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
     this.totalDefeated = 0
     this.targetDefeated = data.level.wordCount
@@ -60,7 +58,8 @@ export class ClockworkDragonBoss extends BaseBossScene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a1a)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hp = this.setupBossHP(this.targetDefeated)
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px',
       color: '#ff4444',
     })
@@ -108,16 +107,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
 
     // Level Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000,
-        repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        },
-      })
+      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
     }
 
     this.startPhase()
@@ -311,11 +301,11 @@ export class ClockworkDragonBoss extends BaseBossScene {
       const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
       this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
     } else {
-      this.playerHp--
+      this.hp.playerHp--
     }
-    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
 
-    if (this.playerHp <= 0) {
+    if (this.hp.playerHp <= 0) {
       this.endLevel(false)
     }
   }
