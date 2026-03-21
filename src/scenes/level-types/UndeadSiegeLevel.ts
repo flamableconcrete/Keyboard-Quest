@@ -4,36 +4,27 @@ import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { UndeadSiegeController } from '../../controllers/UndeadSiegeController'
 
-interface Undead {
+interface UndeadSprite {
   word: string
-  x: number
-  speed: number
   sprite: Phaser.GameObjects.Rectangle
   label: Phaser.GameObjects.Text
-  hp: number
 }
 
 export class UndeadSiegeLevel extends BaseLevelScene {
-  private undeads: Undead[] = []
-  private activeUndead: Undead | null = null
-  private castleHp = 0
-  private maxUndeadReach = 100
+  private siegeCtrl!: UndeadSiegeController
+  private undeadSprites: UndeadSprite[] = []
+  private activeUndead: UndeadSprite | null = null
   private castleHpText!: Phaser.GameObjects.Text
   private waveText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
-  private undeadsDefeated = 0
-  private currentWave = 1
-  private maxWaves = 3
 
   constructor() { super('UndeadSiegeLevel') }
 
   init(data: { level: SiegeLevelConfig; profileSlot: number }) {
     super.init(data)
-    this.undeadsDefeated = 0
-    this.castleHp = data.level.castleHp
-    this.currentWave = 1
-    this.undeads = []
+    this.undeadSprites = []
     this.activeUndead = null
   }
 
@@ -42,111 +33,156 @@ export class UndeadSiegeLevel extends BaseLevelScene {
 
     this.preCreate(80, height * 0.65)
 
+    this.siegeCtrl = new UndeadSiegeController({
+      words: [...this.wordQueue],
+      maxWaves: 3,
+      worldNumber: this.level.world,
+      castleHp: (this.level as SiegeLevelConfig).castleHp,
+      castleX: 100,
+      canvasWidth: width,
+    })
+    // Controller manages the word queue; clear the scene's copy to avoid double-use
+    this.wordQueue = []
+
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a3a)
 
     // Castle
     this.add.rectangle(50, height / 2, 100, height - 200, 0x555555)
 
-    this.castleHpText = this.add.text(20, 20, `Castle HP: ${'🛡️'.repeat(this.castleHp)}`, { fontSize: '22px', color: '#88aaff' })
-    this.waveText = this.add.text(width - 20, 20, `Wave: 1/${this.maxWaves}`, { fontSize: '22px', color: '#ffffff' }).setOrigin(1, 0)
+    this.castleHpText = this.add.text(
+      20, 20,
+      `Castle HP: ${'🛡️'.repeat(this.siegeCtrl.castleHp)}`,
+      { fontSize: '22px', color: '#88aaff' }
+    )
+    this.waveText = this.add.text(
+      width - 20, 20,
+      `Wave: 1/3`,
+      { fontSize: '22px', color: '#ffffff' }
+    ).setOrigin(1, 0)
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
     this.spawnTimer = this.time.addEvent({
-      delay: 2000, loop: true, callback: this.spawnUndead, callbackScope: this
+      delay: 2000, loop: true, callback: this.doSpawn, callbackScope: this
     })
-    this.spawnUndead()
+    this.doSpawn()
   }
 
-  private spawnUndead() {
+  private doSpawn() {
     if (this.finished) return
-    if (this.wordQueue.length === 0) {
-      if (this.undeads.length === 0) this.endLevel(true)
-      return
+
+    const events = this.siegeCtrl.spawn()
+    for (const ev of events) {
+      if (ev.type === 'spawn') {
+        const { width, height } = this.scale
+        const y = Phaser.Math.Between(150, height - 150)
+        const sprite = this.add.rectangle(ev.x, y, 40, 40, 0x336633)
+        const label = this.add.text(ev.x, y - 30, ev.word, {
+          fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
+        }).setOrigin(0.5)
+
+        const entry: UndeadSprite = { word: ev.word, sprite, label }
+        this.undeadSprites.push(entry)
+
+        if (!this.activeUndead) this.setActiveUndead(entry)
+      }
     }
 
-    const word = this.wordQueue.shift()!
-    const { width, height } = this.scale
-    const y = Phaser.Math.Between(150, height - 150)
-    const sprite = this.add.rectangle(width + SPAWN_OFFSCREEN_MARGIN, y, 40, 40, 0x336633)
-    const label = this.add.text(width + SPAWN_OFFSCREEN_MARGIN, y - 30, word, {
-      fontSize: '20px', color: '#ffffff', backgroundColor: '#000000', padding: { x: 4, y: 2 }
-    }).setOrigin(0.5)
-
-    const undead: Undead = { word, x: width + SPAWN_OFFSCREEN_MARGIN, speed: 40 + this.level.world * 10, sprite, label, hp: 1 }
-    this.undeads.push(undead)
-
-    if (!this.activeUndead) this.setActiveUndead(undead)
-
-    // Update wave logic simplistically based on words remaining
-    const totalWords = this.words.length
-    const wordsSpawned = totalWords - this.wordQueue.length
-    this.currentWave = Math.min(this.maxWaves, Math.ceil((wordsSpawned / totalWords) * this.maxWaves)) || 1
-    this.waveText.setText(`Wave: ${this.currentWave}/${this.maxWaves}`)
+    this.waveText.setText(`Wave: ${this.siegeCtrl.currentWave}/3`)
   }
 
-  private setActiveUndead(undead: Undead | null) {
-    this.activeUndead = undead
-    if (undead) this.engine.setWord(undead.word)
+  private setActiveUndead(entry: UndeadSprite | null) {
+    this.activeUndead = entry
+    if (entry) this.engine.setWord(entry.word)
     else this.engine.clearWord()
   }
 
   update(_time: number, delta: number) {
     super.update(_time, delta)
     if (this.finished) return
-    this.undeads.forEach(u => {
-      u.x -= u.speed * (delta / 1000)
-      u.sprite.setX(u.x)
-      u.label.setX(u.x)
-      if (u.x <= this.maxUndeadReach) this.undeadReachedCastle(u)
-    })
-  }
 
-  private undeadReachedCastle(undead: Undead) {
-    this.removeUndead(undead)
-    this.castleHp--
-    this.castleHpText.setText(`Castle HP: ${'🛡️'.repeat(Math.max(0, this.castleHp))}`)
-    this.cameras.main.shake(200, 0.01)
-    if (this.castleHp <= 0) this.endLevel(false)
+    const events = this.siegeCtrl.tick(delta)
+
+    // Sync sprite positions from controller state
+    for (const state of this.siegeCtrl.activeUndeads) {
+      const sprite = this.undeadSprites.find(u => u.word === state.word)
+      if (sprite) {
+        sprite.sprite.setX(state.x)
+        sprite.label.setX(state.x)
+      }
+    }
+
+    for (const ev of events) {
+      switch (ev.type) {
+        case 'castle_damaged':
+          this.castleHpText.setText(`Castle HP: ${'🛡️'.repeat(Math.max(0, ev.newHp))}`)
+          this.cameras.main.shake(200, 0.01)
+          this.removeUndeadSprite(this.undeadSprites.find(u =>
+            !this.siegeCtrl.activeUndeads.find(a => a.word === u.word)
+          ))
+          break
+        case 'level_lost':
+          this.endLevel(false)
+          break
+      }
+    }
+
+    // Check spawn-complete: queue exhausted and all sprites gone
+    if (!this.finished && events.find(e => e.type === 'level_lost') === undefined) {
+      if (this.siegeCtrl.isWon) this.endLevel(true)
+    }
   }
 
   protected onWordComplete(word: string, _elapsed: number) {
+    if (this.finished) return
+
     if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
+      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100)
+      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50)
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL)
     }
 
-    const undead = this.undeads.find(u => u.word === word)
-    if (undead) {
-      this.removeUndead(undead)
-      this.undeadsDefeated++
-      const pProfileWep = loadProfile(this.profileSlot)
-      const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
-      const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
-      if (Math.random() < cleaveChance) {
-        const nextEnemy = this.undeads.find(u => u !== undead)
-        if (nextEnemy) {
-          this.removeUndead(nextEnemy)
-          this.undeadsDefeated++
-          const cleaveText = this.add.text(nextEnemy.x, nextEnemy.sprite.y - 40, 'CLEAVE!', { fontSize: '20px', color: '#ff8800' }).setOrigin(0.5).setDepth(3000)
-          this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
-        }
+    const events = this.siegeCtrl.markDefeated(word)
+    const sprite = this.undeadSprites.find(u => u.word === word)
+
+    // Cleave: check weapon effect before removing sprite (need position data)
+    const pProfileWep = loadProfile(this.profileSlot)
+    const weaponItem = pProfileWep?.equipment?.weapon ? getItem(pProfileWep.equipment.weapon) : null
+    const cleaveChance = weaponItem?.effect?.defeatAdditionalEnemiesChance || 0
+    if (Math.random() < cleaveChance) {
+      const nextEnemy = this.undeadSprites.find(u => u !== sprite && this.siegeCtrl.activeUndeads.find(a => a.word === u.word))
+      if (nextEnemy) {
+        const cleaveEvents = this.siegeCtrl.markDefeated(nextEnemy.word)
+        const cleaveText = this.add.text(
+          nextEnemy.sprite.x, nextEnemy.sprite.y - 40, 'CLEAVE!',
+          { fontSize: '20px', color: '#ff8800' }
+        ).setOrigin(0.5).setDepth(3000)
+        this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
+        this.removeUndeadSprite(nextEnemy)
+        events.push(...cleaveEvents)
       }
     }
-    const next = this.undeads[0] ?? null
+
+    if (sprite) this.removeUndeadSprite(sprite)
+
+    // Pick next active target
+    const next = this.undeadSprites[0] ?? null
     this.setActiveUndead(next)
 
-    if (this.wordQueue.length === 0 && this.undeads.length === 0) {
-      this.endLevel(true)
+    for (const ev of events) {
+      if (ev.type === 'level_won') {
+        this.endLevel(true)
+        return
+      }
     }
   }
 
   protected onWrongKey() { this.cameras.main.flash(80, 120, 0, 0) }
 
-  private removeUndead(undead: Undead) {
-    undead.sprite.destroy()
-    undead.label.destroy()
-    this.undeads = this.undeads.filter(u => u !== undead)
+  private removeUndeadSprite(entry: UndeadSprite | undefined) {
+    if (!entry) return
+    entry.sprite.destroy()
+    entry.label.destroy()
+    this.undeadSprites = this.undeadSprites.filter(u => u !== entry)
   }
 
   protected endLevel(passed: boolean) {
