@@ -1,7 +1,7 @@
 // src/scenes/level-types/GoblinWhackerLevel.ts
 import Phaser from 'phaser'
 import { getItem } from '../../data/items'
-import { LevelConfig, SpellData } from '../../types'
+import { TimedLevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
@@ -37,7 +37,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
 
   constructor() { super('GoblinWhackerLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: TimedLevelConfig; profileSlot: number }) {
     super.init(data)   // handles: level, profileSlot, finished
     this.goblinsDefeated = 0
     this.playerHp = DEFAULT_PLAYER_HP

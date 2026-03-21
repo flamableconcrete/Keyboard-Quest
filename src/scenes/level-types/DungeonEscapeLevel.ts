@@ -1,6 +1,6 @@
 // src/scenes/level-types/DungeonEscapeLevel.ts
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
+import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 
 export class DungeonEscapeLevel extends BaseLevelScene {
@@ -12,7 +12,7 @@ export class DungeonEscapeLevel extends BaseLevelScene {
 
   constructor() { super('DungeonEscapeLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: TimedLevelConfig; profileSlot: number }) {
     super.init(data)
   }
 

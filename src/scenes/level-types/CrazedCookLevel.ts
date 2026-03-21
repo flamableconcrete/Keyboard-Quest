@@ -124,7 +124,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     })
 
     // Timer
-    this.timerEvent = this.setupLevelTimer((this.level as OrderLevelConfig).timeLimit, this.timerText)
+    this.timerEvent = this.setupLevelTimer(this.level.timeLimit ?? 90, this.timerText)
 
     // Spawn 2 initial orcs
     this.spawnOrc(0)

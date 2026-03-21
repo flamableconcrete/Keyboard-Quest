@@ -1,6 +1,6 @@
 // src/scenes/level-types/GuildRecruitmentLevel.ts
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
+import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
 
@@ -10,7 +10,7 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
 
   constructor() { super('GuildRecruitmentLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: TimedLevelConfig; profileSlot: number }) {
     super.init(data)
   }
 

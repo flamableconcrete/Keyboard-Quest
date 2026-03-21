@@ -1,6 +1,6 @@
 // src/scenes/level-types/MagicRuneTypingLevel.ts
 import Phaser from 'phaser'
-import { LevelConfig } from '../../types'
+import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { GOLD_PER_KILL } from '../../constants'
 
@@ -12,7 +12,7 @@ export class MagicRuneTypingLevel extends BaseLevelScene {
 
   constructor() { super('MagicRuneTypingLevel') }
 
-  init(data: { level: LevelConfig; profileSlot: number }) {
+  init(data: { level: TimedLevelConfig; profileSlot: number }) {
     super.init(data)
   }
 
