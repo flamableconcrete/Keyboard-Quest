@@ -3,7 +3,7 @@ import { SiegeLevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
+import { GOLD_PER_KILL } from '../../constants'
 import { UndeadSiegeController } from '../../controllers/UndeadSiegeController'
 
 interface UndeadSprite {
@@ -35,7 +35,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
 
     this.siegeCtrl = new UndeadSiegeController({
       words: [...this.wordQueue],
-      maxWaves: 3,
+      maxWaves: (this.level as SiegeLevelConfig).waveCount,
       worldNumber: this.level.world,
       castleHp: (this.level as SiegeLevelConfig).castleHp,
       castleX: 100,
@@ -56,7 +56,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     )
     this.waveText = this.add.text(
       width - 20, 20,
-      `Wave: 1/3`,
+      `Wave: 1/${(this.level as SiegeLevelConfig).waveCount}`,
       { fontSize: '22px', color: '#ffffff' }
     ).setOrigin(1, 0)
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
@@ -73,7 +73,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     const events = this.siegeCtrl.spawn()
     for (const ev of events) {
       if (ev.type === 'spawn') {
-        const { width, height } = this.scale
+        const { height } = this.scale
         const y = Phaser.Math.Between(150, height - 150)
         const sprite = this.add.rectangle(ev.x, y, 40, 40, 0x336633)
         const label = this.add.text(ev.x, y - 30, ev.word, {
@@ -87,7 +87,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
       }
     }
 
-    this.waveText.setText(`Wave: ${this.siegeCtrl.currentWave}/3`)
+    this.waveText.setText(`Wave: ${this.siegeCtrl.currentWave}/${this.siegeCtrl.maxWaves}`)
   }
 
   private setActiveUndead(entry: UndeadSprite | null) {
@@ -114,21 +114,14 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     for (const ev of events) {
       switch (ev.type) {
         case 'castle_damaged':
+          this.removeUndeadSprite(this.undeadSprites.find(u => u.word === ev.word))
           this.castleHpText.setText(`Castle HP: ${'🛡️'.repeat(Math.max(0, ev.newHp))}`)
           this.cameras.main.shake(200, 0.01)
-          this.removeUndeadSprite(this.undeadSprites.find(u =>
-            !this.siegeCtrl.activeUndeads.find(a => a.word === u.word)
-          ))
           break
         case 'level_lost':
           this.endLevel(false)
           break
       }
-    }
-
-    // Check spawn-complete: queue exhausted and all sprites gone
-    if (!this.finished && events.find(e => e.type === 'level_lost') === undefined) {
-      if (this.siegeCtrl.isWon) this.endLevel(true)
     }
   }
 

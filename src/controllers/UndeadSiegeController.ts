@@ -10,7 +10,7 @@ const UNDEAD_SPEED_PER_WORLD = 10
 export type SiegeEvent =
   | { type: 'spawn'; word: string; x: number }
   | { type: 'undead_defeated'; word: string }
-  | { type: 'castle_damaged'; newHp: number }
+  | { type: 'castle_damaged'; word: string; newHp: number }
   | { type: 'level_lost' }
   | { type: 'level_won' }
 
@@ -51,6 +51,7 @@ export class UndeadSiegeController {
 
   get castleHp(): number { return this._castleHp }
   get currentWave(): number { return this._currentWave }
+  get maxWaves(): number { return this.config.maxWaves }
   get isLost(): boolean { return this._isLost }
   get isWon(): boolean { return this._isWon }
   get activeUndeads(): ReadonlyArray<UndeadState> { return this._undeads }
@@ -118,7 +119,7 @@ export class UndeadSiegeController {
    * Called when an undead reaches the castle wall (breach).
    * Decreases castle HP and checks for loss.
    */
-  undeadReachedCastle(word: string): SiegeEvent[] {
+  private undeadReachedCastle(word: string): SiegeEvent[] {
     if (this._isLost) return []
 
     this._undeads = this._undeads.filter(u => u.word !== word)
@@ -127,7 +128,7 @@ export class UndeadSiegeController {
       this._castleHp--
     }
 
-    const events: SiegeEvent[] = [{ type: 'castle_damaged', newHp: this._castleHp }]
+    const events: SiegeEvent[] = [{ type: 'castle_damaged', word, newHp: this._castleHp }]
 
     if (this._castleHp <= 0) {
       this._isLost = true

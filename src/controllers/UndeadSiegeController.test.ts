@@ -127,28 +127,33 @@ describe('UndeadSiegeController — undead defeated', () => {
   })
 })
 
+/** Helper: spawn one undead and immediately place it just past castleX so tick triggers breach. */
+function spawnAndBreach(ctrl: UndeadSiegeController, wordIndex = 0): ReturnType<UndeadSiegeController['tick']> {
+  ctrl.spawn()
+  ;(ctrl as any)._undeads[wordIndex].x = baseConfig.castleX + 1
+  return ctrl.tick(1000)  // large delta to push it past
+}
+
 describe('UndeadSiegeController — undead reaches castle', () => {
-  it('undeadReachedCastle decreases castle HP by 1', () => {
+  it('breach decreases castle HP by 1', () => {
     const ctrl = new UndeadSiegeController(baseConfig)
-    ctrl.spawn()
-    ctrl.undeadReachedCastle('ant')
+    spawnAndBreach(ctrl)
     expect(ctrl.castleHp).toBe(4)
   })
 
-  it('undeadReachedCastle removes undead from active list', () => {
+  it('breach removes undead from active list', () => {
     const ctrl = new UndeadSiegeController(baseConfig)
-    ctrl.spawn()
-    ctrl.undeadReachedCastle('ant')
+    spawnAndBreach(ctrl)
     expect(ctrl.activeUndeads.length).toBe(0)
   })
 
-  it('undeadReachedCastle returns castle_damaged event', () => {
+  it('breach returns castle_damaged event with word and newHp', () => {
     const ctrl = new UndeadSiegeController(baseConfig)
-    ctrl.spawn()
-    const events = ctrl.undeadReachedCastle('ant')
+    const events = spawnAndBreach(ctrl)
     const dmg = events.find(e => e.type === 'castle_damaged')
     expect(dmg).toBeDefined()
     if (dmg?.type === 'castle_damaged') {
+      expect(dmg.word).toBe('ant')
       expect(dmg.newHp).toBe(4)
     }
   })
@@ -157,7 +162,8 @@ describe('UndeadSiegeController — undead reaches castle', () => {
     const ctrl = new UndeadSiegeController({ ...baseConfig, castleHp: 1, words: ['ant', 'bat'] })
     ctrl.spawn() // ant
     ctrl.spawn() // bat
-    const events = ctrl.undeadReachedCastle('ant')
+    ;(ctrl as any)._undeads[0].x = baseConfig.castleX + 1
+    const events = ctrl.tick(1000)
     expect(events.find(e => e.type === 'level_lost')).toBeDefined()
   })
 
@@ -165,7 +171,8 @@ describe('UndeadSiegeController — undead reaches castle', () => {
     const ctrl = new UndeadSiegeController({ ...baseConfig, castleHp: 1, words: ['ant', 'bat'] })
     ctrl.spawn()
     ctrl.spawn()
-    ctrl.undeadReachedCastle('ant')
+    ;(ctrl as any)._undeads[0].x = baseConfig.castleX + 1
+    ctrl.tick(1000)
     expect(ctrl.isLost).toBe(true)
   })
 
@@ -174,8 +181,9 @@ describe('UndeadSiegeController — undead reaches castle', () => {
     ctrl.spawn()
     ctrl.spawn()
     ctrl.spawn()
-    ctrl.undeadReachedCastle('ant')  // castle reaches 0 → lost
-    ctrl.undeadReachedCastle('bat')  // subsequent call should not go negative
+    // Breach ant (HP → 0, isLost = true); subsequent ticks are no-ops
+    ;(ctrl as any)._undeads[0].x = baseConfig.castleX + 1
+    ctrl.tick(1000)
     expect(ctrl.castleHp).toBe(0)
   })
 })
@@ -189,12 +197,16 @@ describe('UndeadSiegeController — tick / movement', () => {
     expect(ctrl.activeUndeads[0].x).toBeLessThan(initialX)
   })
 
-  it('tick emits castle_damaged when undead crosses castleX', () => {
+  it('tick emits castle_damaged with word when undead crosses castleX', () => {
     const ctrl = new UndeadSiegeController({ ...baseConfig, castleX: 500 })
     ctrl.spawn()
     ;(ctrl as any)._undeads[0].x = 505  // just outside castle
     const events = ctrl.tick(1000)  // large delta to push it past
-    expect(events.find(e => e.type === 'castle_damaged')).toBeDefined()
+    const dmg = events.find(e => e.type === 'castle_damaged')
+    expect(dmg).toBeDefined()
+    if (dmg?.type === 'castle_damaged') {
+      expect(dmg.word).toBe('ant')
+    }
   })
 
   it('tick does not emit breach events when undead has not reached castleX', () => {
