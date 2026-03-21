@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { GOLD_PER_KILL } from '../../constants'
 
 interface Slime {
@@ -22,7 +22,7 @@ export class SlimeKingBoss extends BaseBossScene {
   private slimes: Slime[] = []
   private activeSlime: Slime | null = null
 
-  private playerHp = 5
+  private hp!: BossHPState
   private hpText!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private attackTimer?: Phaser.Time.TimerEvent
@@ -31,20 +31,20 @@ export class SlimeKingBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.slimes = []
     this.activeSlime = null
   }
 
   create() {
     this.preCreate()
+    this.hp = this.setupBossHP(this.level.wordCount)
     const { width, height } = this.scale
 
     // Dark Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
 
@@ -88,11 +88,11 @@ export class SlimeKingBoss extends BaseBossScene {
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-          this.playerHp--
+          this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.01)
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
