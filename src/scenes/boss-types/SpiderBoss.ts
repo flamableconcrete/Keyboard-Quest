@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 
 interface WebLine {
   index: number;
@@ -28,12 +28,9 @@ export class SpiderBoss extends BaseBossScene {
   private lines: WebLine[] = []
   private activeLetterQueue: WebLine[] = []
 
-  private bossHp = 0
-  private bossMaxHp = 0
-  private playerHp = 5
+  private hp!: BossHPState
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
@@ -42,19 +39,16 @@ export class SpiderBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
     this.lettersSpawned = 0
     this.activeLetterQueue = []
 
-    // bossMaxHp is waves of 8 letters
-    this.bossMaxHp = Math.ceil(data.level.wordCount / 8)
-    this.bossHp = this.bossMaxHp
     this.lettersToSpawn = data.level.wordCount
   }
 
   create() {
     this.preCreate()
+    this.hp = this.setupBossHP(Math.ceil(this.level.wordCount / 8))
     const { width, height } = this.scale
     const centerX = width / 2
     const centerY = height / 2
@@ -63,7 +57,7 @@ export class SpiderBoss extends BaseBossScene {
     this.add.rectangle(centerX, centerY, width, height, 0x0a0a1a)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -87,21 +81,13 @@ export class SpiderBoss extends BaseBossScene {
     this.add.circle(centerX - 15, centerY - 10, 5, 0xff0000) // Eye
     this.add.circle(centerX + 15, centerY - 10, 5, 0xff0000) // Eye
 
-    this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#8800ff'
     }).setOrigin(0.5)
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
     }
 
     this.startPhase()
@@ -247,8 +233,8 @@ export class SpiderBoss extends BaseBossScene {
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (1 + powerBonus)
-    this.bossHpText.setText(`Spider HP: ${this.bossHp}/${this.bossMaxHp}`)
+    this.hp.bossHp -= (1 + powerBonus)
+    this.bossHpText.setText(`Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`)
 
     // Damage effect
     this.bossSprite.setFillStyle(0xff0000)
@@ -256,7 +242,7 @@ export class SpiderBoss extends BaseBossScene {
       if (this.bossSprite) this.bossSprite.setFillStyle(0x333333)
     })
 
-    if (this.bossHp <= 0) {
+    if (this.hp.bossHp <= 0) {
       this.endLevel(true)
       return
     }
@@ -270,7 +256,7 @@ export class SpiderBoss extends BaseBossScene {
       this.drawWeb()
 
       // Progress phases based on HP
-      const newPhase = Math.min(3, 1 + Math.floor(((this.bossMaxHp - this.bossHp) / this.bossMaxHp) * 3))
+      const newPhase = Math.min(3, 1 + Math.floor(((this.hp.bossMaxHp - this.hp.bossHp) / this.hp.bossMaxHp) * 3))
       if (newPhase > this.phase) {
         this.phase = newPhase
         this.startPhase()
@@ -295,11 +281,11 @@ export class SpiderBoss extends BaseBossScene {
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-          this.playerHp--
+          this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(200, 0.01)
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
