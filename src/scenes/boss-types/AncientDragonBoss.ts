@@ -4,7 +4,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
-import { BaseBossScene } from '../BaseBossScene'
+import { BaseBossScene, BossHPState } from '../BaseBossScene'
 
 export class AncientDragonBoss extends BaseBossScene {
   private phase = 1
@@ -15,13 +15,10 @@ export class AncientDragonBoss extends BaseBossScene {
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
 
-  private bossHp = 0
-  private bossMaxHp = 0
+  private hp!: BossHPState
 
-  private playerHp = 5
   private hpText!: Phaser.GameObjects.Text
   private timerText!: Phaser.GameObjects.Text
-  private timeLeft = 0
   private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
 
@@ -29,7 +26,6 @@ export class AncientDragonBoss extends BaseBossScene {
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
-    this.playerHp = 5
     this.phase = 1
   }
 
@@ -41,7 +37,8 @@ export class AncientDragonBoss extends BaseBossScene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x0a001a)
 
     // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.playerHp)}`, {
+    this.hp = this.setupBossHP(this.level.wordCount)
+    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
       fontSize: '22px', color: '#ff4444'
     })
     this.timerText = this.add.text(width - 20, 20, '', {
@@ -60,23 +57,13 @@ export class AncientDragonBoss extends BaseBossScene {
     // Boss Sprite (Ancient Dragon is big and purple)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 350, 350, 0x4b0082)
 
-    this.bossMaxHp = this.level.wordCount
-    this.bossHp = this.bossMaxHp
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Ancient Dragon HP: ${this.bossHp}/${this.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Ancient Dragon HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#a020f0'
     }).setOrigin(0.5)
 
     // Timer
     if (this.level.timeLimit) {
-      this.timeLeft = this.level.timeLimit
-      this.timerEvent = this.time.addEvent({
-        delay: 1000, repeat: this.level.timeLimit - 1,
-        callback: () => {
-          this.timeLeft--
-          this.timerText.setText(`${this.timeLeft}s`)
-          if (this.timeLeft <= 0) this.endLevel(false)
-        }
-      })
+      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
     }
 
     this.startPhase()
@@ -88,8 +75,8 @@ export class AncientDragonBoss extends BaseBossScene {
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
 
     // Distribute total words across phases
-    const wordsInThisPhase = Math.ceil(this.bossMaxHp / this.maxPhases)
-    const wordsRemaining = Math.min(wordsInThisPhase, this.bossHp)
+    const wordsInThisPhase = Math.ceil(this.hp.bossMaxHp / this.maxPhases)
+    const wordsRemaining = Math.min(wordsInThisPhase, this.hp.bossHp)
 
     // Sentence length depends on phase
     let wordsPerSentence = 2
@@ -122,7 +109,7 @@ export class AncientDragonBoss extends BaseBossScene {
 
   private loadNextSentence() {
     if (this.sentenceQueue.length === 0) {
-      if (this.phase < this.maxPhases && this.bossHp > 0) {
+      if (this.phase < this.maxPhases && this.hp.bossHp > 0) {
         this.phase++
         this.startPhase()
       } else {
@@ -152,16 +139,16 @@ export class AncientDragonBoss extends BaseBossScene {
           const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
           this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
         } else {
-          this.playerHp--
+          this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.playerHp))}`)
+        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
         this.cameras.main.shake(300, 0.02)
 
         if (this.phase >= 2) {
            this.cameras.main.flash(100, 100, 0, 200)
         }
 
-        if (this.playerHp <= 0) this.endLevel(false)
+        if (this.hp.playerHp <= 0) this.endLevel(false)
       }
     })
   }
@@ -174,8 +161,8 @@ export class AncientDragonBoss extends BaseBossScene {
     const pProfileBoss = loadProfile(this.profileSlot)
     const weaponItemBoss = pProfileBoss?.equipment?.weapon ? getItem(pProfileBoss.equipment.weapon) : null
     const powerBonus = weaponItemBoss?.effect?.power || 0
-    this.bossHp -= (wordsInSentence + powerBonus)
-    this.bossHpText.setText(`Ancient Dragon HP: ${Math.max(0, this.bossHp)}/${this.bossMaxHp}`)
+    this.hp.bossHp -= (wordsInSentence + powerBonus)
+    this.bossHpText.setText(`Ancient Dragon HP: ${Math.max(0, this.hp.bossHp)}/${this.hp.bossMaxHp}`)
 
     this.bossSprite.setFillStyle(0xffffff)
     this.time.delayedCall(100, () => {
