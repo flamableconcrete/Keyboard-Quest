@@ -1,7 +1,7 @@
 // src/controllers/WaveController.ts
 // Pure TypeScript — NO Phaser imports.
 import { computeSlotPositions, applySeparationForce } from '../utils/skeletonSpacing'
-import { SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../constants'
+import { BATTLE_STOP_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../constants'
 
 export type WaveEvent =
   | { type: 'spawn'; word: string; x: number; isRiser: boolean }
@@ -23,7 +23,7 @@ export interface WaveConfig {
   worldNumber: number
   barrierX: number
   canvasWidth: number
-  battleX?: number       // default 350, regular mode stop point
+  battleX?: number       // default BATTLE_STOP_X, regular mode stop point
   minSpacing?: number    // default 80
   labelPad?: number      // default 24
   /** Inject a custom RNG for deterministic tests. Defaults to Math.random. */
@@ -43,7 +43,7 @@ export class WaveController {
   constructor(private config: WaveConfig) {
     this.wordQueue = [...config.words]
     this.rng = config.rng ?? Math.random
-    this.battleX = config.battleX ?? 350
+    this.battleX = config.battleX ?? BATTLE_STOP_X
     this.minSpacing = config.minSpacing ?? 80
     this.labelPad = config.labelPad ?? 24
     this.speed = SKELETON_SPEED_BASE + config.worldNumber * SKELETON_SPEED_PER_WORLD

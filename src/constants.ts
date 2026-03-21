@@ -42,3 +42,15 @@ export const PET_SPEED_BASE = 100
 export const SKELETON_SPEED_BASE = 60
 /** Speed increase per world number */
 export const SKELETON_SPEED_PER_WORLD = 10
+
+/** Default player HP at the start of a level */
+export const DEFAULT_PLAYER_HP = 3
+
+/** X offset from canvas right edge for enemy spawn position */
+export const ENEMY_SPAWN_X_OFFSET = 30
+
+/** Default boss/enemy stop X in battle scenes */
+export const BATTLE_STOP_X = 350
+
+/** Skeleton barrier X position (right edge of safe zone) */
+export const SKELETON_BARRIER_X = 265

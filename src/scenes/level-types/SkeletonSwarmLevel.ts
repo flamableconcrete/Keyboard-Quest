@@ -5,7 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
-import { GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Skeleton {
   word: string
@@ -24,7 +24,7 @@ interface Skeleton {
 export class SkeletonSwarmLevel extends BaseLevelScene {
   private skeletons: Skeleton[] = []
   private activeSkeleton: Skeleton | null = null
-  private playerHp = 3
+  private playerHp = DEFAULT_PLAYER_HP
   private hpHearts: Phaser.GameObjects.Image[] = []
   private waveText!: Phaser.GameObjects.Text
   private skeletonsDefeated = 0
@@ -48,7 +48,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
     this.skeletonsDefeated = 0
-    this.playerHp = 3
+    this.playerHp = DEFAULT_PLAYER_HP
     this.maxWaves = data.level.waveCount ?? 3
     this.skeletons = []
     this.activeSkeleton = null

@@ -5,7 +5,7 @@ import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
+import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
 
 interface Goblin {
   word: string
@@ -19,7 +19,7 @@ interface Goblin {
 export class GoblinWhackerLevel extends BaseLevelScene {
   private goblins: Goblin[] = []
   private activeGoblin: Goblin | null = null
-  private playerHp = 3
+  private playerHp = DEFAULT_PLAYER_HP
   private maxGoblinReach = 0  // x position where goblin damages player
   private hpHearts: Phaser.GameObjects.Image[] = []
   private timerText!: Phaser.GameObjects.Text
@@ -40,7 +40,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)   // handles: level, profileSlot, finished
     this.goblinsDefeated = 0
-    this.playerHp = 3
+    this.playerHp = DEFAULT_PLAYER_HP
     this.goblins = []
     this.activeGoblin = null
     this.letterShieldCount = 0
