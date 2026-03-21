@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { GOLD_PER_KILL } from '../../constants'
 
 export class WoodlandFestivalLevel extends BaseLevelScene {
   private playerScore = 0
@@ -61,7 +62,7 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5);
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
     this.playerScore++

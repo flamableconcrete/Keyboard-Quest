@@ -3,6 +3,7 @@ import { getItem } from '../../data/items'
 import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { GOLD_PER_KILL } from '../../constants'
 
 interface Slime {
   word: string
@@ -110,7 +111,7 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5);
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
     const slime = this.slimes.find(s => s.word === word)

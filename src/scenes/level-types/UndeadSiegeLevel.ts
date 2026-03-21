@@ -3,6 +3,7 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { GOLD_PER_KILL } from '../../constants'
 
 interface Undead {
   word: string
@@ -112,7 +113,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5);
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
     const undead = this.undeads.find(u => u.word === word)

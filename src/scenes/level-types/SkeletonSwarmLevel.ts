@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateSkeletonSwarmTextures } from '../../art/skeletonSwarmArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
+import { GOLD_PER_KILL } from '../../constants'
 
 interface Skeleton {
   word: string
@@ -481,7 +482,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       if (this.goldManager) {
         const dropX = skeleton.x + (Math.random() * 40 - 20)
         const dropY = skeleton.sprite.y + 40 + (Math.random() * 20 - 10)
-        this.goldManager.spawnGold(dropX, dropY, 5)
+        this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL)
       }
       this.removeSkeleton(skeleton)
       this.skeletonsDefeated++

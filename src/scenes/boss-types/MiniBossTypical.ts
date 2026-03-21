@@ -6,6 +6,7 @@ import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
 import { BaseBossScene } from '../BaseBossScene'
+import { GOLD_PER_KILL } from '../../constants'
 
 export class MiniBossTypical extends BaseBossScene {
   private bossSprite!: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle
@@ -168,7 +169,7 @@ export class MiniBossTypical extends BaseBossScene {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
     if (this.finished) return

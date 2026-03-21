@@ -5,6 +5,7 @@ import { LevelConfig, SpellData } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
+import { GOLD_PER_KILL } from '../../constants'
 
 interface Goblin {
   word: string
@@ -228,7 +229,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       if (this.goldManager) {
         const dropX = goblin.x + (Math.random() * 40 - 20);
         const dropY = goblin.sprite.y + 40 + (Math.random() * 20 - 10);
-        this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+        this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
       }
 
       this.removeGoblin(goblin)

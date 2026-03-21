@@ -6,6 +6,7 @@ import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { PlatformerController } from '../../controllers/PlatformerController'
+import { GOLD_PER_KILL } from '../../constants'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -335,7 +336,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     if (this.goldManager) {
       const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
       const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, 5); // 5 gold per kill
+      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
     }
 
     if (!this.currentObstacle) return
