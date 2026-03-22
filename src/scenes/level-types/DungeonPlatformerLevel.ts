@@ -314,10 +314,10 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   // ── Word Complete ────────────────────────────────────────────────
   protected onWordComplete(_word: string, _elapsed: number) {
+    if (!this.currentObstacle) return
+
     // Notify party to animate (trap dodged — no gold in this level type)
     this.events.emit('trap_cleared')
-
-    if (!this.currentObstacle) return
     const obs = this.currentObstacle
     this.currentObstacle = null  // clear immediately so keydown handler doesn't flash old letter
     const events = this.platformerController.completeWord()

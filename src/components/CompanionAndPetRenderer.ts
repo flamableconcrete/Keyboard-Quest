@@ -7,7 +7,9 @@ export class CompanionAndPetRenderer {
   private companionSprite: Phaser.GameObjects.Image | null = null
   private petSprite: Phaser.GameObjects.Image | null = null
   private startCompX = 0
+  private startCompY = 0
   private startPetX = 0
+  private startPetY = 0
 
   constructor(
     scene: Phaser.Scene,
@@ -33,7 +35,9 @@ export class CompanionAndPetRenderer {
     const companionY = y
 
     this.startPetX = petX
+    this.startPetY = petY
     this.startCompX = companionX
+    this.startCompY = companionY
 
     // Shadow ellipses beneath each slot (positions follow petX/companionX)
     graphics.fillEllipse(petX, petY + 28, 50, 16)
@@ -71,7 +75,7 @@ export class CompanionAndPetRenderer {
     if (this.companionSprite) {
       this.scene.tweens.add({
         targets: this.companionSprite,
-        y: this.companionSprite.y - 30,
+        y: this.startCompY - 30,
         yoyo: true,
         duration: 200,
         ease: 'Sine.easeOut'
@@ -80,7 +84,7 @@ export class CompanionAndPetRenderer {
     if (this.petSprite) {
       this.scene.tweens.add({
         targets: this.petSprite,
-        y: this.petSprite.y - 30,
+        y: this.startPetY - 30,
         yoyo: true,
         duration: 200,
         delay: 60,
