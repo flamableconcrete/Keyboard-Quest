@@ -110,7 +110,6 @@ export class CrazedCookLevel extends BaseLevelScene {
     this.wordPool = [...this.wordQueue]
     this.wordIndex = 0
 
-
     // TAB key to cycle orders
     this.input.keyboard?.on('keydown-TAB', this.cycleActiveOrder, this)
 
