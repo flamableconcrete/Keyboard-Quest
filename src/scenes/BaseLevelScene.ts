@@ -101,7 +101,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.avatarSprite = this.add.image(ax, ay, avatarKey).setScale(avatarScale).setDepth(5)
 
     // Companion / pet + gold manager
-    const petRenderer = new CompanionAndPetRenderer(this, ax, ay, this.profileSlot)
+    const petRenderer = new CompanionAndPetRenderer(this, ax, ay, this.profileSlot, companionSide)
     this.goldManager = new GoldManager(this)
     if (petRenderer.getPetSprite()) {
       const pet = profile?.pets.find(p => p.id === profile?.activePetId)
