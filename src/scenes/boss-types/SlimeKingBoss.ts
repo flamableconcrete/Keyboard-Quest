@@ -113,7 +113,7 @@ export class SlimeKingBoss extends BaseBossScene {
     const words = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)
     const word = words[0] || 'slimeking'
 
-    this.createSlime(word, width / 2, height / 2 - 50, 200)
+    this.createSlime(word, width * 0.75, height / 2 - 50, 200)
   }
 
   private createSlime(word: string, x: number, y: number, size: number) {
