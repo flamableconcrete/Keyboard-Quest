@@ -85,15 +85,6 @@ export class MiniBossTypical extends BaseBossScene {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.input.keyboard?.on('keydown', () => {
-      if (this.wordQueue.length > 0 && this.typingHands) {
-        const word = this.wordQueue[0]
-        const nextIdx = this.engine.getTypedSoFar().length
-        const nextCh = word[nextIdx]
-        if (nextCh) this.typingHands.highlightFinger(nextCh)
-      }
-    })
-
     // Boss Attack Timer (Attacks every X seconds if not defeated)
     if (this.gameMode === 'advanced') {
       this.attackTimer = this.time.addEvent({
@@ -114,9 +105,6 @@ export class MiniBossTypical extends BaseBossScene {
     }
     const word = this.wordQueue[0]
     this.engine.setWord(word)
-    if (this.typingHands && word[0]) {
-      this.typingHands.highlightFinger(word[0])
-    }
   }
 
   private bossAttack() {

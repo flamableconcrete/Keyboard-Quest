@@ -2,8 +2,6 @@
 import { BaseLevelScene, PreCreateOptions } from './BaseLevelScene'
 import {
   BOSS_AVATAR_SCALE,
-  BOSS_ENGINE_Y_OFFSET,
-  BOSS_ENGINE_FONT_SIZE,
   BOSS_END_DELAY_MS,
   BOSS_AVATAR_X_FRAC,
   BOSS_AVATAR_Y_OFFSET,
@@ -33,12 +31,12 @@ export abstract class BaseBossScene extends BaseLevelScene {
   /**
    * Boss-flavored preCreate with sensible defaults.
    * If called with no arguments, places avatar at (width*0.25, height/2-50)
-   * with scale 2.5 and engine at (height-160) with font size 48.
+   * with scale 2.5.
    */
   protected override preCreate(
     avatarX?: number,
     avatarY?: number,
-    options: PreCreateOptions = {}
+    options: PreCreateOptions = {} as PreCreateOptions
   ) {
     const { width, height } = this.scale
     super.preCreate(
@@ -46,36 +44,9 @@ export abstract class BaseBossScene extends BaseLevelScene {
       avatarY ?? (height / 2 - BOSS_AVATAR_Y_OFFSET),
       {
         avatarScale: BOSS_AVATAR_SCALE,
-        engineY: height - BOSS_ENGINE_Y_OFFSET,
-        engineFontSize: BOSS_ENGINE_FONT_SIZE,
         ...options,
       }
     )
-  }
-
-  /**
-   * Set up a boss countdown timer. Calls onExpire when the countdown reaches zero.
-   * Returns the TimerEvent.
-   *
-   * Unlike setupLevelTimer (BaseLevelScene), accepts a custom onExpire callback
-   * rather than hardcoding endLevel(false), to support boss-specific expiry logic.
-   */
-  protected setupBossTimer(
-    seconds: number,
-    timerText: Phaser.GameObjects.Text,
-    onExpire: () => void
-  ): Phaser.Time.TimerEvent {
-    let timeLeft = seconds
-    timerText.setText(`${timeLeft}s`)
-    return this.time.addEvent({
-      delay: 1000,
-      repeat: seconds - 1, // Phaser fires repeat+1 times total
-      callback: () => {
-        timeLeft--
-        timerText.setText(`${timeLeft}s`)
-        if (timeLeft <= 0) onExpire()
-      },
-    })
   }
 
   /**

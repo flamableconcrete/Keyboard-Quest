@@ -197,15 +197,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       ease: 'Sine.InOut',
     })
 
-    // Keyboard → typing hands passthrough
-    this.input.keyboard?.on('keydown', () => {
-      if (this.activeSkeleton && this.typingHands) {
-        const nextIdx = this.engine.getTypedSoFar().length
-        const nextCh = this.activeSkeleton.word[nextIdx]
-        if (nextCh) this.typingHands.highlightFinger(nextCh)
-      }
-    })
-
     // Start wave loop
     this.spawnWave()
   }
@@ -323,7 +314,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
         ease: 'Sine.InOut',
       })
       this.engine.setWord(skeleton.word)
-      if (this.typingHands) this.typingHands.highlightFinger(skeleton.word[0])
     } else {
       this.engine.clearWord()
     }

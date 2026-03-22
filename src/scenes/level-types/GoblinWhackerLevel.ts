@@ -164,9 +164,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     if (newActiveWord) {
       this.goblinSprites.get(newActiveWord)?.sprite.setTint(0xffff44)
       this.engine.setWord(newActiveWord)
-      if (this.typingHands) {
-        this.typingHands.highlightFinger(newActiveWord[0])
-      }
     } else {
       this.engine.clearWord()
     }

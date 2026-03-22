@@ -115,14 +115,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     // preCreate placed the avatar at (heroX, heroBaseY); reference it directly.
     this.hero = this.avatarSprite!
 
-    // Update finger hints after each keystroke
-    this.input.keyboard?.on('keydown', () => {
-      if (this.currentObstacle && this.typingHands) {
-        const nextIdx = this.engine.getTypedSoFar().length
-        const nextCh = this.currentObstacle.word[nextIdx]
-        if (nextCh) this.typingHands.highlightFinger(nextCh)
-      }
-    })
+    // finger hints are handled by LevelHUD via typing_next_char event
 
     this.updateCounterText()
 
@@ -254,7 +247,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
     // Let the player start typing immediately while obstacle scrolls in
     this.engine.setWord(word)
-    if (this.typingHands) this.typingHands.highlightFinger(word[0])
 
     const heroX = this.hero.x
     const targetX = heroX + 120

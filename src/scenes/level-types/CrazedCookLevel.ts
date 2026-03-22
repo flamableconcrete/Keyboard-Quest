@@ -420,7 +420,7 @@ export class CrazedCookLevel extends BaseLevelScene {
   }
 
   private updateOrdersText() {
-    this.hud?.setCounter(this.kitchenController.ordersFilled)
+    this.hud!.setCounter(this.kitchenController.ordersFilled)
   }
 
   protected onWrongKey() {

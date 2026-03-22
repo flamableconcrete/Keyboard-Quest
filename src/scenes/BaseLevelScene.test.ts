@@ -50,8 +50,8 @@ class TestLevelScene extends BaseLevelScene {
   // Simulate calling endLevel without preCreate (to test the guard)
   callEndLevelWithoutPreCreate(passed: boolean) {
     // Bypass Phaser's scene.start for unit test
+    ;(this as any).hud = { destroy: () => {} }
     ;(this as any).engine = {
-      destroy: () => {},
       sessionStartTime: Date.now(),
       correctKeystrokes: 10,
       totalKeystrokes: 10,
@@ -98,78 +98,6 @@ describe('BaseLevelScene.init()', () => {
   })
 })
 
-describe('BaseLevelScene.setupLevelTimer', () => {
-  it('calls endLevel(false) when timer expires', () => {
-    const scene = new TestLevelScene()
-    ;(scene as any).init({ level: mockLevel, profileSlot: 0 })
-    ;(scene as any)._preCreateCalled = true
-
-    // Mock the timer: capture the callback when addEvent is called
-    let timerCallback: (() => void) | null = null
-    ;(scene as any).time = {
-      addEvent: (_opts: { delay: number; repeat: number; callback: () => void }) => {
-        timerCallback = _opts.callback
-        return { remove: () => {} }
-      },
-      delayedCall: (_ms: number, cb: () => void) => cb(),
-    }
-    ;(scene as any).scene = { start: () => {}, key: 'Test' }
-
-    // Mock endLevel to spy on it
-    const endLevelSpy = vi.fn()
-    ;(scene as any).endLevel = endLevelSpy
-
-    const fakeText = { setText: () => {} }
-    ;(scene as any).setupLevelTimer(3, fakeText)
-
-    expect(timerCallback).not.toBeNull()
-
-    // Fire the callback 3 times (simulating 3 seconds)
-    timerCallback!()
-    timerCallback!()
-    timerCallback!()
-
-    expect(endLevelSpy).toHaveBeenCalledWith(false)
-  })
-})
-
-describe('BaseLevelScene.setupLevelTimer with onTick', () => {
-  it('calls onTick with the new remaining value after each decrement', () => {
-    const scene = new TestLevelScene()
-    ;(scene as any).init({ level: mockLevel, profileSlot: 0 })
-    ;(scene as any)._preCreateCalled = true
-
-    let timerCallback: (() => void) | null = null
-    ;(scene as any).time = {
-      addEvent: (_opts: { delay: number; repeat: number; callback: () => void }) => {
-        timerCallback = _opts.callback
-        return { remove: () => {} }
-      },
-      delayedCall: (_ms: number, cb: () => void) => cb(),
-    }
-    ;(scene as any).scene = { start: () => {}, key: 'Test' }
-
-    const endLevelSpy = vi.fn()
-    ;(scene as any).endLevel = endLevelSpy
-
-    const onTickSpy = vi.fn()
-    const fakeText = { setText: () => {} }
-    ;(scene as any).setupLevelTimer(3, fakeText, onTickSpy)
-
-    expect(timerCallback).not.toBeNull()
-
-    // Fire 3 ticks
-    timerCallback!()  // remaining = 2
-    timerCallback!()  // remaining = 1
-    timerCallback!()  // remaining = 0
-
-    expect(onTickSpy).toHaveBeenCalledTimes(3)
-    expect(onTickSpy).toHaveBeenNthCalledWith(1, 2)
-    expect(onTickSpy).toHaveBeenNthCalledWith(2, 1)
-    expect(onTickSpy).toHaveBeenNthCalledWith(3, 0)
-  })
-})
-
 describe('BaseLevelScene._preCreateCalled guard', () => {
   let scene: TestLevelScene
 
@@ -196,8 +124,8 @@ describe('BaseLevelScene._preCreateCalled guard', () => {
     ;(scene as any)._preCreateCalled = true
 
     // Setup the mocks
+    ;(scene as any).hud = { destroy: () => {} }
     ;(scene as any).engine = {
-      destroy: () => {},
       sessionStartTime: Date.now(),
       correctKeystrokes: 10,
       totalKeystrokes: 10,
@@ -277,7 +205,9 @@ describe('BaseLevelScene.preCreate avatarSprite', () => {
     ;(scene as any).events = { on: vi.fn(), once: vi.fn(), emit: vi.fn() }
     ;(scene as any).time = { addEvent: vi.fn().mockReturnValue({ remove: vi.fn() }) }
 
-    ;(scene as any).preCreate(100, 400)
+    const fakeEngine = { sessionStartTime: Date.now(), correctKeystrokes: 0, totalKeystrokes: 0, completedWords: 0 }
+    const fakeHud = { engine: fakeEngine, destroy: () => {} }
+    ;(scene as any).preCreate(100, 400, { hud: fakeHud })
 
     expect((scene as any).avatarSprite).toBe(fakeImage)
   })

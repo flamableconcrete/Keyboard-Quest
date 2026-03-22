@@ -13,18 +13,11 @@ export const BOSS_AVATAR_Y_OFFSET = 50
 /** Avatar scale for boss scenes */
 export const BOSS_AVATAR_SCALE = 2.5
 
-/** Y position of typing engine from canvas bottom, standard levels */
-export const LEVEL_ENGINE_Y_OFFSET = 80
 /** Font size for typing engine in standard levels */
 export const LEVEL_ENGINE_FONT_SIZE = 40
 
-/** Y position of typing engine from canvas bottom, boss scenes */
-export const BOSS_ENGINE_Y_OFFSET = 160
 /** Font size for typing engine in boss scenes */
 export const BOSS_ENGINE_FONT_SIZE = 48
-
-/** Y position of typing hands hints from canvas bottom */
-export const TYPING_HANDS_Y_OFFSET = 100
 
 /** Render depth for TypingHands objects — must be above scene backgrounds (depth 0) */
 export const TYPING_HANDS_DEPTH = 5

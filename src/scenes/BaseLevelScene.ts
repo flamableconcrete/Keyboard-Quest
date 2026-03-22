@@ -11,13 +11,9 @@ import { calcAccuracyStars, calcSpeedStars } from '../utils/scoring'
 import { setupPause } from '../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../art/companionsArt'
 import { CompanionAndPetRenderer } from '../components/CompanionAndPetRenderer'
-import { TypingHands } from '../components/TypingHands'
 import { LevelHUD } from '../components/LevelHUD'
 import {
-  LEVEL_ENGINE_Y_OFFSET,
-  LEVEL_ENGINE_FONT_SIZE,
   LEVEL_AVATAR_SCALE,
-  TYPING_HANDS_Y_OFFSET,
   LEVEL_END_DELAY_MS,
   PET_SPEED_BASE,
   PET_SPEED_COEFF,
@@ -26,11 +22,8 @@ import {
 
 export interface PreCreateOptions {
   avatarScale?: number
-  engineY?: number          // kept for backwards compat — ignored when hud provided
-  engineFontSize?: number   // kept for backwards compat — ignored when hud provided
-  handsYOffset?: number     // kept for backwards compat — ignored when hud provided
   companionSide?: 'left' | 'right'
-  hud?: LevelHUD            // NEW: if provided, skip engine + hands creation
+  hud: LevelHUD
 }
 
 export abstract class BaseLevelScene extends Phaser.Scene {
@@ -42,8 +35,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected wordQueue: string[] = []
   protected goldManager!: GoldManager
   protected spellCaster?: SpellCaster
-  protected typingHands?: TypingHands
-  protected hud?: LevelHUD
+  protected hud!: LevelHUD
   protected avatarSprite: Phaser.GameObjects.Image | null = null
   private _preCreateCalled = false
 
@@ -59,12 +51,12 @@ export abstract class BaseLevelScene extends Phaser.Scene {
 
   /**
    * Call at the TOP of your create() method.
-   * Handles: pause, avatar, companion/pet, GoldManager, word pool,
-   * TypingEngine, SpellCaster (conditional), TypingHands (conditional).
+   * Handles: pause, avatar, companion/pet, GoldManager, and SpellCaster (conditional).
+   * The LevelHUD (passed via options.hud) owns the TypingEngine and TypingHands.
    *
    * @param avatarX  X position of the player avatar sprite (default: 100)
    * @param avatarY  Y position of the player avatar sprite (default: height - 100)
-   * @param options  Optional overrides for scale, engine position, font size, etc.
+   * @param options  Optional overrides for scale, companion side, and hud.
    *
    * NOTE: If the player has spells, preCreate() will create a SpellCaster and call
    * handleSpellEffect() for spell events. Scenes that don't use spells can ignore
@@ -87,21 +79,18 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected preCreate(
     avatarX?: number,
     avatarY?: number,
-    options: PreCreateOptions = {}
+    options: PreCreateOptions = {} as PreCreateOptions
   ) {
     this._preCreateCalled = true
 
     const {
       avatarScale = LEVEL_AVATAR_SCALE,
-      engineFontSize = LEVEL_ENGINE_FONT_SIZE,
-      handsYOffset = TYPING_HANDS_Y_OFFSET,
-      engineY: engineYOverride,
       companionSide = 'right',
       hud,
     } = options
 
     setupPause(this, this.profileSlot)
-    const { width, height } = this.scale
+    const { height } = this.scale
 
     // Resolve optional avatar position defaults
     const ax = avatarX ?? 100
@@ -132,35 +121,9 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       }
     }
 
-    if (hud) {
-      // HUD path: engine + hands are owned by the HUD
-      this.hud = hud
-      this.engine = hud.engine
-    } else {
-      // Legacy path: create engine + hands directly
-      const engineY = engineYOverride ?? (height - LEVEL_ENGINE_Y_OFFSET)
-
-      // Word pool (idempotent — skip if already populated by scene before calling preCreate)
-      if (this.wordQueue.length === 0) {
-        this.initWordPool()
-      }
-
-      // Typing engine
-      this.engine = new TypingEngine({
-        scene: this,
-        x: width / 2,
-        y: engineY,
-        fontSize: engineFontSize,
-        onWordComplete: this.onWordComplete.bind(this),
-        onWrongKey: this.onWrongKey.bind(this),
-      })
-
-      // Typing hands (conditional)
-      if (profile?.showFingerHints) {
-        this.typingHands = new TypingHands(this, width / 2, height - handsYOffset)
-        this.events.on('typing_next_char', (ch: string) => this.typingHands?.highlightFinger(ch))
-      }
-    }
+    // HUD owns the engine and hands
+    this.hud = hud!
+    this.engine = hud!.engine
 
     // Spell caster (uses this.engine, works in both HUD and legacy paths)
     if (profile && profile.spells.length > 0) {
@@ -174,36 +137,6 @@ export abstract class BaseLevelScene extends Phaser.Scene {
    * Default is a no-op (scenes without spells don't need to override this).
    */
   protected handleSpellEffect(_effect: SpellData['effect']): void {}
-
-  /**
-   * Set up a countdown timer that calls endLevel(false) when it reaches zero.
-   * Returns the TimerEvent so the caller can remove it in endLevel cleanup.
-   *
-   * Usage in create():
-   *   if (this.level.timeLimit) {
-   *     this.timerEvent = this.setupLevelTimer(this.level.timeLimit, timerText)
-   *   }
-   *
-   * @param onTick Optional callback fired after each decrement with the new remaining value
-   */
-  protected setupLevelTimer(
-    seconds: number,
-    displayText: Phaser.GameObjects.Text,
-    onTick?: (remaining: number) => void
-  ): Phaser.Time.TimerEvent {
-    let timeLeft = seconds
-    displayText.setText(`${timeLeft}s`)
-    return this.time.addEvent({
-      delay: 1000,
-      repeat: seconds - 1, // Phaser fires repeat+1 times total
-      callback: () => {
-        timeLeft--
-        displayText.setText(`${timeLeft}s`)
-        onTick?.(timeLeft)
-        if (timeLeft <= 0) this.endLevel(false)
-      },
-    })
-  }
 
   /**
    * Call to end the level. Handles guard flag, shared cleanup,
@@ -223,12 +156,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.finished = true
 
     this.spellCaster?.destroy()
-    if (this.hud) {
-      this.hud.destroy()
-    } else {
-      this.typingHands?.fadeOut()
-      this.engine.destroy()
-    }
+    this.hud!.destroy()
 
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(
