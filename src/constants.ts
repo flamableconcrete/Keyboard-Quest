@@ -28,6 +28,13 @@ export const TYPING_ENGINE_CHAR_DEPTH = 53
 export const HUD_TOP_BAR_H = 56
 /** Height of the bottom HUD panel bar in pixels */
 export const HUD_BOTTOM_BAR_H = 130
+/** Top boundary of the HUD-safe playfield (pixels from top of canvas).
+ *  Avatar Y values must be >= this. */
+export const HUD_SAFE_Y_TOP = HUD_TOP_BAR_H           // 56
+/** Distance from the bottom of the canvas to the HUD-safe playfield boundary.
+ *  Compute the safe bottom at call site: safeBottom = height - HUD_SAFE_Y_BOTTOM_OFFSET.
+ *  Avatar Y values must be <= safeBottom. */
+export const HUD_SAFE_Y_BOTTOM_OFFSET = HUD_BOTTOM_BAR_H  // 130
 /** Phaser render depth for HUD background panels */
 export const HUD_BG_DEPTH = 50
 /** Phaser render depth for HUD text and image objects */
