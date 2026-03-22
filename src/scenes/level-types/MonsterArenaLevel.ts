@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { MonsterArenaController } from '../../controllers/MonsterArenaController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface MonsterVisual {
   sprite: Phaser.GameObjects.Rectangle
@@ -15,7 +16,6 @@ export class MonsterArenaLevel extends BaseLevelScene {
   private monsterCtrl!: MonsterArenaController
   private monsterVisual: MonsterVisual | null = null
   private maxMonsterReach = 0
-  private hpText!: Phaser.GameObjects.Text
   private monsterHpText!: Phaser.GameObjects.Text
 
   constructor() { super('MonsterArenaLevel') }
@@ -29,7 +29,17 @@ export class MonsterArenaLevel extends BaseLevelScene {
     const { width, height } = this.scale
     this.maxMonsterReach = 80
 
-    this.preCreate(width * 0.2, height / 2)
+    this.initWordPool()
+    this.preCreate(width * 0.2, height / 2, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e1e)
 
@@ -43,9 +53,7 @@ export class MonsterArenaLevel extends BaseLevelScene {
     // wordQueue is now managed by controller; clear scene's copy to avoid double-consumption
     this.wordQueue = []
 
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(DEFAULT_PLAYER_HP)}`, { fontSize: '22px', color: '#ff4444' })
     this.monsterHpText = this.add.text(width - 20, 20, '', { fontSize: '22px', color: '#ffffff' }).setOrigin(1, 0)
-    this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
     this.doSpawnMonster()
   }
@@ -125,7 +133,7 @@ export class MonsterArenaLevel extends BaseLevelScene {
           break
         }
         case 'player_damaged':
-          this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, ev.playerHp))}`)
+          this.hud!.setHeroHp(ev.playerHp)
           this.cameras.main.shake(200, 0.01)
           break
         case 'level_failed':

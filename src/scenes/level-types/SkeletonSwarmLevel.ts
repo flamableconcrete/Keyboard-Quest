@@ -7,6 +7,7 @@ import { BaseLevelScene } from '../BaseLevelScene'
 import { WaveController, WaveEvent } from '../../controllers/WaveController'
 import { WrongKeyAttackController } from '../../controllers/WrongKeyAttackController'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SKELETON_BARRIER_X, SKELETON_SPEED_BASE, SKELETON_SPEED_PER_WORLD } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface Skeleton {
   word: string
@@ -26,8 +27,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private skeletons: Skeleton[] = []
   private activeSkeleton: Skeleton | null = null
   private playerHp = DEFAULT_PLAYER_HP
-  private hpHearts: Phaser.GameObjects.Image[] = []
-  private waveText!: Phaser.GameObjects.Text
   private skeletonsDefeated = 0
   private maxWaves = 3
   private gameMode: 'regular' | 'advanced' = 'regular'
@@ -50,7 +49,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
     this.skeletons = []
     this.activeSkeleton = null
     this.letterShieldCount = 0
-    this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
     this.gameMode = profile?.gameMode ?? 'regular'
   }
@@ -58,7 +56,18 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
     this.pathY = height * 0.55
-    this.preCreate(60, this.pathY)
+    this.initWordPool()
+    this.preCreate(60, this.pathY, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        counter: { label: 'Waves', total: this.maxWaves },
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     const threshold = Phaser.Math.Between(5, 8)
     this.wrongKeyCtrl = new WrongKeyAttackController({ threshold })
@@ -188,21 +197,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       ease: 'Sine.InOut',
     })
 
-    // HUD
-    this.hpHearts = []
-    for (let i = 0; i < this.playerHp; i++) {
-      const heart = this.add.image(30 + i * 24, 28, 'heart').setScale(1.5).setDepth(10)
-      this.hpHearts.push(heart)
-    }
-
-    this.waveText = this.add.text(width - 20, 20, `Wave 1 / ${this.maxWaves}`, {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0).setDepth(10)
-
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '22px', color: '#ffd700'
-    }).setOrigin(0.5, 0).setDepth(10)
-
     // Keyboard → typing hands passthrough
     this.input.keyboard?.on('keydown', () => {
       if (this.activeSkeleton && this.typingHands) {
@@ -235,7 +229,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       }
     } else if (effect === 'second_chance') {
       this.playerHp = Math.min(this.playerHp + 2, 5)
-      this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
+      this.hud!.setHeroHp(this.playerHp)
     } else if (effect === 'letter_shield') {
       this.letterShieldCount = 3
     }
@@ -244,7 +238,6 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
   private spawnWave() {
     if (this.finished) return
     const events = this.waveController.startWave()
-    this.waveText.setText(`Wave ${this.waveController.currentWave} / ${this.maxWaves}`)
     events.forEach((e, i) => {
       if (e.type === 'spawn') {
         this.time.delayedCall(i * 400, () => {
@@ -378,6 +371,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       if (skeleton) this.skeletonReachedPlayer(skeleton)
     }
     if (e.type === 'wave_complete') {
+      this.hud!.setCounter(e.waveNumber)
       this.showWaveBanner(e.waveNumber)
     }
     if (e.type === 'game_complete') {
@@ -402,7 +396,7 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
       this.playerHp--
       this.flashBarrierRed()
     }
-    this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
+    this.hud!.setHeroHp(this.playerHp)
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
   }

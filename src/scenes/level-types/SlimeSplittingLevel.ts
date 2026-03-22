@@ -5,6 +5,7 @@ import { loadProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL, SPAWN_OFFSCREEN_MARGIN } from '../../constants'
 import { SlimeController, SlimeEvent } from '../../controllers/SlimeController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface SlimeSprite {
   word: string
@@ -15,7 +16,6 @@ interface SlimeSprite {
 export class SlimeSplittingLevel extends BaseLevelScene {
   private slimeCtrl!: SlimeController
   private slimeSprites: SlimeSprite[] = []
-  private hpText!: Phaser.GameObjects.Text
   private spawnTimer?: Phaser.Time.TimerEvent
 
   constructor() { super('SlimeSplittingLevel') }
@@ -28,7 +28,17 @@ export class SlimeSplittingLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.6)
+    this.initWordPool()
+    this.preCreate(80, height * 0.6, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     this.slimeCtrl = new SlimeController({
       words: [...this.wordQueue],
@@ -43,9 +53,6 @@ export class SlimeSplittingLevel extends BaseLevelScene {
     this.wordQueue = []
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1e4a4a)
-
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.slimeCtrl.playerHp)}`, { fontSize: '22px', color: '#ff4444' })
-    this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
     this.spawnTimer = this.time.addEvent({
       delay: 4000, loop: true, callback: this.spawnInitialSlime, callbackScope: this
@@ -152,8 +159,8 @@ export class SlimeSplittingLevel extends BaseLevelScene {
           } else {
             this.cameras.main.shake(200, 0.01)
           }
-          // Always sync hpText to controller state (restoreHp may have changed it)
-          this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.slimeCtrl.playerHp))}`)
+          // Always sync HUD hearts to controller state (restoreHp may have changed it)
+          this.hud!.setHeroHp(this.slimeCtrl.playerHp)
           // Check for death after armor may have restored HP
           if (this.slimeCtrl.playerHp <= 0) {
             this.endLevel(false)

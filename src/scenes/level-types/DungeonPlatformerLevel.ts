@@ -6,6 +6,7 @@ import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerAr
 import { BaseLevelScene } from '../BaseLevelScene'
 import { PlatformerController } from '../../controllers/PlatformerController'
 import { DEFAULT_PLAYER_HP } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -28,7 +29,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   // HP (advanced mode only)
   private playerHp = DEFAULT_PLAYER_HP
-  private heartIcons: Phaser.GameObjects.Image[] = []
   private vignette!: Phaser.GameObjects.Graphics
   private lowHpTween?: Phaser.Tweens.Tween
 
@@ -43,10 +43,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   private currentObstacle: Obstacle | null = null
   private obstacleTypes: ObstacleType[] = ['pit', 'spikes', 'boulder', 'door']
 
-  // Timer
-  private timerEvent?: Phaser.Time.TimerEvent
-  private timerText!: Phaser.GameObjects.Text
-  private counterText!: Phaser.GameObjects.Text
 
   // Dust
   private dustParticles: Array<{ img: Phaser.GameObjects.Image; speedY: number; speedX: number }> = []
@@ -59,7 +55,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
     this.playerHp = DEFAULT_PLAYER_HP
-    this.heartIcons = []
     this.dustParticles = []
     this.floorTiles = []
     this.currentObstacle = null
@@ -82,7 +77,23 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     const heroX = width * 0.35
 
     // preCreate: avatar at heroX/heroBaseY; companion/pet follow behind (left side)
-    this.preCreate(heroX, this.heroBaseY, { companionSide: 'left' })
+    this.initWordPool()
+    this.preCreate(heroX, this.heroBaseY, {
+      companionSide: 'left',
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        counter: { label: 'Obstacles', total: this.wordQueue.length },
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
     this.platformerController = new PlatformerController(this.wordQueue)
 
     // ── Scrolling background (two tiles for seamless loop) ────────
@@ -104,27 +115,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     // preCreate placed the avatar at (heroX, heroBaseY); reference it directly.
     this.hero = this.avatarSprite!
 
-    // ── HUD: Hearts ───────────────────────────────────────────────
-    this.buildHeartHUD()
-
-    // ── HUD: Timer ────────────────────────────────────────────────
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffcc44', fontFamily: 'monospace',
-      shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 4, fill: true }
-    }).setOrigin(1, 0).setDepth(11)
-
-    // ── HUD: Level Name ───────────────────────────────────────────
-    this.add.text(width / 2, 18, this.level.name, {
-      fontSize: '20px', color: '#e8d090', fontFamily: 'serif',
-      shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 3, fill: true }
-    }).setOrigin(0.5, 0).setDepth(10)
-
-    // ── HUD: Obstacle Counter ────────────────────────────────────
-    this.counterText = this.add.text(width - 20, 50, '', {
-      fontSize: '18px', color: '#ffaaaa', fontFamily: 'monospace',
-      shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 3, fill: true }
-    }).setOrigin(1, 0).setDepth(11)
-
     // Update finger hints after each keystroke
     this.input.keyboard?.on('keydown', () => {
       if (this.currentObstacle && this.typingHands) {
@@ -136,15 +126,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
     this.updateCounterText()
 
-    // ── Timer ─────────────────────────────────────────────────────
-    if (this.level.timeLimit) {
-      const formatTimer = (remaining: number) => {
-        this.timerText.setText(`⏳ ${remaining}s`)
-        this.timerText.setColor(remaining <= 10 ? '#ff4444' : '#ffcc44')
-      }
-      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText, formatTimer)
-      formatTimer(this.level.timeLimit) // fix up initial display (setupLevelTimer sets plain text first)
-    }
 
     // ── Vignette ──────────────────────────────────────────────────
     this.vignette = this.add.graphics().setDepth(100).setAlpha(0)
@@ -182,22 +163,8 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     this.hero.setY(this.heroBaseY)
   }
 
-  // ── Heart HUD ────────────────────────────────────────────────────
-  private buildHeartHUD() {
-    this.heartIcons.forEach(h => h.destroy())
-    this.heartIcons = []
-    for (let i = 0; i < 3; i++) {
-      const key = i < this.playerHp ? 'heart_full' : 'heart_empty'
-      this.heartIcons.push(
-        this.add.image(24 + i * 30, 28, key).setScale(2).setDepth(10)
-      )
-    }
-  }
-
   private updateHeartHUD() {
-    this.heartIcons.forEach((icon, i) => {
-      icon.setTexture(i < this.playerHp ? 'heart_full' : 'heart_empty')
-    })
+    this.hud!.setHeroHp(this.playerHp)
     if (this.playerHp <= 1 && !this.lowHpTween) {
       this.lowHpTween = this.tweens.add({
         targets: this.vignette, alpha: { from: 0, to: 0.35 },
@@ -223,7 +190,7 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   }
 
   private updateCounterText() {
-    this.counterText.setText(`Obstacles: ${this.platformerController.wordsCompleted} / ${this.words.length}`)
+    this.hud!.setCounter(this.platformerController.wordsCompleted)
   }
 
   // ── Dust ─────────────────────────────────────────────────────────
@@ -447,7 +414,6 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
   protected endLevel(passed: boolean) {
     if (this.finished) return
     this.stopWalking()
-    this.timerEvent?.remove()
 
     if (!passed) {
       const { width, height } = this.scale
