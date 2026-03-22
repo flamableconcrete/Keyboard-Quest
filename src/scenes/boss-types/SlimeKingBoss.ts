@@ -5,7 +5,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface Slime {
   word: string
@@ -23,7 +24,6 @@ export class SlimeKingBoss extends BaseBossScene {
   private activeSlime: Slime | null = null
 
   private hp!: BossHPState
-  private hpText!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
   private attackTimer?: Phaser.Time.TimerEvent
 
@@ -36,21 +36,28 @@ export class SlimeKingBoss extends BaseBossScene {
   }
 
   create() {
-    this.preCreate()
     this.hp = this.setupBossHP(this.level.wordCount)
     const { width, height } = this.scale
 
     // Dark Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
 
-    // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px', color: '#ff4444'
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
     })
-
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '28px', color: '#ff8800'
-    }).setOrigin(0.5, 0)
 
     this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Slimes: 0`, {
       fontSize: '20px', color: '#aaaaaa'
@@ -90,7 +97,7 @@ export class SlimeKingBoss extends BaseBossScene {
         } else {
           this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+        this.hud!.setHeroHp(this.hp.playerHp)
         this.cameras.main.shake(300, 0.01)
         if (this.hp.playerHp <= 0) this.endLevel(false)
       }

@@ -5,7 +5,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface Head {
   sprite: Phaser.GameObjects.Rectangle
@@ -24,12 +25,9 @@ export class HydraBoss extends BaseBossScene {
   private bossHpText!: Phaser.GameObjects.Text
   private headCountText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  private hpText!: Phaser.GameObjects.Text
-  private timerText!: Phaser.GameObjects.Text
   private regrowBar!: Phaser.GameObjects.Rectangle
 
   private hp!: BossHPState
-  private timerEvent?: Phaser.Time.TimerEvent
   private regrowTimer?: Phaser.Time.TimerEvent
 
   private headColors = [0x228b22, 0x006400, 0x32cd32] // Different shades of green
@@ -47,7 +45,6 @@ export class HydraBoss extends BaseBossScene {
   }
 
   create() {
-    this.preCreate()
     const { width, height } = this.scale
 
     // Dark swampy background
@@ -55,23 +52,24 @@ export class HydraBoss extends BaseBossScene {
 
     // HUD
     this.hp = this.setupBossHP(this.targetDefeated)
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px',
-      color: '#ff4444',
-    })
-    this.timerText = this.add
-      .text(width - 20, 20, '', {
-        fontSize: '22px',
-        color: '#ffffff',
-      })
-      .setOrigin(1, 0)
 
-    this.add
-      .text(width / 2, 20, this.level.name, {
-        fontSize: '28px',
-        color: '#00ff00',
-      })
-      .setOrigin(0.5, 0)
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        phase: { current: 1, total: this.maxPhases },
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
+    })
 
     this.phaseText = this.add
       .text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
@@ -99,16 +97,12 @@ export class HydraBoss extends BaseBossScene {
     this.add.rectangle(width / 2, height / 2 + 210, barWidth, 10, 0x333333).setOrigin(0.5)
     this.regrowBar = this.add.rectangle(width / 2 - barWidth / 2, height / 2 + 210, barWidth, 10, 0x00ff00).setOrigin(0, 0.5)
 
-    // Level Timer
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
-    }
-
     this.startPhase()
   }
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
+    this.hud!.setPhase(this.phase)
 
     // Initial heads for the phase
     const initialHeads = 2 + this.phase
@@ -273,7 +267,7 @@ export class HydraBoss extends BaseBossScene {
     } else {
       this.hp.playerHp--
     }
-    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+    this.hud!.setHeroHp(this.hp.playerHp)
 
     if (this.hp.playerHp <= 0) {
       this.endLevel(false)
@@ -285,7 +279,6 @@ export class HydraBoss extends BaseBossScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     this.regrowTimer?.remove()
 
     if (passed) {

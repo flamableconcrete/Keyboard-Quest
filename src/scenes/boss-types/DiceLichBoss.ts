@@ -5,7 +5,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class DiceLichBoss extends BaseBossScene {
   private phase = 1
@@ -21,9 +22,6 @@ export class DiceLichBoss extends BaseBossScene {
   private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
-  private hpText!: Phaser.GameObjects.Text
-  private timerText!: Phaser.GameObjects.Text
-  private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private currentCurse = 0
 
@@ -36,24 +34,30 @@ export class DiceLichBoss extends BaseBossScene {
   }
 
   create() {
-    this.preCreate()
     const { width, height } = this.scale
     // Dark background
     this.add.rectangle(width / 2, height / 2, width, height, 0x050505)
 
     // HUD
     this.hp = this.setupBossHP(this.level.wordCount)
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px', color: '#ff4444'
-    })
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0)
 
-    // Level name
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '28px', color: '#00ff88'
-    }).setOrigin(0.5, 0)
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        phase: { current: 1, total: this.maxPhases },
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
+    })
 
     this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
       fontSize: '20px', color: '#aaaaaa'
@@ -76,14 +80,12 @@ export class DiceLichBoss extends BaseBossScene {
       fontSize: '24px', color: '#00ff88'
     }).setOrigin(0.5)
 
-    // Timer
-    if (this.level.timeLimit) { this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false)) }
-
     this.startPhase()
   }
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
+    this.hud!.setPhase(this.phase)
 
     // Number of words is dictated by config, let's distribute evenly across 3 phases
     this.wordsPerPhase = Math.max(1, Math.ceil(this.level.wordCount / this.maxPhases))
@@ -192,7 +194,7 @@ export class DiceLichBoss extends BaseBossScene {
         } else {
           this.hp.playerHp -= damage
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+        this.hud!.setHeroHp(this.hp.playerHp)
         this.cameras.main.shake(300, 0.02)
         if (this.currentCurse === 6) {
            this.cameras.main.flash(200, 255, 0, 0)
@@ -248,7 +250,7 @@ export class DiceLichBoss extends BaseBossScene {
     if (this.currentCurse === 6) {
         // Critical Strike: Typo deals 2 damage and resets
         this.hp.playerHp -= 2
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+        this.hud!.setHeroHp(this.hp.playerHp)
         this.cameras.main.shake(400, 0.03)
         this.cameras.main.flash(200, 255, 0, 0)
 
@@ -265,7 +267,6 @@ export class DiceLichBoss extends BaseBossScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     this.attackTimer?.remove()
 
     if (passed) {

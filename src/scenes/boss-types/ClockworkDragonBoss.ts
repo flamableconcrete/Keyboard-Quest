@@ -5,7 +5,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface Gear {
   container: Phaser.GameObjects.Container
@@ -27,13 +28,10 @@ export class ClockworkDragonBoss extends BaseBossScene {
 
   private bossHpText!: Phaser.GameObjects.Text
   private phaseText!: Phaser.GameObjects.Text
-  private hpText!: Phaser.GameObjects.Text
-  private timerText!: Phaser.GameObjects.Text
 
   private coreSprite!: Phaser.GameObjects.Arc
 
   private hp!: BossHPState
-  private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
 
   constructor() {
@@ -51,7 +49,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   }
 
   create() {
-    this.preCreate()
     const { width, height } = this.scale
 
     // Metallic/Dark Industrial Background
@@ -59,23 +56,24 @@ export class ClockworkDragonBoss extends BaseBossScene {
 
     // HUD
     this.hp = this.setupBossHP(this.targetDefeated)
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px',
-      color: '#ff4444',
-    })
-    this.timerText = this.add
-      .text(width - 20, 20, '', {
-        fontSize: '22px',
-        color: '#ffffff',
-      })
-      .setOrigin(1, 0)
 
-    this.add
-      .text(width / 2, 20, this.level.name, {
-        fontSize: '28px',
-        color: '#ffcc00',
-      })
-      .setOrigin(0.5, 0)
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        phase: { current: 1, total: this.maxPhases },
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
+    })
 
     this.phaseText = this.add
       .text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
@@ -105,16 +103,12 @@ export class ClockworkDragonBoss extends BaseBossScene {
       ease: 'Sine.easeInOut'
     })
 
-    // Level Timer
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
-    }
-
     this.startPhase()
   }
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
+    this.hud!.setPhase(this.phase)
     this.wordsSpawnedInPhase = 0
 
     let gearsAtOnce = 3
@@ -303,7 +297,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
     } else {
       this.hp.playerHp--
     }
-    this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+    this.hud!.setHeroHp(this.hp.playerHp)
 
     if (this.hp.playerHp <= 0) {
       this.endLevel(false)
@@ -315,7 +309,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     this.attackTimer?.remove()
 
     if (passed) {

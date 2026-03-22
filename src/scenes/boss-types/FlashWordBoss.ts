@@ -4,7 +4,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class FlashWordBoss extends BaseBossScene {
   private phase = 1
@@ -16,7 +17,6 @@ export class FlashWordBoss extends BaseBossScene {
   private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
-  private hpText!: Phaser.GameObjects.Text
 
   private wordIsHidden = false
   private visibilityTimer?: Phaser.Time.TimerEvent
@@ -29,13 +29,27 @@ export class FlashWordBoss extends BaseBossScene {
   }
 
   create() {
-    this.preCreate()
     const { width, height } = this.scale
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2e)
 
     this.hp = this.setupBossHP(this.level.wordCount)
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px', color: '#ff4444'
+
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        phase: { current: 1, total: this.maxPhases },
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
     })
 
     this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
@@ -53,6 +67,7 @@ export class FlashWordBoss extends BaseBossScene {
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
+    this.hud!.setPhase(this.phase)
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
     const wordsToGenerate = Math.min(Math.ceil(this.level.wordCount / this.maxPhases), this.hp.bossHp)
     const words = getWordPool(this.level.unlockedLetters, wordsToGenerate, difficulty, this.level.world === 1 ? 5 : undefined)
@@ -120,7 +135,7 @@ export class FlashWordBoss extends BaseBossScene {
     } else {
       this.hp.playerHp--
     }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+        this.hud!.setHeroHp(this.hp.playerHp)
         this.cameras.main.shake(300, 0.01)
         if (this.hp.playerHp <= 0) this.endLevel(false)
     }

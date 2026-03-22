@@ -6,7 +6,8 @@ import { loadProfile } from '../../utils/profile'
 import { getWordPool } from '../../utils/words'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class GrizzlefangBoss extends BaseBossScene {
   private phase = 1
@@ -20,9 +21,6 @@ export class GrizzlefangBoss extends BaseBossScene {
 
   private hp!: BossHPState
 
-  private hpText!: Phaser.GameObjects.Text
-  private timerText!: Phaser.GameObjects.Text
-  private timerEvent?: Phaser.Time.TimerEvent
   private attackTimer?: Phaser.Time.TimerEvent
   private weaknessActive = false
   private gameMode: 'regular' | 'advanced' = 'regular'
@@ -50,7 +48,6 @@ export class GrizzlefangBoss extends BaseBossScene {
   create() {
     generateGoblinWhackerTextures(this)
 
-    this.preCreate()
     const { width, height } = this.scale
 
     // Dark Background for major boss
@@ -61,18 +58,23 @@ export class GrizzlefangBoss extends BaseBossScene {
       : this.level.wordCount
     this.hp = this.setupBossHP(effectiveWordCount)
 
-    // HUD
-    this.hpText = this.add.text(20, 20, `HP: ${'❤️'.repeat(this.hp.playerHp)}`, {
-      fontSize: '22px', color: '#ff4444'
+    this.initWordPool()
+    this.preCreate(undefined, undefined, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        phase: { current: 1, total: this.maxPhases },
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+        engineFontSize: BOSS_ENGINE_FONT_SIZE,
+      }),
     })
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0)
-
-    // Level name
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '28px', color: '#ff8800'
-    }).setOrigin(0.5, 0)
 
     this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
       fontSize: '20px', color: '#aaaaaa'
@@ -89,16 +91,12 @@ export class GrizzlefangBoss extends BaseBossScene {
       fontSize: '24px', color: '#ff8800'
     }).setOrigin(0.5)
 
-    // Timer
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupBossTimer(this.level.timeLimit, this.timerText, () => this.endLevel(false))
-    }
-
     this.startPhase()
   }
 
   private startPhase() {
     this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
+    this.hud!.setPhase(this.phase)
 
     // In later phases, maybe the words are harder or attack is faster
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)
@@ -161,7 +159,7 @@ export class GrizzlefangBoss extends BaseBossScene {
         } else {
           this.hp.playerHp--
         }
-        this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.hp.playerHp))}`)
+        this.hud!.setHeroHp(this.hp.playerHp)
         this.cameras.main.shake(300, 0.015)
 
         // Phase 3 attack double flash
@@ -214,7 +212,6 @@ export class GrizzlefangBoss extends BaseBossScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     this.attackTimer?.remove()
 
     if (passed) {
