@@ -72,7 +72,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     generateCrazedCookTextures(this)
 
     this.initWordPool()
-    this.preCreate(80, height - 120, {
+    this.preCreate(80, height * 0.65, {
       hud: new LevelHUD(this, {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
@@ -110,8 +110,6 @@ export class CrazedCookLevel extends BaseLevelScene {
     this.wordPool = [...this.wordQueue]
     this.wordIndex = 0
 
-    // Dark backing panel behind the word display
-    this.add.rectangle(width / 2, height - 58, 500, 56, 0x000000, 0.55).setOrigin(0.5)
 
     // TAB key to cycle orders
     this.input.keyboard?.on('keydown-TAB', this.cycleActiveOrder, this)
