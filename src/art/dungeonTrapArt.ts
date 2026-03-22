@@ -18,6 +18,15 @@ export function generateDungeonTrapTextures(scene: Phaser.Scene) {
   generateGlowRingTexture(scene)
 }
 
+/**
+ * Generate only the heart textures (heart_full, heart_empty).
+ * Safe to call multiple times — guards against duplicate generation.
+ */
+export function generateHeartTextures(scene: Phaser.Scene) {
+  if (!scene.textures.exists('heart_full')) generateHeartFullTexture(scene)
+  if (!scene.textures.exists('heart_empty')) generateHeartEmptyTexture(scene)
+}
+
 // ---------------------------------------------------------------------------
 // Dungeon Background
 // ---------------------------------------------------------------------------
