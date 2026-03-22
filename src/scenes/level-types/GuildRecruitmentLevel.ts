@@ -1,13 +1,11 @@
 // src/scenes/level-types/GuildRecruitmentLevel.ts
-import Phaser from 'phaser'
 import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, DEFAULT_PLAYER_HP } from '../../constants'
 import { ProgressionController } from '../../controllers/ProgressionController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class GuildRecruitmentLevel extends BaseLevelScene {
-  private timerText!: Phaser.GameObjects.Text
-  private timerEvent?: Phaser.Time.TimerEvent
   private progression!: ProgressionController
 
   constructor() { super('GuildRecruitmentLevel') }
@@ -19,19 +17,24 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.65)
+    this.initWordPool()
+    this.preCreate(80, height * 0.65, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     // Background - Tavern theme
     this.add.rectangle(width / 2, height / 2, width, height, 0x4a2e1b)
-
-    // HUD
-    this.add.text(width / 2, 40, this.level.name, {
-      fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5)
-
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0)
 
     this.add.text(width / 2, 100, 'Make your recruitment pitch!', {
       fontSize: '22px', color: '#dddddd'
@@ -44,11 +47,6 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
 
     this.progression = new ProgressionController([...this.wordQueue])
     this.wordQueue = []
-
-    // Timer
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
-    }
 
     this.showNextWord()
   }
@@ -83,7 +81,6 @@ export class GuildRecruitmentLevel extends BaseLevelScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     super.endLevel(passed)
   }
 

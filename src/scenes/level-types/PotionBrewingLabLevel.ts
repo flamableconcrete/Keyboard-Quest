@@ -2,13 +2,11 @@
 import Phaser from 'phaser'
 import { TimedLevelConfig } from '../../types'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, DEFAULT_PLAYER_HP } from '../../constants'
 import { ProgressionController } from '../../controllers/ProgressionController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class PotionBrewingLabLevel extends BaseLevelScene {
-  private timerText!: Phaser.GameObjects.Text
-  private timerEvent?: Phaser.Time.TimerEvent
-
   private recipeTexts: Phaser.GameObjects.Text[] = []
   private progression!: ProgressionController
 
@@ -21,24 +19,26 @@ export class PotionBrewingLabLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.65)
+    this.initWordPool()
+    this.preCreate(80, height * 0.65, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x2e1a3a)
 
-    // Level name
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '22px', color: '#ffd700'
-    }).setOrigin(0.5, 0)
-
-    // Timer
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0)
-
-    // Override engine position — potion brewing uses a center-stage engine
-    // Note: preCreate places the engine at the default bottom; we use wordQueue from preCreate
-    // but show the recipe list using words
+    // Potion recipe list
     this.add.text(50, 80, "Potion Recipe:", { fontSize: '28px', color: '#ffaaaa' })
     this.recipeTexts = this.words.map((w, i) => {
       return this.add.text(50, 130 + i * 40, w, {
@@ -48,10 +48,6 @@ export class PotionBrewingLabLevel extends BaseLevelScene {
 
     this.progression = new ProgressionController([...this.wordQueue])
     this.wordQueue = []
-
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
-    }
 
     this.showNextWord()
   }
@@ -103,7 +99,6 @@ export class PotionBrewingLabLevel extends BaseLevelScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     super.endLevel(passed)
   }
 }

@@ -6,6 +6,8 @@ import { COOK_STATIONS } from '../../data/cookStations'
 import { calcMoveDuration, pickNextStationIndex } from '../../utils/cookMovement'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { KitchenController, KitchenEvent } from '../../controllers/KitchenController'
+import { LevelHUD } from '../../components/LevelHUD'
+import { DEFAULT_PLAYER_HP } from '../../constants'
 
 interface Ingredient {
   word: string
@@ -42,9 +44,6 @@ const INGREDIENT_WEIGHTS = [
 const COOK_BASE_SPEEDS = [160, 130, 190] // cook_ladle, cook_knife, cook_spoon
 
 export class CrazedCookLevel extends BaseLevelScene {
-  private timerEvent?: Phaser.Time.TimerEvent
-  private timerText!: Phaser.GameObjects.Text
-  private ordersText!: Phaser.GameObjects.Text
   private wordPool: string[] = []
   private wordIndex = 0
   private orders: OrcOrder[] = []
@@ -72,7 +71,22 @@ export class CrazedCookLevel extends BaseLevelScene {
 
     generateCrazedCookTextures(this)
 
-    this.preCreate(80, height - 120)
+    this.initWordPool()
+    this.preCreate(80, height - 120, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: {
+          seconds: this.timeLimit,
+          onExpire: () => this.endLevel(false),
+        },
+        counter: { label: 'Orders', total: this.orderQuota },
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     this.kitchenController = new KitchenController({
       orderQuota: this.orderQuota,
@@ -92,20 +106,7 @@ export class CrazedCookLevel extends BaseLevelScene {
       this.startCookWander(cook, COOK_BASE_SPEEDS[i], startStations[i])
     })
 
-    // HUD
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '20px', color: '#ffd700', stroke: '#000', strokeThickness: 3
-    }).setOrigin(0.5, 0)
-
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '20px', color: '#ffffff', stroke: '#000', strokeThickness: 3
-    }).setOrigin(1, 0)
-
-    this.ordersText = this.add.text(width - 20, 46, `Orders: 0/${this.orderQuota}`, {
-      fontSize: '16px', color: '#ffaaaa', stroke: '#000', strokeThickness: 2
-    }).setOrigin(1, 0)
-
-    // Use wordQueue from preCreate (already built), build local wordPool from it
+    // Use wordQueue (already built), build local wordPool from it
     this.wordPool = [...this.wordQueue]
     this.wordIndex = 0
 
@@ -114,19 +115,6 @@ export class CrazedCookLevel extends BaseLevelScene {
 
     // TAB key to cycle orders
     this.input.keyboard?.on('keydown-TAB', this.cycleActiveOrder, this)
-
-    // Update finger hint after each keypress
-    this.input.keyboard?.on('keydown', () => {
-      if (this.activeOrder && this.typingHands) {
-        const nextIdx = this.engine.getTypedSoFar().length
-        const currentWord = this.activeOrder.ingredients[this.activeOrder.currentIngredientIndex]?.word
-        const nextCh = currentWord?.[nextIdx]
-        if (nextCh) this.typingHands.highlightFinger(nextCh)
-      }
-    })
-
-    // Timer
-    this.timerEvent = this.setupLevelTimer(this.timeLimit, this.timerText)
 
     // Spawn 2 initial orcs
     this.spawnOrc(0)
@@ -289,7 +277,6 @@ export class CrazedCookLevel extends BaseLevelScene {
       const currentWord = order.ingredients[order.currentIngredientIndex]?.word
       if (currentWord) {
         this.engine.setWord(currentWord)
-        if (this.typingHands) this.typingHands.highlightFinger(currentWord[0])
         order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
         order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(1)
       }
@@ -334,7 +321,6 @@ export class CrazedCookLevel extends BaseLevelScene {
       this.engine.setWord(nextIng.word)
       order.ticket.lines[order.currentIngredientIndex]?.setColor('#1a0a00')
       order.ticket.underlines[order.currentIngredientIndex]?.setAlpha(1)
-      if (this.typingHands) this.typingHands.highlightFinger(nextIng.word[0])
       return
     }
 
@@ -434,7 +420,7 @@ export class CrazedCookLevel extends BaseLevelScene {
   }
 
   private updateOrdersText() {
-    this.ordersText.setText(`Orders: ${this.kitchenController.ordersFilled}/${this.orderQuota}`)
+    this.hud?.setCounter(this.kitchenController.ordersFilled)
   }
 
   protected onWrongKey() {
@@ -442,7 +428,6 @@ export class CrazedCookLevel extends BaseLevelScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     super.endLevel(passed)
   }
 }

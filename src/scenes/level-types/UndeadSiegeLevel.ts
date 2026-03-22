@@ -3,8 +3,9 @@ import { SiegeLevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { getItem } from '../../data/items'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, DEFAULT_PLAYER_HP } from '../../constants'
 import { UndeadSiegeController } from '../../controllers/UndeadSiegeController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface UndeadSprite {
   word: string
@@ -33,7 +34,17 @@ export class UndeadSiegeLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.65)
+    this.initWordPool()
+    this.preCreate(80, height * 0.65, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     this.siegeCtrl = new UndeadSiegeController({
       words: [...this.wordQueue],
@@ -61,7 +72,6 @@ export class UndeadSiegeLevel extends BaseLevelScene {
       `Wave: 1/${this.siegeLevel.waveCount}`,
       { fontSize: '22px', color: '#ffffff' }
     ).setOrigin(1, 0)
-    this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)
 
     this.spawnTimer = this.time.addEvent({
       delay: 2000, loop: true, callback: this.doSpawn, callbackScope: this

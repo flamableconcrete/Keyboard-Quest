@@ -1,8 +1,9 @@
 // src/scenes/level-types/WoodlandFestivalLevel.ts
 import Phaser from 'phaser'
 import { BaseLevelScene } from '../BaseLevelScene'
-import { GOLD_PER_KILL } from '../../constants'
+import { GOLD_PER_KILL, DEFAULT_PLAYER_HP } from '../../constants'
 import { WoodlandFestivalController } from '../../controllers/WoodlandFestivalController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 export class WoodlandFestivalLevel extends BaseLevelScene {
   private festCtrl!: WoodlandFestivalController
@@ -15,7 +16,17 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.65)
+    this.initWordPool()
+    this.preCreate(80, height * 0.65, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     // Initialize controller with the word queue
     this.festCtrl = new WoodlandFestivalController({
@@ -27,11 +38,6 @@ export class WoodlandFestivalLevel extends BaseLevelScene {
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x2d4a1e)
-
-    // HUD
-    this.add.text(width / 2, 40, this.level.name, {
-      fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5)
 
     this.add.text(width / 2, 80, 'Typing Contest vs Animal Champion!', {
       fontSize: '20px', color: '#ffffff'

@@ -3,6 +3,8 @@ import { LevelConfig } from '../../types'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { ProgressionController } from '../../controllers/ProgressionController'
+import { LevelHUD } from '../../components/LevelHUD'
+import { DEFAULT_PLAYER_HP } from '../../constants'
 
 export class MonsterManualLevel extends BaseLevelScene {
   private progression!: ProgressionController
@@ -16,15 +18,20 @@ export class MonsterManualLevel extends BaseLevelScene {
   create() {
     const { width, height } = this.scale
 
-    this.preCreate(80, height * 0.65)
+    this.initWordPool()
+    this.preCreate(80, height * 0.65, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a2a3a)
-
-    // HUD
-    this.add.text(width / 2, 40, this.level.name, {
-      fontSize: '28px', color: '#ffd700'
-    }).setOrigin(0.5)
 
     // Description text
     this.add.text(width / 2, 120, 'Monster Description:', {
