@@ -1,12 +1,11 @@
 // src/scenes/level-types/DungeonPlatformerLevel.ts
 import Phaser from 'phaser'
 import { LevelConfig } from '../../types'
-import { loadProfile } from '../../utils/profile'
 import { generateDungeonTrapTextures } from '../../art/dungeonTrapArt'
 import { generateDungeonPlatformerTextures } from '../../art/dungeonPlatformerArt'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { PlatformerController } from '../../controllers/PlatformerController'
-import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
+import { DEFAULT_PLAYER_HP } from '../../constants'
 
 type ObstacleType = 'pit' | 'spikes' | 'boulder' | 'door'
 
@@ -79,12 +78,12 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     const floorY = height * 0.62
     this.heroBaseY = floorY
 
-    // preCreate places the player avatar at left side, companion, pet, gold, words, engine
-    this.preCreate(100, height * 0.6)
-    this.platformerController = new PlatformerController(this.wordQueue)
-
-    // Hero dodging sprite is separate — placed at 35% width for obstacle interaction
+    // Hero runs at 35% width on the floor
     const heroX = width * 0.35
+
+    // preCreate: avatar at heroX/heroBaseY; companion/pet follow behind (left side)
+    this.preCreate(heroX, this.heroBaseY, { companionSide: 'left' })
+    this.platformerController = new PlatformerController(this.wordQueue)
 
     // ── Scrolling background (two tiles for seamless loop) ────────
     this.bgTile1 = this.add.image(width / 2, height / 2, 'dungeon_bg')
@@ -102,13 +101,8 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
     }
 
     // ── Hero reference for walking animation ────────────────────
-    // preCreate already placed the avatar at (heroX, heroBaseY); we create a tracked
-    // copy here so we can tween it for the walking bob effect.
-    const profile = loadProfile(this.profileSlot)
-    const avatarKey = this.textures.exists(profile?.avatarChoice || '')
-      ? profile!.avatarChoice : 'avatar_0'
-    this.hero = this.add.image(heroX, this.heroBaseY, avatarKey)
-      .setScale(1.5).setDepth(5)
+    // preCreate placed the avatar at (heroX, heroBaseY); reference it directly.
+    this.hero = this.avatarSprite!
 
     // ── HUD: Hearts ───────────────────────────────────────────────
     this.buildHeartHUD()
@@ -320,12 +314,8 @@ export class DungeonPlatformerLevel extends BaseLevelScene {
 
   // ── Word Complete ────────────────────────────────────────────────
   protected onWordComplete(_word: string, _elapsed: number) {
-    // Drop gold on kill
-    if (this.goldManager) {
-      const dropX = this.scale.width / 2 + (Math.random() * 200 - 100);
-      const dropY = this.scale.height / 2 + (Math.random() * 100 - 50);
-      this.goldManager.spawnGold(dropX, dropY, GOLD_PER_KILL);
-    }
+    // Notify party to animate (trap dodged — no gold in this level type)
+    this.events.emit('trap_cleared')
 
     if (!this.currentObstacle) return
     const obs = this.currentObstacle
