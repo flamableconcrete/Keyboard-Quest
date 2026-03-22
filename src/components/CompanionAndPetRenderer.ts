@@ -28,6 +28,7 @@ export class CompanionAndPetRenderer {
     const sign = side === 'left' ? -1 : 1
     const petX = x + sign * 70
     const petY = y
+    // Left side: 140px gap (tighter follow for dungeon traversal); right: 145px for combat spacing
     const companionX = x + sign * (side === 'left' ? 140 : 145)
     const companionY = y
 
@@ -47,10 +48,6 @@ export class CompanionAndPetRenderer {
     if (profile?.activePetId) {
       this.petSprite = scene.add.image(petX, petY, profile.activePetId).setScale(1.2).setDepth(5)
     }
-
-    this.playAttackAnimation = this.playAttackAnimation.bind(this)
-    this.playJumpAnimation = this.playJumpAnimation.bind(this)
-    this.destroy = this.destroy.bind(this)
 
     this.scene.events.on('word_completed_attack', this.playAttackAnimation, this)
     this.scene.events.on('trap_cleared', this.playJumpAnimation, this)

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('../utils/profile', () => ({ loadProfile: () => null }))
 vi.mock('../art/companionsArt', () => ({ generateAllCompanionTextures: () => {} }))
@@ -28,8 +28,8 @@ function makeScene(eventHandlers: Record<string, () => void> = {}) {
     },
     tweens: { add: vi.fn() },
     events: {
-      on: (event: string, cb: () => void) => { eventHandlers[event] = cb },
-      once: (event: string, cb: () => void) => { eventHandlers[event] = cb },
+      on: (event: string, cb: () => void, ctx?: unknown) => { eventHandlers[event] = ctx ? cb.bind(ctx) : cb },
+      once: (event: string, cb: () => void, ctx?: unknown) => { eventHandlers[event] = ctx ? cb.bind(ctx) : cb },
       off: vi.fn(),
     },
   } as any
