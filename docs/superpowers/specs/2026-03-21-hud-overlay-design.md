@@ -54,11 +54,12 @@ Full/empty image hearts using the existing `heart_full` / `heart_empty` textures
 
 ### Changes to `BaseLevelScene`
 
-- `preCreate()` no longer creates `TypingEngine` or `TypingHands`
-- `preCreate()` accepts the `LevelHUD` instance to wire `onWordComplete` / `onWrongKey` callbacks into `hud.engine`
+- `preCreate()` no longer creates `TypingEngine` or `TypingHands` — those move into `LevelHUD`
+- `preCreate()` retains all non-HUD setup: avatar, companions, `CompanionAndPetRenderer`, `GoldManager`, word pool, `SpellCaster`
+- `preCreate()` accepts the `LevelHUD` instance; `SpellCaster` (if created) is passed `hud.engine` instead of `this.engine`
 - `setupLevelTimer()` removed — absorbed into `LevelHUD`
-- `endLevel()` calls `this.hud.destroy()` instead of `this.engine.destroy()` + `this.typingHands?.fadeOut()`
-- `this.engine` reference on `BaseLevelScene` replaced by `this.hud.engine`
+- `endLevel()` calls `this.hud.destroy()` instead of `this.engine.destroy()` + `this.typingHands?.fadeOut()`; it still reads scoring data via `this.hud.engine.sessionStartTime`, `correctKeystrokes`, etc.
+- `this.engine` field on `BaseLevelScene` is removed; scenes access the engine via `this.hud.engine`
 
 ### Changes to `BaseBossScene`
 
