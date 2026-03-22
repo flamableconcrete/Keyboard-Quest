@@ -231,3 +231,46 @@ describe('BaseLevelScene.flashOnWrongKey', () => {
     expect(flashSpy).toHaveBeenCalledWith(80, 120, 0, 0)
   })
 })
+
+describe('BaseLevelScene.preCreate avatarSprite', () => {
+  it('avatarSprite field exists and is null before preCreate is called', () => {
+    const scene = new TestLevelScene()
+    expect((scene as any).avatarSprite).toBeNull()
+  })
+
+  it('sets avatarSprite after preCreate is called', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).init({ level: mockLevel as LevelConfig, profileSlot: 0 })
+
+    const fakeImage = { setScale: () => fakeImage, setDepth: () => fakeImage }
+    ;(scene as any).add = { image: vi.fn().mockReturnValue(fakeImage) }
+    ;(scene as any).scale = { width: 1280, height: 720 }
+    ;(scene as any).input = { keyboard: null }
+    ;(scene as any).events = { on: vi.fn(), once: vi.fn(), emit: vi.fn() }
+    ;(scene as any).time = { addEvent: vi.fn().mockReturnValue({ remove: vi.fn() }) }
+
+    // Stub out everything preCreate calls that we don't care about here
+    vi.mock('../utils/profile', () => ({ loadProfile: () => null }), { virtual: true })
+    vi.mock('../utils/words', () => ({ getWordPool: () => ['cat', 'dog'] }), { virtual: true })
+    vi.mock('../art/companionsArt', () => ({ generateAllCompanionTextures: () => {} }), { virtual: true })
+    vi.mock('../utils/pauseSetup', () => ({ setupPause: () => {} }), { virtual: true })
+    vi.mock('../components/TypingEngine', () => ({
+      TypingEngine: class { constructor() {} }
+    }), { virtual: true })
+    vi.mock('../components/CompanionAndPetRenderer', () => ({
+      CompanionAndPetRenderer: class {
+        constructor() {}
+        getPetSprite() { return null }
+        getStartPetX() { return 0 }
+        getStartPetY() { return 0 }
+      }
+    }), { virtual: true })
+    vi.mock('../utils/goldSystem', () => ({
+      GoldManager: class { constructor() {} }
+    }), { virtual: true })
+
+    ;(scene as any).preCreate(100, 400)
+
+    expect((scene as any).avatarSprite).toBe(fakeImage)
+  })
+})

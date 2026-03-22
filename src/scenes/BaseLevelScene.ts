@@ -28,6 +28,7 @@ export interface PreCreateOptions {
   engineY?: number
   engineFontSize?: number
   handsYOffset?: number
+  companionSide?: 'left' | 'right'
 }
 
 export abstract class BaseLevelScene extends Phaser.Scene {
@@ -40,6 +41,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected goldManager!: GoldManager
   protected spellCaster?: SpellCaster
   protected typingHands?: TypingHands
+  protected avatarSprite: Phaser.GameObjects.Image | null = null
   private _preCreateCalled = false
 
   // Override in BaseBossScene to use a longer delay
@@ -77,6 +79,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       engineFontSize = LEVEL_ENGINE_FONT_SIZE,
       handsYOffset = TYPING_HANDS_Y_OFFSET,
       engineY: engineYOverride,
+      companionSide = 'right',
     } = options
 
     setupPause(this, this.profileSlot)
@@ -95,7 +98,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       profile?.avatarChoice && this.textures.exists(profile.avatarChoice)
         ? profile.avatarChoice
         : 'avatar_0'
-    this.add.image(ax, ay, avatarKey).setScale(avatarScale).setDepth(5)
+    this.avatarSprite = this.add.image(ax, ay, avatarKey).setScale(avatarScale).setDepth(5)
 
     // Companion / pet + gold manager
     const petRenderer = new CompanionAndPetRenderer(this, ax, ay, this.profileSlot)
