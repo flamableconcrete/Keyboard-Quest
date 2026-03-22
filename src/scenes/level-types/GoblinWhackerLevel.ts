@@ -8,6 +8,7 @@ import { BaseLevelScene } from '../BaseLevelScene'
 import { DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { WrongKeyAttackController } from '../../controllers/WrongKeyAttackController'
 import { GoblinController } from '../../controllers/GoblinController'
+import { LevelHUD } from '../../components/LevelHUD'
 
 interface GoblinSprite {
   sprite: Phaser.GameObjects.Image
@@ -20,10 +21,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   private activeWord: string | null = null
   private playerHp = DEFAULT_PLAYER_HP
   private maxGoblinReach = 0  // x position where goblin damages player
-  private hpHearts: Phaser.GameObjects.Image[] = []
-  private timerText!: Phaser.GameObjects.Text
-  private counterText!: Phaser.GameObjects.Text
-  private timerEvent?: Phaser.Time.TimerEvent
   private spawnTimer?: Phaser.Time.TimerEvent
   private goblinsDefeated = 0
   private letterShieldCount = 0
@@ -42,7 +39,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     this.goblinSprites = new Map()
     this.activeWord = null
     this.letterShieldCount = 0
-    this.hpHearts = []
     const profile = loadProfile(data.profileSlot)
     this.gameMode = profile?.gameMode ?? 'regular'
   }
@@ -57,7 +53,24 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     generateGoblinWhackerTextures(this)
     this.add.image(width / 2, height / 2, 'forest_bg')
 
-    this.preCreate(80, this.pathY)   // handles avatar, companion, gold, word pool, engine, spells, hands
+    // ── Word pool + HUD ──────────────────────────────────────────────────────
+    this.initWordPool()
+    this.preCreate(80, this.pathY, {
+      hud: new LevelHUD(this, {
+        profileSlot: this.profileSlot,
+        heroHp: DEFAULT_PLAYER_HP,
+        levelName: this.level.name,
+        timer: this.level.timeLimit ? {
+          seconds: this.level.timeLimit,
+          onExpire: () => this.endLevel(false),
+        } : undefined,
+        counter: { label: 'Goblins Defeated', total: this.level.wordCount },
+        wordPool: this.wordQueue,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      }),
+    })
+
     this.wrongKeyCtrl = new WrongKeyAttackController({ threshold: Phaser.Math.Between(5, 8) })
 
     // Initialize goblin controller with the word queue from preCreate
@@ -72,41 +85,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     // Controller owns the word queue now — clear scene's copy to avoid double-management
     this.wordQueue = []
 
-    // HUD - HP hearts
-    this.hpHearts = []
-    for (let i = 0; i < this.playerHp; i++) {
-      const heart = this.add.image(30 + i * 24, 28, 'heart').setScale(1.5)
-      this.hpHearts.push(heart)
-    }
-    if (this.gameMode === 'regular') this.hpHearts.forEach(h => h.setVisible(false))
-
-    this.timerText = this.add.text(width - 20, 20, '', {
-      fontSize: '22px', color: '#ffffff'
-    }).setOrigin(1, 0)
-
-    this.counterText = this.add.text(width - 20, 50, '', {
-      fontSize: '22px', color: '#ffaaaa'
-    }).setOrigin(1, 0)
-
-    // Level name
-    this.add.text(width / 2, 20, this.level.name, {
-      fontSize: '22px', color: '#ffd700'
-    }).setOrigin(0.5, 0)
-
-    this.input.keyboard?.on('keydown', () => {
-      if (this.activeWord && this.typingHands) {
-        const nextIdx = this.engine.getTypedSoFar().length
-        const nextCh = this.activeWord[nextIdx]
-        if (nextCh) this.typingHands.highlightFinger(nextCh)
-      }
-    })
-
     this.updateCounterText()
-
-    // Timer
-    if (this.level.timeLimit) {
-      this.timerEvent = this.setupLevelTimer(this.level.timeLimit, this.timerText)
-    }
 
     // Spawn goblins
     this.spawnTimer = this.time.addEvent({
@@ -145,7 +124,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       }
     } else if (effect === 'second_chance') {
       this.playerHp = Math.min(this.playerHp + 2, 5)
-      this.hpHearts.forEach((h, i) => h.setVisible(i < this.playerHp))
+      this.hud!.setHeroHp(this.playerHp)
     } else if (effect === 'letter_shield') {
       this.letterShieldCount = 3
     }
@@ -230,15 +209,13 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     } else {
       this.playerHp--
     }
-    if (this.hpHearts[this.playerHp]) {
-      this.hpHearts[this.playerHp].setVisible(false)
-    }
+    this.hud!.setHeroHp(this.playerHp)
     this.cameras.main.shake(200, 0.01)
     if (this.playerHp <= 0) this.endLevel(false)
   }
 
   private updateCounterText() {
-    this.counterText.setText(`Goblins Defeated: ${this.goblinsDefeated} / ${this.level.wordCount}`)
+    this.hud!.setCounter(this.goblinsDefeated)
   }
 
   protected onWordComplete(word: string, _elapsed: number) {
@@ -364,8 +341,7 @@ export class GoblinWhackerLevel extends BaseLevelScene {
   }
 
   protected endLevel(passed: boolean) {
-    this.timerEvent?.remove()
     this.spawnTimer?.remove()
-    super.endLevel(passed)   // handles guard, finished flag, spellCaster, typingHands, engine, scoring, scene.start
+    super.endLevel(passed)   // handles guard, finished flag, spellCaster, hud.destroy(), scoring, scene.start
   }
 }
