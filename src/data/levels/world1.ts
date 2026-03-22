@@ -134,9 +134,8 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     orderQuota: 8,
     maxWalkoffs: 3,
     dialogue: [
-      { speaker: "enemy", text: "You dare enter my camp?! My exploding cheese will flatten your fingers!" },
-      { speaker: "hero",  text: "...Is that a real threat? Are you a real cook?" },
-      { speaker: "enemy", text: "TASTE THE BRIE OF DOOM!" },
+      { speaker: "enemy", text: "ME HUNGRY! SERVE FOOD NOW OR ME SMASH!" },
+      { speaker: "hero",  text: "Coming right up, sir!" },
     ],
     rewards: { xp: 130 },
     bossGate: null,

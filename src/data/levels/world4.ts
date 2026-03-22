@@ -152,8 +152,8 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     orderQuota: 8,
     maxWalkoffs: 3,
     dialogue: [
-      { speaker: "enemy", text: "A word duel in the valley! The jester challenges all comers! Ha-HA!" },
-      { speaker: "hero",  text: "Fine. But if I lose I'm going to be annoyed for days." },
+      { speaker: "enemy", text: "STILL HUNGRY! MORE FOOD!" },
+      { speaker: "hero",  text: "I'm typing as fast as I can!" },
     ],
     rewards: { xp: 300 },
     bossGate: null,

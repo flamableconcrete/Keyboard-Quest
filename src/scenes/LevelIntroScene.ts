@@ -6,6 +6,7 @@ import { AvatarRenderer } from '../components/AvatarRenderer'
 import { generateGoblinWhackerTextures } from '../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../art/genericBossArt'
 import { generateSkeletonSwarmTextures } from '../art/skeletonSwarmArt'
+import { generateCrazedCookTextures } from '../art/crazedCookArt'
 import { getSpeedThresholds } from '../utils/scoring'
 
 const LEVEL_TYPE_LABELS: Record<LevelType, string> = {
@@ -92,6 +93,9 @@ export class LevelIntroScene extends Phaser.Scene {
     } else if (this.level.type === 'SkeletonSwarm' || this.level.type === 'UndeadSiege') {
       generateSkeletonSwarmTextures(this)
       enemyTexture = 'ss_skeleton'
+    } else if (this.level.type === 'CrazedCook') {
+      generateCrazedCookTextures(this)
+      enemyTexture = 'orc_customer'
     } else if (this.level.type === 'SlimeSplitting') {
       // Create a simple slime placeholder texture
       if (!this.textures.exists('slime_placeholder')) {
@@ -135,6 +139,8 @@ export class LevelIntroScene extends Phaser.Scene {
         enemy.setScale(2)
       } else if (enemyTexture === 'ss_skeleton') {
         enemy.setScale(2)
+      } else if (enemyTexture === 'orc_customer') {
+        enemy.setScale(2.5)
       } else if (enemyTexture.includes('placeholder') || enemyTexture === 'generic_monster') {
         enemy.setScale(2.5)
       }
