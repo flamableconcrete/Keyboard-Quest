@@ -49,7 +49,7 @@ export class SlimeKingBoss extends BaseBossScene {
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
         bossName: this.level.bossName,
-        bossNamePosition: { x: width * 0.75, y: height * 0.42 - 150 },
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 150 },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
           onExpire: () => this.endLevel(false),

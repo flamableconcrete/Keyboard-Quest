@@ -60,7 +60,7 @@ export class SpiderBoss extends BaseBossScene {
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
         bossName: this.level.bossName,
-        bossNamePosition: { x: centerX + width * 0.25, y: (centerY) - 150 },
+        bossNamePosition: { x: centerX, y: (centerY) - 150 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
