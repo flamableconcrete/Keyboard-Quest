@@ -57,9 +57,9 @@ export class AncientDragonBoss extends BaseBossScene {
     })
 
     // Boss Sprite (Ancient Dragon is big and purple)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 350, 350, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 350, 350, 0x4b0082)
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Ancient Dragon HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Ancient Dragon HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#a020f0'
     }).setOrigin(0.5)
 

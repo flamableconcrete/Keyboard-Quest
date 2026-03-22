@@ -53,9 +53,9 @@ export class FlashWordBoss extends BaseBossScene {
       }),
     })
 
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 250, 250, 0x9b30ff)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 250, 250, 0x9b30ff)
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc33ff'
     }).setOrigin(0.5)
 

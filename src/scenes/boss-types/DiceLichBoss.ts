@@ -61,19 +61,19 @@ export class DiceLichBoss extends BaseBossScene {
     })
 
     // Boss Sprite (Indigo)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 250, 0x4b0082)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 200, 250, 0x4b0082)
 
     // Dice (White)
-    this.diceSprite = this.add.rectangle(width / 2 + 200, height * 0.42 - 25, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
-    this.diceText = this.add.text(width / 2 + 200, height * 0.42 - 25, '?', {
+    this.diceSprite = this.add.rectangle(width * 0.75 + 200, height * 0.42 - 25, 80, 80, 0xffffff).setStrokeStyle(4, 0x000000)
+    this.diceText = this.add.text(width * 0.75 + 200, height * 0.42 - 25, '?', {
       fontSize: '40px', color: '#000000'
     }).setOrigin(0.5)
 
-    this.curseLabel = this.add.text(width / 2 + 200, height * 0.42 + 35, 'ROLLING...', {
+    this.curseLabel = this.add.text(width * 0.75 + 200, height * 0.42 + 35, 'ROLLING...', {
       fontSize: '18px', color: '#ffffff'
     }).setOrigin(0.5)
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Dice Lich HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Dice Lich HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#00ff88'
     }).setOrigin(0.5)
 

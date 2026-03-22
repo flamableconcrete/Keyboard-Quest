@@ -59,15 +59,15 @@ export class TypemancerBoss extends BaseBossScene {
       }),
     })
 
-    this.mechanicText = this.add.text(width / 2, 95, '', {
+    this.mechanicText = this.add.text(width * 0.75, 95, '', {
       fontSize: '18px', color: '#ff00ff', fontStyle: 'italic'
     }).setOrigin(0.5, 0)
 
     // Boss Sprite (Typemancer is black/white/glitchy placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 300, 350, 0x111111)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 300, 350, 0x111111)
     this.bossSprite.setStrokeStyle(4, 0xffffff)
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Typemancer HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Typemancer HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#ffffff'
     }).setOrigin(0.5)
 

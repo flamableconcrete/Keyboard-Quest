@@ -78,11 +78,11 @@ export class SpiderBoss extends BaseBossScene {
     this.initWeb()
 
     // Spider (Boss Sprite)
-    this.bossSprite = this.add.circle(centerX, centerY, 40, 0x333333)
-    this.add.circle(centerX - 15, centerY - 10, 5, 0xff0000) // Eye
-    this.add.circle(centerX + 15, centerY - 10, 5, 0xff0000) // Eye
+    this.bossSprite = this.add.circle(centerX + width * 0.25, centerY, 40, 0x333333)
+    this.add.circle(centerX + width * 0.25 - 15, centerY - 10, 5, 0xff0000) // Eye
+    this.add.circle(centerX + width * 0.25 + 15, centerY - 10, 5, 0xff0000) // Eye
 
-    this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(centerX + width * 0.25, centerY + 150, `Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#8800ff'
     }).setOrigin(0.5)
 

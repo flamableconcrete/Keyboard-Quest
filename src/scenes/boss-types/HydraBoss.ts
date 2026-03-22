@@ -73,7 +73,7 @@ export class HydraBoss extends BaseBossScene {
     })
 
     this.bossHpText = this.add
-      .text(width / 2, height / 2 + 150, `Heads Defeated: ${this.totalDefeated}/${this.targetDefeated}`, {
+      .text(width * 0.75, height / 2 + 150, `Heads Defeated: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
         color: '#00ff00',
       })

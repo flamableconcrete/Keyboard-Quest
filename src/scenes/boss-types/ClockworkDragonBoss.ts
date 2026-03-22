@@ -77,14 +77,14 @@ export class ClockworkDragonBoss extends BaseBossScene {
     })
 
     this.bossHpText = this.add
-      .text(width / 2, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
+      .text(width * 0.75, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
         color: '#ffcc00',
       })
       .setOrigin(0.5)
 
     // Dragon Core (The central point)
-    this.coreSprite = this.add.circle(width / 2, height / 2 - 50, 60, 0x880000)
+    this.coreSprite = this.add.circle(width * 0.75, height / 2 - 50, 60, 0x880000)
     this.coreSprite.setStrokeStyle(4, 0x555555)
 
     // Core visual pulsing
@@ -132,7 +132,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
     const orbitRadius = 150 + (indexInOrbit % 2) * 50
     const orbitAngle = (indexInOrbit / totalInOrbit) * Math.PI * 2
 
-    const container = this.add.container(width / 2, height / 2 - 50)
+    const container = this.add.container(width * 0.75, height / 2 - 50)
 
     const sprite = this.add.circle(0, 0, 40, 0x777777)
     sprite.setStrokeStyle(4, 0x333333)

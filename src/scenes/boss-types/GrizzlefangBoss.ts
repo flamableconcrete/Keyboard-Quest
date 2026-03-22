@@ -78,13 +78,13 @@ export class GrizzlefangBoss extends BaseBossScene {
     })
 
     // Boss Sprite (Grizzlefang is big and orange/brown)
-    this.bossSprite = this.add.image(width / 2, height * 0.42, 'ogre').setScale(3)
+    this.bossSprite = this.add.image(width * 0.75, height * 0.42, 'ogre').setScale(3).setFlipX(true)
     if (this.weaknessActive) {
-      this.add.text(width / 2, 90, '⚡ Weakness Known! Boss HP -20%', {
+      this.add.text(width * 0.75, 90, '⚡ Weakness Known! Boss HP -20%', {
         fontSize: '18px', color: '#aaffaa'
       }).setOrigin(0.5)
     }
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Grizzlefang HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Grizzlefang HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#ff8800'
     }).setOrigin(0.5)
 
