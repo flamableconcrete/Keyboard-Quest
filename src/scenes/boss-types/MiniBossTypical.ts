@@ -51,6 +51,8 @@ export class MiniBossTypical extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: (height / 2 - 50) - 150 },
         phase: this.level.phases ? { current: 1, total: this.level.phases } : undefined,
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -71,10 +73,10 @@ export class MiniBossTypical extends BaseBossScene {
     const bossY = height / 2 - 50
     if (isOgre) {
       generateGoblinWhackerTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, bossY, 'ogre').setScale(3)
+      this.bossSprite = this.add.image(width * 0.75, bossY, 'ogre').setScale(3).setFlipX(true)
     } else {
       generateGenericBossTextures(this)
-      this.bossSprite = this.add.image(width * 0.75, bossY, 'generic_boss').setScale(3)
+      this.bossSprite = this.add.image(width * 0.75, bossY, 'generic_boss').setScale(3).setFlipX(true)
     }
     if (this.weaknessActive) {
       this.add.text(width * 0.75, 55, '⚡ Weakness Known! Boss HP -20%', {

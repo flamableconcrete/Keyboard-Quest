@@ -21,6 +21,8 @@ export interface HUDConfig {
   // Top-center
   levelName: string
   phase?: { current: number; total: number }  // boss only
+  bossName?: string                           // boss only
+  bossNamePosition?: { x: number; y: number } // required if bossName is provided
 
   // Top-right
   timer?: {
@@ -113,6 +115,21 @@ export class LevelHUD {
       this.phaseText = scene.add.text(width / 2, 32, `Phase ${config.phase.current} / ${config.phase.total}`, {
         fontSize: '13px', color: '#7a7060',
       }).setOrigin(0.5, 0).setDepth(HUD_TEXT_DEPTH)
+    }
+
+    if (config.bossName && config.bossNamePosition) {
+      const bannerBg = scene.add.graphics()
+      bannerBg.fillStyle(0x000000, 0.7)
+      bannerBg.lineStyle(2, HUD_BORDER_COLOR, 1)
+      const textPadding = 10
+      const nameText = scene.add.text(config.bossNamePosition.x, config.bossNamePosition.y, config.bossName, {
+        fontSize: '16px', color: '#ff4444', fontFamily: 'serif', fontStyle: 'bold'
+      }).setOrigin(0.5, 0.5).setDepth(HUD_TEXT_DEPTH)
+
+      const bounds = nameText.getBounds()
+      bannerBg.fillRect(bounds.x - textPadding, bounds.y - textPadding/2, bounds.width + textPadding*2, bounds.height + textPadding)
+      bannerBg.strokeRect(bounds.x - textPadding, bounds.y - textPadding/2, bounds.width + textPadding*2, bounds.height + textPadding)
+      bannerBg.setDepth(HUD_BG_DEPTH)
     }
 
     // ── Top-right: Timer + counter ────────────────────────────────────────────

@@ -16,7 +16,6 @@ export class BaronTypoBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
 
@@ -46,6 +45,8 @@ export class BaronTypoBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -58,15 +59,11 @@ export class BaronTypoBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
-
     // Boss Sprite (Baron is purple and sophisticated-looking placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 300, 0x800080)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc88ff'
     }).setOrigin(0.5)
 
@@ -74,7 +71,6 @@ export class BaronTypoBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)

@@ -48,6 +48,8 @@ export class SlimeKingBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 150 },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
           onExpire: () => this.endLevel(false),
@@ -59,7 +61,7 @@ export class SlimeKingBoss extends BaseBossScene {
       }),
     })
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Slimes: 0`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Slimes: 0`, {
       fontSize: '20px', color: '#aaaaaa'
     }).setOrigin(0.5, 0)
 
@@ -111,7 +113,7 @@ export class SlimeKingBoss extends BaseBossScene {
     const words = getWordPool(this.level.unlockedLetters, 1, difficulty, this.level.world === 1 ? 5 : undefined)
     const word = words[0] || 'slimeking'
 
-    this.createSlime(word, width / 2, height / 2 - 50, 200)
+    this.createSlime(word, width * 0.75, height / 2 - 50, 200)
   }
 
   private createSlime(word: string, x: number, y: number, size: number) {

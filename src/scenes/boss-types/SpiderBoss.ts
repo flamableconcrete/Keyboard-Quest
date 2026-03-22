@@ -24,7 +24,6 @@ export class SpiderBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Arc
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
   private webGraphics!: Phaser.GameObjects.Graphics
 
   private lines: WebLine[] = []
@@ -60,6 +59,8 @@ export class SpiderBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: centerX, y: (centerY) - 150 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -72,20 +73,16 @@ export class SpiderBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add.text(centerX, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
-
     // Web Graphics
     this.webGraphics = this.add.graphics()
     this.initWeb()
 
     // Spider (Boss Sprite)
-    this.bossSprite = this.add.circle(centerX, centerY, 40, 0x333333)
-    this.add.circle(centerX - 15, centerY - 10, 5, 0xff0000) // Eye
-    this.add.circle(centerX + 15, centerY - 10, 5, 0xff0000) // Eye
+    this.bossSprite = this.add.circle(centerX + width * 0.25, centerY, 40, 0x333333)
+    this.add.circle(centerX + width * 0.25 - 15, centerY - 10, 5, 0xff0000) // Eye
+    this.add.circle(centerX + width * 0.25 + 15, centerY - 10, 5, 0xff0000) // Eye
 
-    this.bossHpText = this.add.text(centerX, centerY + 150, `Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(centerX + width * 0.25, centerY + 150, `Spider HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#8800ff'
     }).setOrigin(0.5)
 
@@ -139,7 +136,6 @@ export class SpiderBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     // Setup spawn timer

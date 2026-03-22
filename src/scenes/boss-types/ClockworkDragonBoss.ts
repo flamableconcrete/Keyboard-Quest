@@ -27,7 +27,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   private wordsPerPhase = 0
 
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private coreSprite!: Phaser.GameObjects.Arc
 
@@ -63,6 +62,8 @@ export class ClockworkDragonBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 150 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -75,22 +76,15 @@ export class ClockworkDragonBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add
-      .text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-        fontSize: '20px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5, 0)
-
     this.bossHpText = this.add
-      .text(width / 2, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
+      .text(width * 0.75, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
         color: '#ffcc00',
       })
       .setOrigin(0.5)
 
     // Dragon Core (The central point)
-    this.coreSprite = this.add.circle(width / 2, height / 2 - 50, 60, 0x880000)
+    this.coreSprite = this.add.circle(width * 0.75, height / 2 - 50, 60, 0x880000)
     this.coreSprite.setStrokeStyle(4, 0x555555)
 
     // Core visual pulsing
@@ -107,7 +101,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
     this.wordsSpawnedInPhase = 0
 
@@ -139,7 +132,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
     const orbitRadius = 150 + (indexInOrbit % 2) * 50
     const orbitAngle = (indexInOrbit / totalInOrbit) * Math.PI * 2
 
-    const container = this.add.container(width / 2, height / 2 - 50)
+    const container = this.add.container(width * 0.75, height / 2 - 50)
 
     const sprite = this.add.circle(0, 0, 40, 0x777777)
     sprite.setStrokeStyle(4, 0x333333)

@@ -52,6 +52,7 @@ export class CrazedCookLevel extends BaseLevelScene {
   private timeLimit!: number
   private maxWalkoffs = 3
   private kitchenController!: KitchenController
+  private playerHp = DEFAULT_PLAYER_HP
 
   constructor() { super('CrazedCookLevel') }
 
@@ -64,6 +65,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     this.orderQuota = data.level.orderQuota
     this.timeLimit = data.level.timeLimit
     this.maxWalkoffs = data.level.maxWalkoffs ?? 3
+    this.playerHp = DEFAULT_PLAYER_HP
   }
 
   create() {
@@ -391,6 +393,13 @@ export class CrazedCookLevel extends BaseLevelScene {
     order.ticket.underlines.forEach(u => u.destroy())
     order.patienceBar.destroy()
     order.patienceBarBg.destroy()
+
+    // HP decrement logic — hook here for future items/defensive effects
+    this.playerHp = Math.max(0, this.playerHp - 1)
+    this.hud?.setHeroHp(this.playerHp)
+    if (this.playerHp <= 0) {
+      this.endLevel(false)
+    }
 
     // Attack tween sequence
     order.orcSprite.setTint(0xff0000)
