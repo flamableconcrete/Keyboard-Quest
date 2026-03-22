@@ -31,6 +31,21 @@ export const TYPING_HANDS_DEPTH = 5
 /** Render depth for TypingEngine character texts — must be above TypingHands so word text stays visible */
 export const TYPING_ENGINE_CHAR_DEPTH = 6
 
+/** Height of the top HUD panel bar in pixels */
+export const HUD_TOP_BAR_H = 56
+/** Height of the bottom HUD panel bar in pixels */
+export const HUD_BOTTOM_BAR_H = 130
+/** Phaser render depth for HUD background panels */
+export const HUD_BG_DEPTH = 50
+/** Phaser render depth for HUD text and image objects */
+export const HUD_TEXT_DEPTH = 51
+/** Background fill color for HUD panels (dark near-black with purple tint) */
+export const HUD_BG_COLOR = 0x0a0814
+/** Background fill alpha for HUD panels */
+export const HUD_BG_ALPHA = 0.88
+/** Border line color for HUD panels (warm gold) */
+export const HUD_BORDER_COLOR = 0x8a6a2a
+
 /** Delay (ms) before transitioning to LevelResult in standard levels */
 export const LEVEL_END_DELAY_MS = 500
 /** Delay (ms) before transitioning to LevelResult in boss scenes */

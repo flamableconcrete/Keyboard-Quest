@@ -11,6 +11,7 @@ export interface TypingEngineConfig {
   onWrongKey: () => void
   silent?: boolean
   showWpm?: boolean
+  charDepth?: number
 }
 
 export class TypingEngine {
@@ -159,7 +160,7 @@ export class TypingEngine {
         : '#888888'
       const t = this.scene.add.text(startX + i * charW, y, displayChar, {
         fontSize: `${fontSize}px`, color
-      }).setDepth(TYPING_ENGINE_CHAR_DEPTH)
+      }).setDepth(this.config.charDepth ?? TYPING_ENGINE_CHAR_DEPTH)
       this.charTexts.push(t)
     })
   }
