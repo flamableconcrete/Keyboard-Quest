@@ -135,8 +135,8 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     orderQuota: 8,
     maxWalkoffs: 3,
     dialogue: [
-      { speaker: "enemy", text: "The Mad King's jester! With the zaniest words in the KNOWN WORLD! Ha ha HA!" },
-      { speaker: "hero",  text: "I've heard worse. Let's go." },
+      { speaker: "enemy", text: "ME WANT DESSERT! BIG DESSERT!" },
+      { speaker: "hero",  text: "One mega-sundae, on the way!" },
     ],
     rewards: { xp: 440 },
     bossGate: null,
