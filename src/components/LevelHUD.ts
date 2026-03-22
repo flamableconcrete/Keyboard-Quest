@@ -50,6 +50,8 @@ export class LevelHUD {
   private counterLabel?: string
   private counterTotal?: number
   private phaseTotal?: number
+  private _scene!: Phaser.Scene
+  private escHandler!: () => void
 
   constructor(scene: Phaser.Scene, config: HUDConfig) {
     const { width, height } = scene.scale
@@ -65,14 +67,38 @@ export class LevelHUD {
     bg.fillRect(0, HUD_TOP_BAR_H, width, 2)
     bg.fillRect(0, height - HUD_BOTTOM_BAR_H, width, 2)
 
-    // ── Top-left: Menu label + hearts ─────────────────────────────────────────
-    scene.add.text(16, 10, 'MENU', {
-      fontSize: '11px', color: '#6a5a4a',
-    }).setOrigin(0, 0).setDepth(HUD_TEXT_DEPTH)
+    // ── Top-left: MENU button + HP label + hearts ─────────────────────────────
+    this._scene = scene
+    this.escHandler = () => {
+      if (!scene.scene.isPaused()) {
+        scene.scene.pause()
+        scene.scene.launch('PauseScene', { levelKey: scene.scene.key, profileSlot: config.profileSlot })
+        scene.scene.bringToTop('PauseScene')
+      }
+    }
+    scene.input.keyboard?.on('keydown-ESC', this.escHandler)
+
+    scene.add.text(12, 28, '[ MENU ]', {
+      fontSize: '14px', color: '#c8a830',
+    }).setOrigin(0, 0.5).setDepth(HUD_TEXT_DEPTH)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', function(this: Phaser.GameObjects.Text) { this.setColor('#ffd966') })
+      .on('pointerout',  function(this: Phaser.GameObjects.Text) { this.setColor('#c8a830') })
+      .on('pointerdown', () => {
+        if (!scene.scene.isPaused()) {
+          scene.scene.pause()
+          scene.scene.launch('PauseScene', { levelKey: scene.scene.key, profileSlot: config.profileSlot })
+          scene.scene.bringToTop('PauseScene')
+        }
+      })
+
+    scene.add.text(96, 28, 'HP', {
+      fontSize: '13px', color: '#c8a830',
+    }).setOrigin(0, 0.5).setDepth(HUD_TEXT_DEPTH)
 
     for (let i = 0; i < DEFAULT_PLAYER_HP; i++) {
       const key = i < config.heroHp ? 'heart_full' : 'heart_empty'
-      const heart = scene.add.image(20 + i * 26, 38, key)
+      const heart = scene.add.image(124 + i * 54, 28, key)
         .setScale(2).setOrigin(0, 0.5).setDepth(HUD_TEXT_DEPTH)
       this.hearts.push(heart)
     }
@@ -151,6 +177,7 @@ export class LevelHUD {
   }
 
   destroy(): void {
+    this._scene.input.keyboard?.off('keydown-ESC', this.escHandler)
     this.timerEvent?.remove()
     this.engine.destroy()
     this.typingHands?.fadeOut()
