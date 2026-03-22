@@ -18,6 +18,8 @@ import {
   PET_SPEED_BASE,
   PET_SPEED_COEFF,
   GOLD_PER_KILL,
+  HUD_SAFE_Y_TOP,
+  HUD_SAFE_Y_BOTTOM_OFFSET,
 } from '../constants'
 
 export interface PreCreateOptions {
@@ -55,7 +57,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
    * The LevelHUD (passed via options.hud) owns the TypingEngine and TypingHands.
    *
    * @param avatarX  X position of the player avatar sprite (default: 100)
-   * @param avatarY  Y position of the player avatar sprite (default: height - 100)
+   * @param avatarY  Y position of the player avatar sprite (default: height * 0.65 ≈ 468)
    * @param options  Optional overrides for scale, companion side, and hud.
    *
    * NOTE: If the player has spells, preCreate() will create a SpellCaster and call
@@ -94,7 +96,15 @@ export abstract class BaseLevelScene extends Phaser.Scene {
 
     // Resolve optional avatar position defaults
     const ax = avatarX ?? 100
-    const ay = avatarY ?? (height - 100)
+    const ay = avatarY ?? Math.round(height * 0.65)
+
+    const safeBottom = height - HUD_SAFE_Y_BOTTOM_OFFSET
+    if (ay < HUD_SAFE_Y_TOP || ay > safeBottom) {
+      console.warn(
+        `[${this.scene.key}] avatarY=${ay} is outside HUD safe zone ` +
+        `(${HUD_SAFE_Y_TOP}–${safeBottom}). Hero/party may overlap HUD.`
+      )
+    }
 
     const profile = loadProfile(this.profileSlot)
 
