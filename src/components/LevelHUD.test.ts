@@ -12,8 +12,20 @@ vi.mock('./TypingHands', () => ({ TypingHands: class { constructor() {}; fadeOut
 vi.mock('../utils/profile', () => ({ loadProfile: () => null }))
 
 function makeScene(overrides = {}) {
-  const mockText = { setOrigin: vi.fn().mockReturnThis(), setDepth: vi.fn().mockReturnThis(), setText: vi.fn().mockReturnThis() }
-  const mockImage = { setScale: vi.fn().mockReturnThis(), setOrigin: vi.fn().mockReturnThis(), setDepth: vi.fn().mockReturnThis(), setTexture: vi.fn() }
+  const mockText = {
+    setOrigin: vi.fn().mockReturnThis(),
+    setDepth: vi.fn().mockReturnThis(),
+    setText: vi.fn().mockReturnThis(),
+    setInteractive: vi.fn().mockReturnThis(),
+    setColor: vi.fn().mockReturnThis(),
+    on: vi.fn().mockReturnThis(),
+  }
+  const mockImage = {
+    setScale: vi.fn().mockReturnThis(),
+    setOrigin: vi.fn().mockReturnThis(),
+    setDepth: vi.fn().mockReturnThis(),
+    setTexture: vi.fn(),
+  }
   const mockGraphics = {
     setDepth: vi.fn().mockReturnThis(),
     fillStyle: vi.fn().mockReturnThis(),
@@ -27,7 +39,8 @@ function makeScene(overrides = {}) {
       graphics: vi.fn().mockReturnValue(mockGraphics),
     },
     textures: { exists: vi.fn().mockReturnValue(true) },
-    input: { keyboard: { on: vi.fn() } },
+    input: { keyboard: { on: vi.fn(), off: vi.fn() } },
+    scene: { isPaused: vi.fn().mockReturnValue(false), pause: vi.fn(), launch: vi.fn(), bringToTop: vi.fn(), key: 'TestScene' },
     events: { on: vi.fn() },
     time: { addEvent: vi.fn().mockReturnValue({ remove: vi.fn() }) },
     ...overrides,
@@ -126,5 +139,34 @@ describe('LevelHUD timer', () => {
     })
     hud.destroy()
     expect(removeSpy).toHaveBeenCalled()
+  })
+})
+
+describe('LevelHUD ESC listener', () => {
+  it('registers keydown-ESC handler on construction', () => {
+    const scene = makeScene()
+    new LevelHUD(scene as any, baseConfig)
+    expect(scene.input.keyboard.on).toHaveBeenCalledWith('keydown-ESC', expect.any(Function))
+  })
+
+  it('removes keydown-ESC handler on destroy()', () => {
+    const scene = makeScene()
+    const hud = new LevelHUD(scene as any, baseConfig)
+    hud.destroy()
+    expect(scene.input.keyboard.off).toHaveBeenCalledWith('keydown-ESC', expect.any(Function))
+  })
+})
+
+describe('LevelHUD heart positions', () => {
+  it('places hearts at y=28 and x starting at 124 with step 54', () => {
+    const scene = makeScene()
+    new LevelHUD(scene as any, baseConfig)
+    const imageCalls: any[][] = (scene.add.image as any).mock.calls
+    const heartCalls = imageCalls.filter(args => args[2] === 'heart_full' || args[2] === 'heart_empty')
+    expect(heartCalls).toHaveLength(3)
+    expect(heartCalls[0][0]).toBe(124)  // x of first heart
+    expect(heartCalls[1][0]).toBe(178)  // 124 + 54
+    expect(heartCalls[2][0]).toBe(232)  // 124 + 108
+    expect(heartCalls[0][1]).toBe(28)   // y vertically centered
   })
 })
