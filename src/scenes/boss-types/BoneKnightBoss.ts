@@ -22,7 +22,6 @@ export class BoneKnightBoss extends BaseBossScene {
 
     private bossSprite!: Phaser.GameObjects.Rectangle
     private bossHpText!: Phaser.GameObjects.Text
-    private phaseText!: Phaser.GameObjects.Text
 
     private hp!: BossHPState
 
@@ -65,10 +64,6 @@ export class BoneKnightBoss extends BaseBossScene {
             }),
         })
 
-        this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-            fontSize: '20px', color: '#aaaaaa'
-        }).setOrigin(0.5, 0)
-
         // Boss Sprite (Bone Knight is tall and grey/silver)
         this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 350, 0xbdc3c7)
         this.add.rectangle(width / 2, height * 0.42 - 225, 100, 100, 0xbdc3c7) // Head
@@ -81,7 +76,6 @@ export class BoneKnightBoss extends BaseBossScene {
     }
 
     private startPhase() {
-        this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
         this.hud!.setPhase(this.phase)
         this.clearShields()
 

@@ -15,7 +15,6 @@ export class TypemancerBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
   private mechanicText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
@@ -60,10 +59,6 @@ export class TypemancerBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add.text(width / 2, 65, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
-
     this.mechanicText = this.add.text(width / 2, 95, '', {
       fontSize: '18px', color: '#ff00ff', fontStyle: 'italic'
     }).setOrigin(0.5, 0)
@@ -80,7 +75,6 @@ export class TypemancerBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     const mechanics = [

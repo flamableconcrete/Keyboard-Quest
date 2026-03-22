@@ -24,7 +24,6 @@ export class HydraBoss extends BaseBossScene {
 
   private bossHpText!: Phaser.GameObjects.Text
   private headCountText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
   private regrowBar!: Phaser.GameObjects.Rectangle
 
   private hp!: BossHPState
@@ -73,13 +72,6 @@ export class HydraBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add
-      .text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-        fontSize: '20px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5, 0)
-
     this.bossHpText = this.add
       .text(width / 2, height / 2 + 150, `Heads Defeated: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
@@ -103,7 +95,6 @@ export class HydraBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     // Initial heads for the phase

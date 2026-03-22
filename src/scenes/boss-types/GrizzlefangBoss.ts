@@ -17,7 +17,6 @@ export class GrizzlefangBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Image
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
 
@@ -78,10 +77,6 @@ export class GrizzlefangBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
-
     // Boss Sprite (Grizzlefang is big and orange/brown)
     this.bossSprite = this.add.image(width / 2, height * 0.42, 'ogre').setScale(3)
     if (this.weaknessActive) {
@@ -97,7 +92,6 @@ export class GrizzlefangBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     // In later phases, maybe the words are harder or attack is faster

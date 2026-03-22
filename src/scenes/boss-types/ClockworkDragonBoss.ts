@@ -27,7 +27,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   private wordsPerPhase = 0
 
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private coreSprite!: Phaser.GameObjects.Arc
 
@@ -77,13 +76,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add
-      .text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-        fontSize: '20px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5, 0)
-
     this.bossHpText = this.add
       .text(width / 2, height / 2 + 150, `Gears Jammed: ${this.totalDefeated}/${this.targetDefeated}`, {
         fontSize: '24px',
@@ -109,7 +101,6 @@ export class ClockworkDragonBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
     this.wordsSpawnedInPhase = 0
 

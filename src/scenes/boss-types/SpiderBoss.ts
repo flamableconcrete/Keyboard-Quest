@@ -24,7 +24,6 @@ export class SpiderBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Arc
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
   private webGraphics!: Phaser.GameObjects.Graphics
 
   private lines: WebLine[] = []
@@ -73,10 +72,6 @@ export class SpiderBoss extends BaseBossScene {
         engineFontSize: BOSS_ENGINE_FONT_SIZE,
       }),
     })
-
-    this.phaseText = this.add.text(centerX, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
 
     // Web Graphics
     this.webGraphics = this.add.graphics()
@@ -141,7 +136,6 @@ export class SpiderBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     // Setup spawn timer
