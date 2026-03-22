@@ -12,7 +12,7 @@ vi.mock('./TypingHands', () => ({ TypingHands: class { constructor() {}; fadeOut
 vi.mock('../utils/profile', () => ({ loadProfile: () => null }))
 
 function makeScene(overrides = {}) {
-  const mockText = { setOrigin: vi.fn().mockReturnThis(), setDepth: vi.fn().mockReturnThis() }
+  const mockText = { setOrigin: vi.fn().mockReturnThis(), setDepth: vi.fn().mockReturnThis(), setText: vi.fn().mockReturnThis() }
   const mockImage = { setScale: vi.fn().mockReturnThis(), setOrigin: vi.fn().mockReturnThis(), setDepth: vi.fn().mockReturnThis(), setTexture: vi.fn() }
   const mockGraphics = {
     setDepth: vi.fn().mockReturnThis(),
@@ -73,5 +73,58 @@ describe('LevelHUD.setHeroHp', () => {
       .map((r: any) => r.value)
     expect(mockImages[1].setTexture).toHaveBeenCalledWith('heart_empty')
     expect(mockImages[2].setTexture).toHaveBeenCalledWith('heart_empty')
+  })
+})
+
+describe('LevelHUD timer', () => {
+  it('calls onExpire after countdown reaches zero', () => {
+    const scene = makeScene()
+    let timerCallback: (() => void) | null = null
+    ;(scene.time.addEvent as any).mockImplementation((opts: any) => {
+      timerCallback = opts.callback
+      return { remove: vi.fn() }
+    })
+
+    const onExpire = vi.fn()
+    new LevelHUD(scene as any, {
+      ...baseConfig,
+      timer: { seconds: 3, onExpire },
+    })
+
+    timerCallback!(); timerCallback!(); timerCallback!()
+    expect(onExpire).toHaveBeenCalledOnce()
+  })
+
+  it('calls onTick with remaining seconds', () => {
+    const scene = makeScene()
+    let timerCallback: (() => void) | null = null
+    ;(scene.time.addEvent as any).mockImplementation((opts: any) => {
+      timerCallback = opts.callback
+      return { remove: vi.fn() }
+    })
+
+    const onTick = vi.fn()
+    new LevelHUD(scene as any, {
+      ...baseConfig,
+      timer: { seconds: 3, onExpire: vi.fn(), onTick },
+    })
+
+    timerCallback!(); timerCallback!(); timerCallback!()
+    expect(onTick).toHaveBeenNthCalledWith(1, 2)
+    expect(onTick).toHaveBeenNthCalledWith(2, 1)
+    expect(onTick).toHaveBeenNthCalledWith(3, 0)
+  })
+
+  it('destroy() removes the timer event', () => {
+    const scene = makeScene()
+    const removeSpy = vi.fn()
+    ;(scene.time.addEvent as any).mockReturnValue({ remove: removeSpy })
+
+    const hud = new LevelHUD(scene as any, {
+      ...baseConfig,
+      timer: { seconds: 5, onExpire: vi.fn() },
+    })
+    hud.destroy()
+    expect(removeSpy).toHaveBeenCalled()
   })
 })
