@@ -12,6 +12,7 @@ import { setupPause } from '../utils/pauseSetup'
 import { generateAllCompanionTextures } from '../art/companionsArt'
 import { CompanionAndPetRenderer } from '../components/CompanionAndPetRenderer'
 import { TypingHands } from '../components/TypingHands'
+import { LevelHUD } from '../components/LevelHUD'
 import {
   LEVEL_ENGINE_Y_OFFSET,
   LEVEL_ENGINE_FONT_SIZE,
@@ -25,10 +26,11 @@ import {
 
 export interface PreCreateOptions {
   avatarScale?: number
-  engineY?: number
-  engineFontSize?: number
-  handsYOffset?: number
+  engineY?: number          // kept for backwards compat — ignored when hud provided
+  engineFontSize?: number   // kept for backwards compat — ignored when hud provided
+  handsYOffset?: number     // kept for backwards compat — ignored when hud provided
   companionSide?: 'left' | 'right'
+  hud?: LevelHUD            // NEW: if provided, skip engine + hands creation
 }
 
 export abstract class BaseLevelScene extends Phaser.Scene {
@@ -41,6 +43,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected goldManager!: GoldManager
   protected spellCaster?: SpellCaster
   protected typingHands?: TypingHands
+  protected hud?: LevelHUD
   protected avatarSprite: Phaser.GameObjects.Image | null = null
   private _preCreateCalled = false
 
@@ -67,6 +70,20 @@ export abstract class BaseLevelScene extends Phaser.Scene {
    * handleSpellEffect() for spell events. Scenes that don't use spells can ignore
    * this — the default handleSpellEffect() is a no-op.
    */
+  protected initWordPool() {
+    const difficulty = Math.ceil(this.level.world / 2)
+    const maxLength = this.level.world === 1 ? 5 : undefined
+    this.words = getWordPool(
+      this.level.unlockedLetters,
+      this.level.wordCount,
+      difficulty,
+      maxLength
+    )
+    const shuffled = [...this.words]
+    Phaser.Utils.Array.Shuffle(shuffled)
+    this.wordQueue = shuffled
+  }
+
   protected preCreate(
     avatarX?: number,
     avatarY?: number,
@@ -80,11 +97,11 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       handsYOffset = TYPING_HANDS_Y_OFFSET,
       engineY: engineYOverride,
       companionSide = 'right',
+      hud,
     } = options
 
     setupPause(this, this.profileSlot)
     const { width, height } = this.scale
-    const engineY = engineYOverride ?? (height - LEVEL_ENGINE_Y_OFFSET)
 
     // Resolve optional avatar position defaults
     const ax = avatarX ?? 100
@@ -115,39 +132,40 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       }
     }
 
-    // Word pool
-    const difficulty = Math.ceil(this.level.world / 2)
-    const maxLength = this.level.world === 1 ? 5 : undefined
-    this.words = getWordPool(
-      this.level.unlockedLetters,
-      this.level.wordCount,
-      difficulty,
-      maxLength
-    )
-    const shuffled = [...this.words]
-    Phaser.Utils.Array.Shuffle(shuffled)
-    this.wordQueue = shuffled
+    if (hud) {
+      // HUD path: engine + hands are owned by the HUD
+      this.hud = hud
+      this.engine = hud.engine
+    } else {
+      // Legacy path: create engine + hands directly
+      const engineY = engineYOverride ?? (height - LEVEL_ENGINE_Y_OFFSET)
 
-    // Typing engine
-    this.engine = new TypingEngine({
-      scene: this,
-      x: width / 2,
-      y: engineY,
-      fontSize: engineFontSize,
-      onWordComplete: this.onWordComplete.bind(this),
-      onWrongKey: this.onWrongKey.bind(this),
-    })
+      // Word pool (idempotent — skip if already populated by scene before calling preCreate)
+      if (this.wordQueue.length === 0) {
+        this.initWordPool()
+      }
 
-    // Spell caster (conditional)
+      // Typing engine
+      this.engine = new TypingEngine({
+        scene: this,
+        x: width / 2,
+        y: engineY,
+        fontSize: engineFontSize,
+        onWordComplete: this.onWordComplete.bind(this),
+        onWrongKey: this.onWrongKey.bind(this),
+      })
+
+      // Typing hands (conditional)
+      if (profile?.showFingerHints) {
+        this.typingHands = new TypingHands(this, width / 2, height - handsYOffset)
+        this.events.on('typing_next_char', (ch: string) => this.typingHands?.highlightFinger(ch))
+      }
+    }
+
+    // Spell caster (uses this.engine, works in both HUD and legacy paths)
     if (profile && profile.spells.length > 0) {
       this.spellCaster = new SpellCaster(this, this.profileSlot, this.engine)
       this.spellCaster.setEffectCallback(this.handleSpellEffect.bind(this))
-    }
-
-    // Typing hands (conditional)
-    if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(this, width / 2, height - handsYOffset)
-      this.events.on('typing_next_char', (ch: string) => this.typingHands?.highlightFinger(ch))
     }
   }
 
@@ -205,8 +223,12 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.finished = true
 
     this.spellCaster?.destroy()
-    this.typingHands?.fadeOut()
-    this.engine.destroy()
+    if (this.hud) {
+      this.hud.destroy()
+    } else {
+      this.typingHands?.fadeOut()
+      this.engine.destroy()
+    }
 
     const elapsed = Date.now() - this.engine.sessionStartTime
     const acc = calcAccuracyStars(

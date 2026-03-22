@@ -249,6 +249,16 @@ describe('BaseLevelScene.flashOnWrongKey', () => {
   })
 })
 
+describe('BaseLevelScene.initWordPool', () => {
+  it('populates this.words and this.wordQueue', () => {
+    const scene = new TestLevelScene()
+    ;(scene as any).init({ level: mockLevel as LevelConfig, profileSlot: 0 })
+    ;(scene as any).initWordPool()
+    expect((scene as any).words).toEqual(['cat', 'dog'])
+    expect((scene as any).wordQueue).toEqual(['cat', 'dog']) // shuffle is identity in mock
+  })
+})
+
 describe('BaseLevelScene.preCreate avatarSprite', () => {
   it('avatarSprite field exists and is null before preCreate is called', () => {
     const scene = new TestLevelScene()
