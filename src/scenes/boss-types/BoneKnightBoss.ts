@@ -51,7 +51,7 @@ export class BoneKnightBoss extends BaseBossScene {
                 heroHp: DEFAULT_PLAYER_HP,
                 levelName: this.level.name,
                 bossName: this.level.bossName,
-                bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
+                bossNamePosition: { x: width * 0.75, y: height * 0.42 - 200 },
                 phase: { current: 1, total: this.maxPhases },
                 timer: this.level.timeLimit ? {
                     seconds: this.level.timeLimit,
@@ -65,10 +65,10 @@ export class BoneKnightBoss extends BaseBossScene {
         })
 
         // Boss Sprite (Bone Knight is tall and grey/silver)
-        this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 350, 0xbdc3c7)
-        this.add.rectangle(width / 2, height * 0.42 - 225, 100, 100, 0xbdc3c7) // Head
+        this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 200, 350, 0xbdc3c7)
+        this.add.rectangle(width * 0.75, height * 0.42 - 225, 100, 100, 0xbdc3c7) // Head
 
-        this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Bone Knight HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+        this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Bone Knight HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
             fontSize: '24px', color: '#e0e0e0'
         }).setOrigin(0.5)
 

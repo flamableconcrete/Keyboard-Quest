@@ -40,7 +40,7 @@ export class FlashWordBoss extends BaseBossScene {
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
         bossName: this.level.bossName,
-        bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
+        bossNamePosition: { x: width * 0.75, y: height * 0.42 - 200 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -53,9 +53,9 @@ export class FlashWordBoss extends BaseBossScene {
       }),
     })
 
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 250, 250, 0x9b30ff)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 250, 250, 0x9b30ff)
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Flash Void HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc33ff'
     }).setOrigin(0.5)
 

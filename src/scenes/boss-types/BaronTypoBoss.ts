@@ -46,7 +46,7 @@ export class BaronTypoBoss extends BaseBossScene {
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
         bossName: this.level.bossName,
-        bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
+        bossNamePosition: { x: width * 0.75, y: height * 0.42 - 200 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -60,10 +60,10 @@ export class BaronTypoBoss extends BaseBossScene {
     })
 
     // Boss Sprite (Baron is purple and sophisticated-looking placeholder)
-    this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 300, 0x800080)
+    this.bossSprite = this.add.rectangle(width * 0.75, height * 0.42, 200, 300, 0x800080)
     this.bossSprite.setStrokeStyle(4, 0xffd700) // Gold trim
 
-    this.bossHpText = this.add.text(width / 2, height / 2 + 150, `Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
+    this.bossHpText = this.add.text(width * 0.75, height / 2 + 150, `Baron Typo HP: ${this.hp.bossHp}/${this.hp.bossMaxHp}`, {
       fontSize: '24px', color: '#cc88ff'
     }).setOrigin(0.5)
 
