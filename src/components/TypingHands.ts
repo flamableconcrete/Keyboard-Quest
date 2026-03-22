@@ -18,8 +18,6 @@ const CHAR_FINGER: Record<string, Finger> = {
 export class TypingHands {
   private scene: Phaser.Scene
   private fingerOverlays: Map<Finger, Phaser.GameObjects.Graphics[]> = new Map()
-  private nextLetterText!: Phaser.GameObjects.Text
-  private nextLetterBg!: Phaser.GameObjects.Graphics
   private currentFinger: Finger | null = null
   private pulseTween?: Phaser.Tweens.Tween
   private allObjects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Text)[] = []
@@ -27,15 +25,12 @@ export class TypingHands {
   constructor(scene: Phaser.Scene, cx: number, cy: number) {
     this.scene = scene
     this.buildHands(cx, cy)
-    this.buildNextLetterDisplay(cx, cy)
-    // Elevate above scene backgrounds (depth 0) so scenes can safely add
-    // backgrounds after calling preCreate() without covering the hints.
+    // Elevate above HUD background panels (depth 50)
     this.allObjects.forEach(obj => obj.setDepth(TYPING_HANDS_DEPTH))
   }
 
   highlightFinger(ch: string) {
     const finger = CHAR_FINGER[ch.toLowerCase()] ?? null
-    this.updateNextLetter(ch)
 
     if (finger === this.currentFinger) return
     this.currentFinger = finger
@@ -63,10 +58,6 @@ export class TypingHands {
     }
   }
 
-  private updateNextLetter(ch: string) {
-    this.nextLetterText.setText(ch.toUpperCase())
-  }
-
   destroy() {
     this.pulseTween?.stop()
     this.allObjects.forEach(obj => obj.destroy())
@@ -79,23 +70,6 @@ export class TypingHands {
       alpha: 0,
       duration: 800,
     })
-  }
-
-  private buildNextLetterDisplay(cx: number, cy: number) {
-    const letterY = cy
-
-    this.nextLetterBg = this.scene.add.graphics()
-    this.nextLetterBg.fillStyle(0x000000, 0.6)
-    this.nextLetterBg.fillCircle(cx, letterY, 48)
-    this.allObjects.push(this.nextLetterBg)
-
-    this.nextLetterText = this.scene.add.text(cx, letterY, '', {
-      fontSize: '52px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-      shadow: { offsetX: 0, offsetY: 0, color: '#ffd700', blur: 12, fill: true },
-    }).setOrigin(0.5)
-    this.allObjects.push(this.nextLetterText)
   }
 
   private buildHands(cx: number, cy: number) {
@@ -138,7 +112,7 @@ export class TypingHands {
   private drawFinger(x: number, y: number, w: number, h: number, finger: Finger) {
     // Base finger (dark, always visible)
     const base = this.scene.add.graphics()
-    base.fillStyle(0x334466)
+    base.fillStyle(0x5a6e9a)
     base.fillRoundedRect(x, y, w, h, { tl: w / 2, tr: w / 2, bl: 4, br: 4 })
     this.allObjects.push(base)
 
@@ -155,7 +129,7 @@ export class TypingHands {
 
   private drawPalm(x: number, y: number, w: number, h: number, color: number) {
     const g = this.scene.add.graphics()
-    g.fillStyle(color, 0.5)
+    g.fillStyle(color, 0.9)
     g.fillRoundedRect(x, y, w, h, 6)
     this.allObjects.push(g)
   }

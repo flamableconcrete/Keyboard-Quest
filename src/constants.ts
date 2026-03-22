@@ -19,10 +19,10 @@ export const LEVEL_ENGINE_FONT_SIZE = 40
 /** Font size for typing engine in boss scenes */
 export const BOSS_ENGINE_FONT_SIZE = 48
 
-/** Render depth for TypingHands objects — must be above scene backgrounds (depth 0) */
-export const TYPING_HANDS_DEPTH = 5
+/** Render depth for TypingHands objects — must be above HUD background panels (depth 50) */
+export const TYPING_HANDS_DEPTH = 52
 /** Render depth for TypingEngine character texts — must be above TypingHands so word text stays visible */
-export const TYPING_ENGINE_CHAR_DEPTH = 6
+export const TYPING_ENGINE_CHAR_DEPTH = 53
 
 /** Height of the top HUD panel bar in pixels */
 export const HUD_TOP_BAR_H = 56

@@ -157,7 +157,7 @@ export class LevelHUD {
     // ── Bottom bar: TypingHands ───────────────────────────────────────────────
     const profile = loadProfile(config.profileSlot)
     if (profile?.showFingerHints) {
-      this.typingHands = new TypingHands(scene, width / 2, height - 28)
+      this.typingHands = new TypingHands(scene, width / 2, height - 70)
       scene.events.on('typing_next_char', (ch: string) => this.typingHands?.highlightFinger(ch))
     }
   }
