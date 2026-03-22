@@ -51,6 +51,12 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     const { width, height } = this.scale
     this.pathY = height * 0.62
     this.maxGoblinReach = 80
+
+    // Generate textures and draw background FIRST so they render behind everything
+    // that preCreate() sets up (TypingHands, avatar, etc.)
+    generateGoblinWhackerTextures(this)
+    this.add.image(width / 2, height / 2, 'forest_bg')
+
     this.preCreate(80, this.pathY)   // handles avatar, companion, gold, word pool, engine, spells, hands
     this.wrongKeyCtrl = new WrongKeyAttackController({ threshold: Phaser.Math.Between(5, 8) })
 
@@ -65,12 +71,6 @@ export class GoblinWhackerLevel extends BaseLevelScene {
     })
     // Controller owns the word queue now — clear scene's copy to avoid double-management
     this.wordQueue = []
-
-    // Generate pixel art textures
-    generateGoblinWhackerTextures(this)
-
-    // Background
-    this.add.image(width / 2, height / 2, 'forest_bg')
 
     // HUD - HP hearts
     this.hpHearts = []

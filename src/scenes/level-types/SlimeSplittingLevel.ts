@@ -150,9 +150,10 @@ export class SlimeSplittingLevel extends BaseLevelScene {
             const blockText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'BLOCKED!', { fontSize: '32px', color: '#00ffff' }).setOrigin(0.5).setDepth(3000)
             this.tweens.add({ targets: blockText, y: blockText.y - 50, alpha: 0, duration: 1000, onComplete: () => blockText.destroy() })
           } else {
-            this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, ev.newHp))}`)
             this.cameras.main.shake(200, 0.01)
           }
+          // Always sync hpText to controller state (restoreHp may have changed it)
+          this.hpText.setText(`HP: ${'❤️'.repeat(Math.max(0, this.slimeCtrl.playerHp))}`)
           // Check for death after armor may have restored HP
           if (this.slimeCtrl.playerHp <= 0) {
             this.endLevel(false)

@@ -47,10 +47,7 @@ export const mobileTaunts: Record<string, string[]> = {
   GuildRecruitment: [
     "\"Guild applications require a keyboard, recruit. Come back properly equipped!\"",
   ],
-  CharacterCreator: [
-    "\"Even heroes need a proper keyboard to begin their journey!\"",
-  ],
-  WoodlandFestival: [
+WoodlandFestival: [
     "\"The festival games need nimble fingers on real keys, not a tiny screen!\"",
   ],
   BossBattle: [

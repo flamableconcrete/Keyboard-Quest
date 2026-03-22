@@ -144,6 +144,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     // Typing hands (conditional)
     if (profile?.showFingerHints) {
       this.typingHands = new TypingHands(this, width / 2, height - handsYOffset)
+      this.events.on('typing_next_char', (ch: string) => this.typingHands?.highlightFinger(ch))
     }
   }
 

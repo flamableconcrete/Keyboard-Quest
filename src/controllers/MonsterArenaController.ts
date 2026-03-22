@@ -2,6 +2,9 @@
 // Pure TypeScript — NO Phaser imports.
 import { SPAWN_OFFSCREEN_MARGIN } from '../constants'
 
+const MONSTER_ARENA_SPEED_BASE = 20
+const MONSTER_ARENA_SPEED_PER_WORLD = 5
+
 export type MonsterArenaEvent =
   | { type: 'monster_spawned'; word: string; x: number; hp: number; maxHp: number }
   | { type: 'monster_hit'; hpRemaining: number; newWord: string }
@@ -39,8 +42,7 @@ export class MonsterArenaController {
     this.wordQueue = [...config.words]
     this._playerHp = config.playerHp
     this.totalWords = config.words.length
-    // Mirror the scene: base 20 + world * 5
-    this.speed = 20 + config.worldNumber * 5
+    this.speed = MONSTER_ARENA_SPEED_BASE + config.worldNumber * MONSTER_ARENA_SPEED_PER_WORLD
   }
 
   get activeMonster(): MonsterState | null { return this._monster }

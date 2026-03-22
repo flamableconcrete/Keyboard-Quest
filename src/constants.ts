@@ -26,6 +26,11 @@ export const BOSS_ENGINE_FONT_SIZE = 48
 /** Y position of typing hands hints from canvas bottom */
 export const TYPING_HANDS_Y_OFFSET = 100
 
+/** Render depth for TypingHands objects — must be above scene backgrounds (depth 0) */
+export const TYPING_HANDS_DEPTH = 5
+/** Render depth for TypingEngine character texts — must be above TypingHands so word text stays visible */
+export const TYPING_ENGINE_CHAR_DEPTH = 6
+
 /** Delay (ms) before transitioning to LevelResult in standard levels */
 export const LEVEL_END_DELAY_MS = 500
 /** Delay (ms) before transitioning to LevelResult in boss scenes */

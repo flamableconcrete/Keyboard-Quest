@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { TYPING_HANDS_DEPTH } from '../constants'
 
 type Finger = 'lp' | 'lr' | 'lm' | 'li' | 'lt' | 'rt' | 'ri' | 'rm' | 'rr' | 'rp'
 
@@ -21,12 +22,15 @@ export class TypingHands {
   private nextLetterBg!: Phaser.GameObjects.Graphics
   private currentFinger: Finger | null = null
   private pulseTween?: Phaser.Tweens.Tween
-  private allObjects: Phaser.GameObjects.GameObject[] = []
+  private allObjects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Text)[] = []
 
   constructor(scene: Phaser.Scene, cx: number, cy: number) {
     this.scene = scene
     this.buildHands(cx, cy)
     this.buildNextLetterDisplay(cx, cy)
+    // Elevate above scene backgrounds (depth 0) so scenes can safely add
+    // backgrounds after calling preCreate() without covering the hints.
+    this.allObjects.forEach(obj => obj.setDepth(TYPING_HANDS_DEPTH))
   }
 
   highlightFinger(ch: string) {
@@ -105,12 +109,15 @@ export class TypingHands {
     const leftFingers: Finger[] = ['lp', 'lr', 'lm', 'li', 'lt']
     const rightFingers: Finger[] = ['rt', 'ri', 'rm', 'rr', 'rp']
 
+    // Finger bottoms align with the top of the palm (cy + 30)
+    const fingerBaseY = cy + 30
+
     // Left hand
     const leftStartX = cx - handGap / 2 - handWidth
     leftFingers.forEach((finger, i) => {
       const x = leftStartX + i * (fw + gap)
       const h = leftFingerHeights[i]
-      const y = cy - h / 2 + 20
+      const y = fingerBaseY - h
       this.drawFinger(x, y, fw, h, finger)
     })
 
@@ -119,7 +126,7 @@ export class TypingHands {
     rightFingers.forEach((finger, i) => {
       const x = rightStartX + i * (fw + gap)
       const h = rightFingerHeights[i]
-      const y = cy - h / 2 + 20
+      const y = fingerBaseY - h
       this.drawFinger(x, y, fw, h, finger)
     })
 

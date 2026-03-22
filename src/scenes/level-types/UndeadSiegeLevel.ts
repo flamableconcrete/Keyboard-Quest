@@ -14,6 +14,7 @@ interface UndeadSprite {
 
 export class UndeadSiegeLevel extends BaseLevelScene {
   private siegeCtrl!: UndeadSiegeController
+  private siegeLevel!: SiegeLevelConfig
   private undeadSprites: UndeadSprite[] = []
   private activeUndead: UndeadSprite | null = null
   private castleHpText!: Phaser.GameObjects.Text
@@ -24,6 +25,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
 
   init(data: { level: SiegeLevelConfig; profileSlot: number }) {
     super.init(data)
+    this.siegeLevel = data.level
     this.undeadSprites = []
     this.activeUndead = null
   }
@@ -35,9 +37,9 @@ export class UndeadSiegeLevel extends BaseLevelScene {
 
     this.siegeCtrl = new UndeadSiegeController({
       words: [...this.wordQueue],
-      maxWaves: (this.level as SiegeLevelConfig).waveCount,
+      maxWaves: this.siegeLevel.waveCount,
       worldNumber: this.level.world,
-      castleHp: (this.level as SiegeLevelConfig).castleHp,
+      castleHp: this.siegeLevel.castleHp,
       castleX: 100,
       canvasWidth: width,
     })
@@ -56,7 +58,7 @@ export class UndeadSiegeLevel extends BaseLevelScene {
     )
     this.waveText = this.add.text(
       width - 20, 20,
-      `Wave: 1/${(this.level as SiegeLevelConfig).waveCount}`,
+      `Wave: 1/${this.siegeLevel.waveCount}`,
       { fontSize: '22px', color: '#ffffff' }
     ).setOrigin(1, 0)
     this.add.text(width / 2, 20, this.level.name, { fontSize: '22px', color: '#ffd700' }).setOrigin(0.5, 0)

@@ -63,7 +63,6 @@ const levelTypeScenes = [
   DungeonEscapeLevel, PotionBrewingLabLevel, MagicRuneTypingLevel,
   MonsterManualLevel, WoodlandFestivalLevel, CrazedCookLevel,
   GuildRecruitmentLevel,
-  // CharacterCreatorLevel is handled by LevelScene dispatcher
 ]
 
 const bossTypeScenes = [

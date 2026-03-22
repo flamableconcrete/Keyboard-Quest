@@ -1,5 +1,6 @@
 // src/components/TypingEngine.ts
 import Phaser from 'phaser'
+import { TYPING_ENGINE_CHAR_DEPTH } from '../constants'
 
 export interface TypingEngineConfig {
   scene: Phaser.Scene
@@ -66,6 +67,9 @@ export class TypingEngine {
     this.typedSoFar = ''
     this.wordStartTime = Date.now()
     this.renderWord()
+    if (word.length > 0) {
+      this.scene.events.emit('typing_next_char', word[0])
+    }
   }
 
   setDisplayWord(displayWord: string) {
@@ -104,6 +108,10 @@ export class TypingEngine {
       this.correctKeystrokes++
       this.typedSoFar += this.currentWord[this.typedSoFar.length]
       this.renderWord()
+      const nextIdx = this.typedSoFar.length
+      if (nextIdx < this.currentWord.length) {
+        this.scene.events.emit('typing_next_char', this.currentWord[nextIdx])
+      }
       if (this.typedSoFar === this.currentWord) {
         this.completedWords++
         const elapsed = Date.now() - this.wordStartTime
@@ -151,7 +159,7 @@ export class TypingEngine {
         : '#888888'
       const t = this.scene.add.text(startX + i * charW, y, displayChar, {
         fontSize: `${fontSize}px`, color
-      })
+      }).setDepth(TYPING_ENGINE_CHAR_DEPTH)
       this.charTexts.push(t)
     })
   }

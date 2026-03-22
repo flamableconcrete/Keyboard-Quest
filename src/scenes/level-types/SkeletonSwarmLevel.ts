@@ -501,12 +501,11 @@ export class SkeletonSwarmLevel extends BaseLevelScene {
           this.tweens.add({ targets: cleaveText, y: cleaveText.y - 30, alpha: 0, duration: 800, onComplete: () => cleaveText.destroy() })
         }
       }
+      const next = this.skeletons[0] ?? null
+      this.setActiveSkeleton(next)
+      const waveEvents = this.waveController.markDefeated(word)
+      waveEvents.forEach(e => this.handleWaveEvent(e))
     }
-
-    const next = this.skeletons[0] ?? null
-    this.setActiveSkeleton(next)
-    const waveEvents = this.waveController.markDefeated(word)
-    waveEvents.forEach(e => this.handleWaveEvent(e))
   }
 
   protected onWrongKey() {

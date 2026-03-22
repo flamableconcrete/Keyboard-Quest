@@ -54,6 +54,8 @@ export class OverlandMapScene extends Phaser.Scene {
   constructor() { super('OverlandMap') }
 
   init(data: { profileSlot: number }) {
+    this.isGliding = false
+    this.isPanning = false
     AudioHelper.playBGM(this, 'bgm_map')
     this.profileSlot = data.profileSlot
     const profile = loadProfile(this.profileSlot)
