@@ -15,7 +15,6 @@ export class AncientDragonBoss extends BaseBossScene {
 
   private bossSprite!: Phaser.GameObjects.Rectangle
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
 
@@ -43,6 +42,8 @@ export class AncientDragonBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -55,10 +56,6 @@ export class AncientDragonBoss extends BaseBossScene {
       }),
     })
 
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
-
     // Boss Sprite (Ancient Dragon is big and purple)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 350, 350, 0x4b0082)
 
@@ -70,7 +67,6 @@ export class AncientDragonBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     const difficulty = Math.ceil(this.level.world / 2) + (this.phase - 1)

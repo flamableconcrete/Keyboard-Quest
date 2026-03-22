@@ -19,7 +19,6 @@ export class DiceLichBoss extends BaseBossScene {
   private diceText!: Phaser.GameObjects.Text
   private curseLabel!: Phaser.GameObjects.Text
   private bossHpText!: Phaser.GameObjects.Text
-  private phaseText!: Phaser.GameObjects.Text
 
   private hp!: BossHPState
   private attackTimer?: Phaser.Time.TimerEvent
@@ -47,6 +46,8 @@ export class DiceLichBoss extends BaseBossScene {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
         levelName: this.level.name,
+        bossName: this.level.bossName,
+        bossNamePosition: { x: width / 2, y: height * 0.42 - 200 },
         phase: { current: 1, total: this.maxPhases },
         timer: this.level.timeLimit ? {
           seconds: this.level.timeLimit,
@@ -58,10 +59,6 @@ export class DiceLichBoss extends BaseBossScene {
         engineFontSize: BOSS_ENGINE_FONT_SIZE,
       }),
     })
-
-    this.phaseText = this.add.text(width / 2, 60, `Phase ${this.phase}/${this.maxPhases}`, {
-      fontSize: '20px', color: '#aaaaaa'
-    }).setOrigin(0.5, 0)
 
     // Boss Sprite (Indigo)
     this.bossSprite = this.add.rectangle(width / 2, height * 0.42, 200, 250, 0x4b0082)
@@ -84,7 +81,6 @@ export class DiceLichBoss extends BaseBossScene {
   }
 
   private startPhase() {
-    this.phaseText.setText(`Phase ${this.phase}/${this.maxPhases}`)
     this.hud!.setPhase(this.phase)
 
     // Number of words is dictated by config, let's distribute evenly across 3 phases

@@ -98,6 +98,7 @@ export interface LevelConfig {
   isBoss?: boolean
   isMiniBoss?: boolean
   bossId?: string
+  bossName?: string
   phases?: number
   orderQuota?: number       // for CrazedCook: orders needed to win
   maxWalkoffs?: number      // for CrazedCook: max angry walk-offs before losing
