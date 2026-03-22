@@ -32,7 +32,7 @@ interface OrcOrder {
   seatId: string        // key used in KitchenController
 }
 
-const SEAT_X = [250, 510, 770, 1030]
+const SEAT_X = [310, 560, 810, 1060]
 const INGREDIENT_WEIGHTS = [
   { count: 1, weight: 15 },
   { count: 2, weight: 50 },
@@ -72,7 +72,7 @@ export class CrazedCookLevel extends BaseLevelScene {
     generateCrazedCookTextures(this)
 
     this.initWordPool()
-    this.preCreate(80, height * 0.65, {
+    this.preCreate(50, height * 0.65, {
       hud: new LevelHUD(this, {
         profileSlot: this.profileSlot,
         heroHp: DEFAULT_PLAYER_HP,
