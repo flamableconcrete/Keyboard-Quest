@@ -868,7 +868,98 @@ export function drawSteampunkWorkshopBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawGraveyardBg(_scene: Phaser.Scene): void {}
+export function drawGraveyardBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Stormy sky (near-black purple)
+  g.fillStyle(0x0e0810)
+  g.fillRect(0, 0, width, height * 0.6)
+  g.fillStyle(0x110d14)
+  for (let x = 0; x < width; x += 160) {
+    const cy = 20 + ((x * 5) % 80)
+    g.fillRect(x, cy, 140, 30)
+    g.fillRect(x + 20, cy - 12, 100, 14)
+  }
+
+  // Dead gnarled trees
+  g.fillStyle(0x070508)
+  const treeDefs = [
+    { x: 80, h: 180 }, { x: 200, h: 140 }, { x: width - 80, h: 200 },
+    { x: width - 200, h: 150 }, { x: 440, h: 100 }, { x: width - 440, h: 110 },
+  ]
+  for (const td of treeDefs) {
+    const baseY = height * 0.58
+    g.fillRect(td.x - 8, baseY - td.h, 16, td.h)
+    g.fillRect(td.x - 40, baseY - td.h + 20, 80, 5)
+    g.fillRect(td.x - 28, baseY - td.h + 40, 56, 4)
+    g.fillRect(td.x + 10, baseY - td.h + 30, 36, 3)
+    g.fillRect(td.x - 44, baseY - td.h + 30, 26, 3)
+    g.fillRect(td.x - 48, baseY - td.h + 20, 10, 3)
+    g.fillRect(td.x + 38, baseY - td.h + 20, 10, 3)
+    g.fillRect(td.x - 52, baseY - td.h + 17, 6, 3)
+    g.fillRect(td.x + 46, baseY - td.h + 17, 6, 3)
+  }
+
+  // Dead grass ground (lower 40%)
+  g.fillStyle(0x0c0c0c)
+  g.fillRect(0, height * 0.6, width, height * 0.4)
+  g.fillStyle(0x0f0f0f)
+  for (let x = 0; x < width; x += 30) {
+    g.fillRect(x, height * 0.6, 20, 4)
+  }
+
+  // Tombstones
+  const tombstones = [
+    { x: 140, y: height * 0.68, w: 36, h: 50 },
+    { x: 320, y: height * 0.7, w: 30, h: 44 },
+    { x: 550, y: height * 0.66, w: 40, h: 54 },
+    { x: 780, y: height * 0.69, w: 34, h: 48 },
+    { x: 990, y: height * 0.67, w: 38, h: 52 },
+    { x: 1150, y: height * 0.71, w: 28, h: 42 },
+  ]
+  for (const ts of tombstones) {
+    g.fillStyle(0x1a1a1a)
+    g.fillRect(ts.x - ts.w / 2, ts.y - ts.h, ts.w, ts.h)
+    g.fillRect(ts.x - ts.w / 2 + 4, ts.y - ts.h - 8, ts.w - 8, 10)
+    g.fillStyle(0x0d0d0d)
+    g.fillRect(ts.x - 2, ts.y - ts.h + 8, 4, 18)
+    g.fillRect(ts.x - 8, ts.y - ts.h + 12, 16, 4)
+    g.fillStyle(0x141414)
+    g.fillRect(ts.x - ts.w / 2 - 4, ts.y - 6, ts.w + 8, 6)
+  }
+  g.destroy()
+
+  // Ground fog layer
+  const fog = scene.add.rectangle(width / 2, height * 0.66, width + 300, 70, 0x221a33, 0.2)
+  scene.tweens.add({
+    targets: fog,
+    x: width / 2 + 60,
+    duration: 6000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Lightning flash (white overlay, triggered by timer)
+  const lightning = scene.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 0)
+  scene.time.addEvent({
+    delay: 5000,
+    loop: true,
+    callback: () => {
+      const flashDelay = Math.random() * 4000
+      scene.time.delayedCall(flashDelay, () => {
+        scene.tweens.add({
+          targets: lightning,
+          alpha: 0.18,
+          duration: 60,
+          yoyo: true,
+          repeat: 1,
+        })
+      })
+    },
+  })
+}
 export function drawDarkForestBg(_scene: Phaser.Scene): void {}
 export function drawDigitalVoidBg(_scene: Phaser.Scene): void {}
 export function drawMiniBossBg(_scene: Phaser.Scene, _bossId: string): void {}
