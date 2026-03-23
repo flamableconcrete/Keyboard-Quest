@@ -561,7 +561,78 @@ export function drawCastleThroneRoomBg(scene: Phaser.Scene): void {
   scene.tweens.add({ targets: tapestryL, angle: 1.5, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: tapestryR, angle: -1.5, duration: 3500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
 }
-export function drawEtherealVoidBg(_scene: Phaser.Scene): void {}
+export function drawEtherealVoidBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Pure black base
+  g.fillStyle(0x000000)
+  g.fillRect(0, 0, width, height)
+
+  // Static arcane light rings
+  const rings = [
+    { x: width * 0.5, y: height * 0.5, r: 180, color: 0x220044, a: 0.3 },
+    { x: width * 0.5, y: height * 0.5, r: 280, color: 0x110033, a: 0.2 },
+    { x: width * 0.3, y: height * 0.3, r: 80, color: 0x330055, a: 0.25 },
+    { x: width * 0.7, y: height * 0.4, r: 60, color: 0x220055, a: 0.2 },
+  ]
+  for (const ring of rings) {
+    g.lineStyle(2, ring.color, ring.a)
+    g.strokeCircle(ring.x, ring.y, ring.r)
+    g.lineStyle(1, ring.color, ring.a * 0.5)
+    g.strokeCircle(ring.x, ring.y, ring.r + 12)
+  }
+  g.destroy()
+
+  // Drifting glyph text objects
+  const glyphs = ['Ω', 'Σ', 'Ψ', 'Δ', 'Λ', 'Φ', 'Γ', 'Θ', '∞', '⌬', '⊕', '✦']
+  for (let i = 0; i < 14; i++) {
+    const glyph = glyphs[i % glyphs.length]
+    const startX = 60 + Math.random() * (width - 120)
+    const startY = height * 0.3 + Math.random() * (height * 0.5)
+    const gt = scene.add.text(startX, startY, glyph, {
+      fontSize: `${14 + Math.floor(Math.random() * 20)}px`,
+      color: i % 2 === 0 ? '#8800ff' : '#ff44ff',
+    }).setOrigin(0.5).setAlpha(0.6)
+    scene.tweens.add({
+      targets: gt,
+      y: startY - 80 - Math.random() * 60,
+      alpha: 0,
+      duration: 5000 + Math.random() * 4000,
+      delay: Math.random() * 3000,
+      repeat: -1,
+      repeatDelay: Math.random() * 2000,
+      onRepeat: () => {
+        gt.y = height * 0.3 + Math.random() * (height * 0.5)
+        gt.x = 60 + Math.random() * (width - 120)
+        gt.setAlpha(0.6)
+      },
+    })
+  }
+
+  // Expanding ring pulses from center
+  let ringsAlive = 0
+  const MAX_RINGS = 4
+  scene.time.addEvent({
+    delay: 1500,
+    loop: true,
+    callback: () => {
+      if (ringsAlive >= MAX_RINGS) return
+      const rg = scene.add.graphics()
+      rg.lineStyle(2, 0x6600cc, 0.6)
+      rg.strokeCircle(0, 0, 10)
+      rg.x = width * 0.5; rg.y = height * 0.45
+      ringsAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 18, scaleY: 18, alpha: 0,
+        duration: 2500,
+        ease: 'Quad.easeOut',
+        onComplete: () => { rg.destroy(); ringsAlive-- },
+      })
+    },
+  })
+}
 export function drawVolcanicLairBg(_scene: Phaser.Scene): void {}
 export function drawSteampunkWorkshopBg(_scene: Phaser.Scene): void {}
 export function drawGraveyardBg(_scene: Phaser.Scene): void {}
