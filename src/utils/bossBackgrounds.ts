@@ -1292,6 +1292,78 @@ function drawForestClearingBg(scene: Phaser.Scene): void {
   for (let i = 0; i < MAX_MOTES; i++) {
     scene.time.delayedCall(i * 600, () => launchMote(i))
   }
+
+  // ── Layer 10: Watching eyes — 3 pairs blink independently in tree columns ─
+  type EyeConfig = { ex: number; ey: number; initDelay: number }
+  const eyeConfigs: EyeConfig[] = [
+    { ex: 55,                ey: height * 0.38, initDelay: 0 },
+    { ex: width - 60,        ey: height * 0.42, initDelay: 2500 },
+    { ex: width * 0.5 + 10,  ey: height * 0.31, initDelay: 5000 },
+  ]
+
+  for (const { ex, ey, initDelay } of eyeConfigs) {
+    const eyeGfx = scene.add.graphics()
+    // Whites
+    eyeGfx.fillStyle(0x99ff66, 1)
+    eyeGfx.fillEllipse(ex - 5, ey, 10, 7)
+    eyeGfx.fillEllipse(ex + 7, ey, 10, 7)
+    // Pupils
+    eyeGfx.fillStyle(0x001500, 1)
+    eyeGfx.fillEllipse(ex - 5, ey, 5, 4)
+    eyeGfx.fillEllipse(ex + 7, ey, 5, 4)
+    eyeGfx.setAlpha(0)
+
+    const scheduleBlink = (): void => {
+      scene.tweens.add({
+        targets: eyeGfx,
+        alpha: 1,
+        duration: 200,
+        ease: 'Sine.easeInOut',
+        onComplete: () => {
+          scene.time.delayedCall(2000 + Math.random() * 2000, () => {
+            scene.tweens.add({
+              targets: eyeGfx,
+              alpha: 0,
+              duration: 400,
+              ease: 'Sine.easeInOut',
+              onComplete: () => {
+                scene.time.delayedCall(3000 + Math.random() * 5000, scheduleBlink)
+              },
+            })
+          })
+        },
+      })
+    }
+
+    scene.time.delayedCall(initDelay, scheduleBlink)
+  }
+
+  // ── Branch sway — innermost branch of first 2 columns, each side ──────────
+  type BranchDef = { bx: number; by: number; bw: number; delay: number }
+  const swayBranches: BranchDef[] = [
+    { bx: 8,           by: height * 0.20, bw: 50, delay: 0 },     // left col 0 upper
+    { bx: 24,          by: height * 0.38, bw: 38, delay: 400 },   // left col 1 lower
+    { bx: width - 58,  by: height * 0.25, bw: 50, delay: 800 },   // right col 0 upper
+    { bx: width - 44,  by: height * 0.40, bw: 38, delay: 1200 },  // right col 1 lower
+  ]
+
+  for (const { bx, by, bw, delay } of swayBranches) {
+    const branchGfx = scene.add.graphics()
+    branchGfx.fillStyle(0x060e04, 1)
+    branchGfx.fillRect(0, -3, bw, 6)  // pivot at left edge, centered vertically
+    branchGfx.setPosition(bx, by)
+    branchGfx.setAngle(-3)  // start at -3° so sway is symmetric around resting position
+    scene.time.delayedCall(delay, () => {
+      scene.tweens.add({
+        targets: branchGfx,
+        angle: 3,
+        duration: 2500 + delay * 0.25,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    })
+  }
 }
 
 function drawMoonlitGladeBg(scene: Phaser.Scene): void {
