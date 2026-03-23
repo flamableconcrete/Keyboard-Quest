@@ -960,6 +960,104 @@ export function drawGraveyardBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawDarkForestBg(_scene: Phaser.Scene): void {}
+export function drawDarkForestBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Deep blue-black sky
+  g.fillStyle(0x050810)
+  g.fillRect(0, 0, width, height * 0.55)
+
+  // Background tree layer (farthest, darkest)
+  g.fillStyle(0x040608)
+  for (let x = 0; x < width; x += 70) {
+    const th = 140 + ((x * 3) % 80)
+    const tw = 40 + ((x * 7) % 20)
+    g.fillRect(x, height * 0.55 - th, tw, th)
+    g.fillRect(x - 10, height * 0.55 - th + 20, tw + 20, 20)
+    g.fillRect(x - 5, height * 0.55 - th + 40, tw + 10, 20)
+  }
+
+  // Mid tree layer
+  g.fillStyle(0x060a0e)
+  for (let x = -20; x < width; x += 90) {
+    const th = 110 + ((x * 11) % 60)
+    const tw = 36 + ((x * 5) % 22)
+    g.fillRect(x, height * 0.58 - th, tw, th)
+    g.fillRect(x - 14, height * 0.58 - th + 10, tw + 28, 22)
+    g.fillRect(x - 8, height * 0.58 - th + 30, tw + 16, 18)
+  }
+
+  // Foreground tree layer (closest, tallest)
+  g.fillStyle(0x040507)
+  for (let x = -30; x < width + 30; x += 120) {
+    const _th = 200 + ((x * 7) % 100)
+    void _th
+    const tw = 50 + ((x * 3) % 30)
+    g.fillRect(x, 0, tw, height * 0.65)
+    g.fillRect(x - 20, height * 0.1, tw + 40, 30)
+    g.fillRect(x - 12, height * 0.2, tw + 24, 24)
+  }
+
+  // Dense undergrowth
+  g.fillStyle(0x040706)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  g.fillStyle(0x060a08)
+  for (let x = 0; x < width; x += 50) {
+    const bh = 16 + ((x * 3) % 20)
+    g.fillRect(x, height * 0.58, 44, bh)
+  }
+
+  // Pale moon
+  g.fillStyle(0x8888aa)
+  g.fillCircle(width * 0.52, 60, 30)
+  g.fillStyle(0xaaaabb)
+  g.fillCircle(width * 0.52, 60, 22)
+  g.fillStyle(0xccccdd)
+  g.fillCircle(width * 0.52, 60, 14)
+  // Cloud occlusion
+  g.fillStyle(0x050810)
+  g.fillRect(width * 0.52 - 28, 44, 20, 10)
+  g.fillRect(width * 0.52 + 8, 38, 24, 12)
+  g.destroy()
+
+  // Moonlight shaft
+  const moonShaft = scene.add.rectangle(width * 0.52, height * 0.35, 60, height * 0.7, 0xffffff, 0.04)
+  scene.tweens.add({
+    targets: moonShaft,
+    alpha: 0.07,
+    duration: 3000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Firefly particles
+  let firefliesAlive = 0
+  const MAX_FIREFLIES = 10
+  scene.time.addEvent({
+    delay: 600,
+    loop: true,
+    callback: () => {
+      if (firefliesAlive >= MAX_FIREFLIES) return
+      const fx = 100 + Math.random() * (width - 200)
+      const fy = height * 0.25 + Math.random() * (height * 0.4)
+      const ff = scene.add.graphics()
+      ff.fillStyle(0xffff88, 0.8)
+      ff.fillRect(-2, -2, 4, 4)
+      ff.x = fx; ff.y = fy
+      firefliesAlive++
+      scene.tweens.add({
+        targets: ff,
+        x: fx + (Math.random() - 0.5) * 100,
+        y: fy + (Math.random() - 0.5) * 60,
+        alpha: 0,
+        duration: 3000 + Math.random() * 2000,
+        ease: 'Sine.easeInOut',
+        onComplete: () => { ff.destroy(); firefliesAlive-- },
+      })
+    },
+  })
+}
 export function drawDigitalVoidBg(_scene: Phaser.Scene): void {}
 export function drawMiniBossBg(_scene: Phaser.Scene, _bossId: string): void {}
