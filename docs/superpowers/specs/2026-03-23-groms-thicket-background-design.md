@@ -25,14 +25,14 @@ Dangerous. Ancient. The forest is alive — and it is watching the player. Dense
 | # | Layer | Description |
 |---|-------|-------------|
 | 1 | **Sky** | 4-band stacked-rect gradient (technique from GoblinWhackerLevel). Near-black at top `#050c03` → deep forest green `#102808` at horizon. Occupies top 58% of screen height. |
-| 2 | **Canopy overhang** | Irregular silhouette drooping from top edges. Left overhang covers ~42% of width, right ~48%. Outline uses `Math.sin()` variation (x * 0.06 + x * 0.13) for organic, non-uniform edge. Color `#0d1e0b`. |
+| 2 | **Canopy overhang** | Irregular silhouette drooping from top edges. Left overhang covers ~42% of width, right ~48%. Outline uses two additive `Math.sin()` terms — `Math.sin(x * 0.06) + Math.sin(x * 0.13)` — for organic, non-uniform edge. Color `#0d1e0b`. |
 | 3 | **Far tree layer** | Trees every 28px across full width. Heights sin-varied (`55 + sin(x*0.09)*25 + sin(x*0.21)*12`). Color `#0f2810`. Extends from horizon into ground. |
 | 4 | **Mid tree layer** | Trees every 42px, offset 8px from far layer. Heights sin-varied. Each tree includes 2 branch forks (short `fillRect` extensions). Color `#0a1e08`. |
 | 5 | **Foreground trunk columns** | 6 thick trunk columns per side (16px spacing). Branches cross inward on first 3 columns. These frame the scene and create the "forest closing in" effect. Color `#060e04`. |
 | 6 | **Ground** | 4-band gradient ground. `#1a2e0c` at surface → `#091504` at bottom. Gnarled exposed roots drawn as quadratic bezier curves from foreground tree bases across the floor (5 roots total). |
 | 7 | **Sickly light shaft** | Trapezoid shape, center of screen, blended with horizontal linear gradient (transparent edges, semi-opaque center). Alpha pulses 0.06 ↔ 0.15 via looping tween. |
 | 8 | **Fog layers × 3** | Three wide `Rectangle` objects at y=56%, 63%, 69% screen height. Alpha 0.28 / 0.20 / 0.15. Each drifts horizontally at a different speed and direction (looping yoyo tweens: 7000ms, 5500ms, 9000ms). Opposite-phase on alternating layers for natural roll. |
-| 9 | **Green motes** | Recycled pool of 12 `Graphics` circles. Green-tinted (`#66ff44`, glow shadow). Spawn from ground level, drift upward ~80px with slight x-wander, fade alpha to 0. On complete: reset position to new random ground point rather than destroy (DungeonPlatformer technique). Timer interval: 600ms. |
+| 9 | **Green motes** | Recycled pool of 12 `Graphics` circles. Green-tinted (`#66ff44`, glow shadow). Spawn at random x within the center clearing (between the foreground trunk columns, roughly x=100 to x=width-100), at ground-fog height. Drift upward ~80px with slight x-wander, fade alpha to 0. On complete: reset position to a new random point in the same zone rather than destroy (DungeonPlatformer technique). Timer interval: 600ms. |
 | 10 | **Watching eyes** | 3 pairs of ellipse eyes embedded in the foreground tree columns at different x/y positions. Each eye pair: oval whites `#99ff66` with green glow shadow, black pupils. Blink animation: tween alpha 0→1 (200ms appear), hold 2–4s, tween alpha 1→0 (400ms vanish), then random delay 3–8s before repeating. Each pair runs an independent timer with staggered initial delay. |
 
 ---
@@ -47,7 +47,7 @@ Dangerous. Ancient. The forest is alive — and it is watching the player. Dense
 | Fog layer 3 | Tween, looping | `x: -60 ↔ +20` offset, 9000ms, `Sine.easeInOut`, yoyo, repeat -1 |
 | Green motes | Timer + tween | 600ms spawn interval, max 12 alive, 3000–5000ms drift, `Sine.easeInOut` |
 | Eye pair blink | Timer + tween chain | Appear 200ms, hold 2–4s, vanish 400ms, delay 3–8s, repeat. Staggered start delays per pair. |
-| Branch sway | Tween, looping | 4 selected branch `Graphics` objects, `angle: -3° ↔ +3°`, 2500–3500ms, `Sine.easeInOut`, yoyo, repeat -1, staggered delays |
+| Branch sway | Tween, looping | 4 branch `Graphics` objects — the innermost branch of each of the first 2 foreground columns on each side — created as **separate** `scene.add.graphics()` instances (not drawn into the static base), `angle: -3° ↔ +3°`, 2500–3500ms, `Sine.easeInOut`, yoyo, repeat -1, staggered delays |
 
 ---
 
@@ -67,7 +67,7 @@ Dangerous. Ancient. The forest is alive — and it is watching the player. Dense
 - No changes to `MiniBossTypical.ts` or any scene outside `bossBackgrounds.ts`.
 - The function signature `drawForestClearingBg(scene: Phaser.Scene): void` is unchanged — only the implementation is replaced.
 - All animation timers must be non-blocking (use `scene.time.addEvent` and `scene.tweens.add`, not `setInterval`).
-- Performance: static layers drawn once to a single `Graphics` object and destroyed (`g.destroy()` after drawing), leaving only a static render. Animated objects use Phaser's tween system (GPU-accelerated).
+- Performance: all static layers (sky, trees, ground, roots) drawn into a **single persistent `Graphics` object** that remains in the scene — do NOT call `g.destroy()` on it, as that removes the visual. Animated objects (fog rects, motes, eyes, branches) are separate `scene.add.graphics()` or `scene.add.rectangle()` instances that Phaser's tween system updates (GPU-accelerated).
 
 ---
 
