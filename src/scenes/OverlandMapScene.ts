@@ -30,6 +30,9 @@ export class OverlandMapScene extends Phaser.Scene {
   private isPanning = false
   private panStartX = 0
   private panCamStartX = 0
+  private isPointerInCanvas = true
+  private panArrowLeft?: Phaser.GameObjects.Graphics
+  private panArrowRight?: Phaser.GameObjects.Graphics
   private readonly EDGE_SCROLL_THRESHOLD = 60
   private readonly EDGE_SCROLL_MAX_SPEED = 12
   private worldTitleText!: Phaser.GameObjects.Text
@@ -304,6 +307,23 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     this.input.keyboard!.on('keydown-RIGHT', () => this.moveToAdjacentNode(1))
     this.input.keyboard!.on('keydown-ENTER', () => this.enterCurrentNode())
     this.input.keyboard!.on('keydown-SPACE', () => this.enterCurrentNode())
+
+    // ── Stop edge-panning when pointer leaves the canvas ─────
+    const canvas = this.game.canvas
+    const onMouseLeave = () => {
+      this.isPointerInCanvas = false
+      this.setPanArrow('left', false)
+      this.setPanArrow('right', false)
+    }
+    const onMouseEnter = () => { this.isPointerInCanvas = true }
+    canvas.addEventListener('mouseleave', onMouseLeave)
+    canvas.addEventListener('mouseenter', onMouseEnter)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      canvas.removeEventListener('mouseleave', onMouseLeave)
+      canvas.removeEventListener('mouseenter', onMouseEnter)
+    })
+
+    this.createPanArrows()
   }
 
   update(time: number) {
@@ -325,25 +345,37 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
     const ptr = this.input.activePointer
     if (ptr && ptr.isDown && this.isPanning) {
       // Edge scroll is handled via drag, skip
-    } else if (ptr && ptr.x >= 0 && ptr.x <= this.scale.width) {
+      this.setPanArrow('left', false)
+      this.setPanArrow('right', false)
+    } else if (ptr && this.isPointerInCanvas && ptr.x >= 0 && ptr.x <= this.scale.width) {
       const px = ptr.x
       const vw = this.scale.width
       const threshold = this.EDGE_SCROLL_THRESHOLD
       const maxSpeed = this.EDGE_SCROLL_MAX_SPEED
       let scrollDelta = 0
+      let panLeft = false
+      let panRight = false
 
       if (px < threshold) {
         // Near left edge — scroll left
         scrollDelta = -maxSpeed * (1 - px / threshold)
+        panLeft = true
       } else if (px > vw - threshold) {
         // Near right edge — scroll right
         scrollDelta = maxSpeed * ((px - (vw - threshold)) / threshold)
+        panRight = true
       }
 
       if (scrollDelta !== 0) {
         const proposedScrollX = this.cameras.main.scrollX + scrollDelta
         this.cameras.main.scrollX = -this.navController.clampPan(-proposedScrollX, 0, vw, UNIFIED_MAP.totalWidth).x
       }
+
+      this.setPanArrow('left', panLeft)
+      this.setPanArrow('right', panRight)
+    } else {
+      this.setPanArrow('left', false)
+      this.setPanArrow('right', false)
     }
 
     // Dynamic world title
@@ -521,6 +553,65 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
       duration: 100,
       onComplete: () => text.destroy(),
     })
+  }
+
+  private createPanArrows(): void {
+    const { width: w, height: h } = this.scale
+    const px = 8
+    // Chevron rows: widths 1..4..1, tip pointing outward
+    const rows = [1, 2, 3, 4, 3, 2, 1]
+    const totalCols = 4
+    const arrowH = rows.length * px  // 56 px
+    const arrowW = totalCols * px    // 32 px
+    const cy = h / 2 - arrowH / 2
+
+    const drawArrow = (gfx: Phaser.GameObjects.Graphics, facingRight: boolean) => {
+      // Dark outline
+      gfx.fillStyle(0x000000, 0.6)
+      rows.forEach((cols, row) => {
+        for (let c = 0; c < cols; c++) {
+          const x = facingRight ? c * px : (totalCols - cols + c) * px
+          gfx.fillRect(x - 1, row * px - 1, px + 2, px + 2)
+        }
+      })
+      // White fill
+      gfx.fillStyle(0xffffff, 1)
+      rows.forEach((cols, row) => {
+        for (let c = 0; c < cols; c++) {
+          const x = facingRight ? c * px : (totalCols - cols + c) * px
+          gfx.fillRect(x, row * px, px, px)
+        }
+      })
+    }
+
+    this.panArrowRight = this.add.graphics()
+      .setScrollFactor(0).setDepth(3000).setVisible(false)
+      .setPosition(w - arrowW - 20, cy)
+    drawArrow(this.panArrowRight, true)
+
+    this.panArrowLeft = this.add.graphics()
+      .setScrollFactor(0).setDepth(3000).setVisible(false)
+      .setPosition(20, cy)
+    drawArrow(this.panArrowLeft, false)
+  }
+
+  private setPanArrow(direction: 'left' | 'right', show: boolean): void {
+    const arrow = direction === 'left' ? this.panArrowLeft : this.panArrowRight
+    if (!arrow) return
+    if (show && !arrow.visible) {
+      arrow.setVisible(true)
+      this.tweens.add({
+        targets: arrow,
+        alpha: { from: 0.5, to: 1 },
+        duration: 350,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    } else if (!show && arrow.visible) {
+      this.tweens.killTweensOf(arrow)
+      arrow.setVisible(false).setAlpha(1)
+    }
   }
 
   private drawSettingsButton() {
