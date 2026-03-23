@@ -208,7 +208,142 @@ export function drawSwampBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawWebCavernBg(_scene: Phaser.Scene): void {}
+export function drawWebCavernBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Black cave fill
+  g.fillStyle(0x06060e)
+  g.fillRect(0, 0, width, height)
+
+  // Stone wall texture (pixel dots)
+  g.fillStyle(0x0c0c18)
+  for (let x = 0; x < width; x += 64) {
+    for (let y = 0; y < height; y += 64) {
+      g.fillRect(x + 8, y + 8, 4, 4)
+      g.fillRect(x + 36, y + 28, 4, 4)
+      g.fillRect(x + 52, y + 48, 4, 4)
+      g.fillRect(x + 20, y + 52, 4, 4)
+    }
+  }
+
+  // Wall outlines (sides)
+  g.fillStyle(0x0e0e1c)
+  g.fillRect(0, 0, 56, height)
+  g.fillRect(width - 56, 0, 56, height)
+
+  // Corner cobwebs — top-left
+  g.fillStyle(0x1a1a2a)
+  for (let i = 1; i <= 7; i++) {
+    const span = i * 28
+    g.fillRect(0, span, span, 1)   // horizontal strand
+    g.fillRect(span, 0, 1, span)   // vertical strand
+    // diagonal strands
+    g.fillRect(0, 0, i * 14, 1)
+    g.fillRect(0, 0, 1, i * 14)
+  }
+  // Top-right corner
+  for (let i = 1; i <= 7; i++) {
+    const span = i * 28
+    g.fillRect(width - span, span, span, 1)
+    g.fillRect(width - span - 1, 0, 1, span)
+  }
+  // Bottom-left corner
+  for (let i = 1; i <= 5; i++) {
+    const span = i * 24
+    g.fillRect(0, height - span, span, 1)
+    g.fillRect(span, height - span, 1, span)
+  }
+
+  // Mid-wall web clusters (left and right wall edges only)
+  g.fillStyle(0x181828)
+  const midWebL = { x: 40, y: height * 0.45 }
+  const midWebR = { x: width - 40, y: height * 0.5 }
+  for (let r = 20; r <= 100; r += 20) {
+    g.fillRect(midWebL.x - r, midWebL.y, r * 2, 1)
+    g.fillRect(midWebL.x, midWebL.y - r, 1, r * 2)
+  }
+  for (let r = 20; r <= 80; r += 20) {
+    g.fillRect(midWebR.x - r, midWebR.y, r * 2, 1)
+    g.fillRect(midWebR.x, midWebR.y - r, 1, r * 2)
+  }
+  g.destroy()
+
+  // Egg sacs — glowing blue circles
+  const eggs = [
+    { x: 160, y: height * 0.15 },
+    { x: width - 180, y: height * 0.12 },
+    { x: 90, y: height * 0.35 },
+    { x: width - 100, y: height * 0.38 },
+    { x: 260, y: height * 0.08 },
+  ]
+  for (const egg of eggs) {
+    const eg = scene.add.graphics()
+    eg.fillStyle(0x334488, 0.7)
+    eg.fillCircle(0, 0, 12)
+    eg.fillStyle(0x6688cc, 0.4)
+    eg.fillCircle(-3, -3, 5)
+    eg.x = egg.x; eg.y = egg.y
+    scene.tweens.add({
+      targets: eg,
+      alpha: 0.4,
+      duration: 1600 + Math.random() * 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // Web strand sway — corner strands as individual Rectangle objects
+  const strandData = [
+    { x: 100, y: 80, w: 120, h: 2, angle: -20 },
+    { x: width - 110, y: 70, w: 110, h: 2, angle: 25 },
+    { x: 60, y: 200, w: 90, h: 2, angle: -35 },
+    { x: width - 70, y: 220, w: 90, h: 2, angle: 30 },
+  ]
+  for (const sd of strandData) {
+    const strand = scene.add.rectangle(sd.x, sd.y, sd.w, sd.h, 0x2a2a44, 0.6)
+    strand.angle = sd.angle
+    scene.tweens.add({
+      targets: strand,
+      angle: sd.angle + 6,
+      duration: 2400 + Math.random() * 1200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // Crawling spiders
+  let spidersAlive = 0
+  const MAX_SPIDERS = 3
+  scene.time.addEvent({
+    delay: 3000,
+    loop: true,
+    callback: () => {
+      if (spidersAlive >= MAX_SPIDERS) return
+      // Spawn on wall edges, crawl across
+      const startLeft = Math.random() < 0.5
+      const startX = startLeft ? 20 : width - 20
+      const endX = startLeft ? 180 : width - 180
+      const sy = 50 + Math.random() * (height * 0.3)
+      const spider = scene.add.graphics()
+      spider.fillStyle(0x222222, 0.9)
+      spider.fillRect(-5, -3, 10, 6)
+      spider.fillRect(-8, -2, 4, 4)
+      spider.fillRect(4, -2, 4, 4)
+      spider.x = startX; spider.y = sy
+      spidersAlive++
+      scene.tweens.add({
+        targets: spider,
+        x: endX,
+        duration: 4000,
+        ease: 'Linear',
+        onComplete: () => { spider.destroy(); spidersAlive-- },
+      })
+    },
+  })
+}
 export function drawCryptBg(_scene: Phaser.Scene): void {}
 export function drawCastleThroneRoomBg(_scene: Phaser.Scene): void {}
 export function drawEtherealVoidBg(_scene: Phaser.Scene): void {}
