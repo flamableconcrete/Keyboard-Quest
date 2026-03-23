@@ -749,7 +749,125 @@ export function drawVolcanicLairBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawSteampunkWorkshopBg(_scene: Phaser.Scene): void {}
+export function drawSteampunkWorkshopBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Dark metal panel wall (upper 65%)
+  g.fillStyle(0x141414)
+  g.fillRect(0, 0, width, height * 0.65)
+  const panelW = 80, panelH = 80
+  for (let col = 0; col < Math.ceil(width / panelW); col++) {
+    for (let row = 0; row < Math.ceil(height * 0.65 / panelH); row++) {
+      const px = col * panelW, py = row * panelH
+      g.fillStyle(0x1a1a1a)
+      g.fillRect(px + 2, py + 2, panelW - 4, panelH - 4)
+      g.fillStyle(0x0a0a0a)
+      g.fillRect(px + 5, py + 5, 4, 4)
+      g.fillRect(px + panelW - 9, py + 5, 4, 4)
+      g.fillRect(px + 5, py + panelH - 9, 4, 4)
+      g.fillRect(px + panelW - 9, py + panelH - 9, 4, 4)
+    }
+  }
+
+  // Metal floor (bottom 35%)
+  g.fillStyle(0x1c1c1c)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x141414)
+  for (let x = 0; x < width; x += 40) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 40) g.fillRect(0, y, width, 2)
+
+  // Pipe network along walls
+  g.fillStyle(0x2a2a2a)
+  g.fillRect(0, height * 0.2, width, 12)
+  g.fillRect(0, height * 0.45, width * 0.3, 10)
+  g.fillRect(width * 0.7, height * 0.45, width * 0.3, 10)
+  g.fillRect(width * 0.1, 0, 10, height * 0.65)
+  g.fillRect(width * 0.9 - 10, 0, 10, height * 0.65)
+  g.fillStyle(0x333333)
+  const joints = [
+    { x: width * 0.1 + 5, y: height * 0.2 + 6 },
+    { x: width * 0.9 - 5, y: height * 0.2 + 6 },
+    { x: width * 0.3, y: height * 0.45 + 5 },
+    { x: width * 0.7, y: height * 0.45 + 5 },
+  ]
+  for (const jt of joints) {
+    g.fillCircle(jt.x, jt.y, 10)
+  }
+
+  // Gauge/dial details
+  g.fillStyle(0x222222)
+  g.fillCircle(width * 0.15, height * 0.55, 20)
+  g.fillCircle(width * 0.85, height * 0.55, 20)
+  g.fillStyle(0x111111)
+  g.fillCircle(width * 0.15, height * 0.55, 14)
+  g.fillCircle(width * 0.85, height * 0.55, 14)
+  g.fillStyle(0xcc4400)
+  g.fillRect(width * 0.15 - 1, height * 0.55 - 12, 2, 12)
+  g.fillRect(width * 0.85 - 1, height * 0.55 - 12, 2, 12)
+  g.destroy()
+
+  // Background gears (large, slow rotating)
+  function drawGear(gfx: Phaser.GameObjects.Graphics, r: number, teeth: number, color: number): void {
+    gfx.fillStyle(color, 0.5)
+    gfx.fillCircle(0, 0, r)
+    gfx.fillStyle(color, 0.4)
+    for (let t = 0; t < teeth; t++) {
+      const angle = (t / teeth) * Math.PI * 2
+      const tx = Math.cos(angle) * (r + 10)
+      const ty = Math.sin(angle) * (r + 10)
+      gfx.fillRect(tx - 5, ty - 5, 10, 10)
+    }
+    gfx.fillStyle(0x111111, 0.8)
+    gfx.fillCircle(0, 0, r * 0.35)
+    gfx.fillStyle(color, 0.3)
+    gfx.fillCircle(0, 0, r * 0.15)
+  }
+
+  const gearConfigs = [
+    { x: width * 0.05, y: height * 0.1, r: 70, teeth: 14, color: 0x444444, speed: 8000 },
+    { x: width * 0.92, y: height * 0.15, r: 55, teeth: 12, color: 0x3a3a3a, speed: 6000 },
+    { x: width * 0.08, y: height * 0.62, r: 45, teeth: 10, color: 0x3a3a3a, speed: 10000 },
+    { x: width * 0.88, y: height * 0.58, r: 50, teeth: 11, color: 0x444444, speed: 7500 },
+  ]
+  for (const gc of gearConfigs) {
+    const gearGfx = scene.add.graphics()
+    drawGear(gearGfx, gc.r, gc.teeth, gc.color)
+    gearGfx.x = gc.x; gearGfx.y = gc.y
+    scene.tweens.add({
+      targets: gearGfx,
+      angle: 360,
+      duration: gc.speed,
+      repeat: -1,
+      ease: 'Linear',
+    })
+  }
+
+  // Steam puffs from pipe joints
+  let steamsAlive = 0
+  const MAX_STEAMS = 5
+  scene.time.addEvent({
+    delay: 800,
+    loop: true,
+    callback: () => {
+      if (steamsAlive >= MAX_STEAMS) return
+      const jt = joints[Math.floor(Math.random() * joints.length)]
+      const sg = scene.add.graphics()
+      sg.fillStyle(0xcccccc, 0.12)
+      sg.fillEllipse(0, 0, 20, 28)
+      sg.x = jt.x; sg.y = jt.y
+      steamsAlive++
+      scene.tweens.add({
+        targets: sg,
+        y: jt.y - 60,
+        scaleX: 2.5, scaleY: 2,
+        alpha: 0,
+        duration: 1000,
+        onComplete: () => { sg.destroy(); steamsAlive-- },
+      })
+    },
+  })
+}
 export function drawGraveyardBg(_scene: Phaser.Scene): void {}
 export function drawDarkForestBg(_scene: Phaser.Scene): void {}
 export function drawDigitalVoidBg(_scene: Phaser.Scene): void {}
