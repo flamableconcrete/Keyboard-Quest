@@ -1230,6 +1230,29 @@ function drawForestClearingBg(scene: Phaser.Scene): void {
   for (const [x1, y1, x2, y2] of rootLines) {
     g.lineBetween(x1, y1, x2, y2)
   }
+
+  // ── Layer 7: Sickly light shaft — trapezoid, slow alpha pulse ─────────────
+  const shaft = scene.add.graphics()
+  shaft.fillStyle(0x88cc44, 1)
+  shaft.fillTriangle(width * 0.44, 0, width * 0.56, 0, width * 0.35, height)
+  shaft.fillTriangle(width * 0.56, 0, width * 0.65, height, width * 0.35, height)
+  shaft.setAlpha(0.08)
+  scene.tweens.add({
+    targets: shaft,
+    alpha: 0.14,
+    duration: 4000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // ── Layer 8: Fog layers × 3 — drift at different speeds and phases ────────
+  const fog1 = scene.add.rectangle(width / 2,      height * 0.57, width + 200, 22, 0x2a4a18, 0.28)
+  const fog2 = scene.add.rectangle(width / 2 + 20,  height * 0.63, width + 200, 16, 0x223a12, 0.20)
+  const fog3 = scene.add.rectangle(width / 2 - 10,  height * 0.69, width * 0.9, 13, 0x1a3010, 0.15)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 40, duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 30, duration: 5500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog3, x: width / 2 + 60, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
 }
 
 function drawMoonlitGladeBg(scene: Phaser.Scene): void {
