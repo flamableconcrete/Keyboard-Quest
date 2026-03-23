@@ -1253,6 +1253,45 @@ function drawForestClearingBg(scene: Phaser.Scene): void {
   scene.tweens.add({ targets: fog1, x: width / 2 + 40, duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: fog2, x: width / 2 - 30, duration: 5500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: fog3, x: width / 2 + 60, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // ── Layer 9: Green motes — recycled pool, spawn in center clearing ────────
+  const MAX_MOTES = 12
+  const MOTE_X1 = 100
+  const MOTE_X2 = width - 100
+  const MOTE_Y1 = height * 0.60
+  const MOTE_Y2 = height * 0.68
+
+  const motes: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_MOTES }, () => {
+    const m = scene.add.graphics()
+    m.fillStyle(0x66ff44, 0.75)
+    m.fillCircle(0, 0, 3)
+    m.setAlpha(0)
+    return m
+  })
+
+  const launchMote = (index: number): void => {
+    const mote = motes[index]
+    const mx = MOTE_X1 + Math.random() * (MOTE_X2 - MOTE_X1)
+    const my = MOTE_Y1 + Math.random() * (MOTE_Y2 - MOTE_Y1)
+    mote.setPosition(mx, my)
+    mote.setAlpha(0.75)
+    scene.tweens.add({
+      targets: mote,
+      y: my - 80,
+      x: mx + (Math.random() - 0.5) * 40,
+      alpha: 0,
+      duration: 3000 + Math.random() * 2000,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        scene.time.delayedCall(Math.random() * 2000, () => launchMote(index))
+      },
+    })
+  }
+
+  // Stagger initial launches so they don't all appear at once
+  for (let i = 0; i < MAX_MOTES; i++) {
+    scene.time.delayedCall(i * 600, () => launchMote(i))
+  }
 }
 
 function drawMoonlitGladeBg(scene: Phaser.Scene): void {
