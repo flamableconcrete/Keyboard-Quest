@@ -455,7 +455,112 @@ export function drawCryptBg(scene: Phaser.Scene): void {
     })
   }
 }
-export function drawCastleThroneRoomBg(_scene: Phaser.Scene): void {}
+export function drawCastleThroneRoomBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Stone brick wall (upper 65%)
+  g.fillStyle(0x1a1420)
+  g.fillRect(0, 0, width, height * 0.65)
+  const brickH = 28, brickW = 64
+  for (let row = 0; row < Math.ceil(height * 0.65 / brickH); row++) {
+    const offsetX = row % 2 === 0 ? 0 : brickW / 2
+    g.fillStyle(0x120e1a)
+    for (let col = -1; col < Math.ceil(width / brickW) + 1; col++) {
+      const bx = col * brickW + offsetX
+      const by = row * brickH
+      g.fillRect(bx, by, brickW, 2)
+      g.fillRect(bx, by, 2, brickH)
+    }
+  }
+
+  // Dark stone floor (bottom 35%)
+  g.fillStyle(0x0e0c12)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x0a0810)
+  for (let x = 0; x < width; x += 80) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 60) g.fillRect(0, y, width, 2)
+
+  // Stained glass window (top center)
+  const winX = width / 2, winY = 60, winW = 120, winH = 140
+  g.fillStyle(0x330044)
+  g.fillRect(winX - winW / 2, winY, winW, winH)
+  const panels = [
+    { dx: -50, dy: 10, w: 40, h: 50, color: 0x8800aa },
+    { dx: -8, dy: 10, w: 16, h: 80, color: 0xaa6600 },
+    { dx: 10, dy: 10, w: 40, h: 50, color: 0x006688 },
+    { dx: -50, dy: 65, w: 40, h: 50, color: 0x554400 },
+    { dx: 10, dy: 65, w: 40, h: 50, color: 0x004455 },
+  ]
+  for (const p of panels) {
+    g.fillStyle(p.color)
+    g.fillRect(winX + p.dx, winY + p.dy, p.w, p.h)
+  }
+  // Window frame
+  g.fillStyle(0x221a2a)
+  g.fillRect(winX - winW / 2 - 6, winY - 6, winW + 12, 6)
+  g.fillRect(winX - winW / 2 - 6, winY + winH, winW + 12, 6)
+  g.fillRect(winX - winW / 2 - 6, winY, 6, winH)
+  g.fillRect(winX + winW / 2, winY, 6, winH)
+
+  // Purple tapestries
+  g.fillStyle(0x3a0a50)
+  g.fillRect(200, 10, 60, height * 0.55)
+  g.fillRect(width - 260, 10, 60, height * 0.55)
+  g.fillStyle(0x886600)
+  g.fillRect(200, 10, 4, height * 0.55)
+  g.fillRect(256, 10, 4, height * 0.55)
+  g.fillRect(width - 260, 10, 4, height * 0.55)
+  g.fillRect(width - 204, 10, 4, height * 0.55)
+  g.fillRect(200, 10, 60, 4)
+  g.fillRect(width - 260, 10, 60, 4)
+
+  // Candelabra silhouettes
+  const candleXs = [360, width - 360]
+  for (const cx of candleXs) {
+    g.fillStyle(0x221a2a)
+    g.fillRect(cx - 3, height * 0.5, 6, height * 0.18)
+    g.fillRect(cx - 18, height * 0.5, 36, 5)
+    g.fillRect(cx - 18, height * 0.47, 5, 8)
+    g.fillRect(cx + 13, height * 0.47, 5, 8)
+    g.fillRect(cx - 2, height * 0.44, 4, 8)
+  }
+  g.destroy()
+
+  // Candle flames (animated)
+  const candleFlamePositions = [
+    { x: 342, y: height * 0.44 },
+    { x: 358, y: height * 0.44 },
+    { x: 350, y: height * 0.41 },
+    { x: width - 342, y: height * 0.44 },
+    { x: width - 358, y: height * 0.44 },
+    { x: width - 350, y: height * 0.41 },
+  ]
+  for (let i = 0; i < candleFlamePositions.length; i++) {
+    const cf = candleFlamePositions[i]
+    const flame = scene.add.graphics()
+    flame.fillStyle(0xff8800, 0.95)
+    flame.fillRect(-2, -8, 4, 8)
+    flame.fillStyle(0xffdd00, 0.8)
+    flame.fillRect(-1, -10, 2, 5)
+    flame.x = cf.x; flame.y = cf.y
+    scene.tweens.add({
+      targets: flame,
+      alpha: 0.4 + (i % 3) * 0.1,
+      scaleY: 0.75,
+      scaleX: 1.3,
+      duration: 80 + i * 20,
+      yoyo: true,
+      repeat: -1,
+    })
+  }
+
+  // Tapestry sway (invisible pivot rectangles — just for tweening)
+  const tapestryL = scene.add.rectangle(230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
+  const tapestryR = scene.add.rectangle(width - 230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
+  scene.tweens.add({ targets: tapestryL, angle: 1.5, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: tapestryR, angle: -1.5, duration: 3500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+}
 export function drawEtherealVoidBg(_scene: Phaser.Scene): void {}
 export function drawVolcanicLairBg(_scene: Phaser.Scene): void {}
 export function drawSteampunkWorkshopBg(_scene: Phaser.Scene): void {}
