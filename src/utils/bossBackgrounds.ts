@@ -633,7 +633,122 @@ export function drawEtherealVoidBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawVolcanicLairBg(_scene: Phaser.Scene): void {}
+export function drawVolcanicLairBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Ash-gray sky
+  g.fillStyle(0x1a1212)
+  g.fillRect(0, 0, width, height * 0.55)
+  g.fillStyle(0x1f1616)
+  for (let x = 0; x < width; x += 120) {
+    const cy = 40 + ((x * 3) % 60)
+    g.fillRect(x, cy, 100, 20)
+    g.fillRect(x + 10, cy - 8, 80, 10)
+    g.fillRect(x + 20, cy + 20, 60, 8)
+  }
+
+  // Black rock spires
+  g.fillStyle(0x0a0808)
+  const spires = [
+    { x: 80, baseY: height * 0.55, h: 220 },
+    { x: 200, baseY: height * 0.55, h: 160 },
+    { x: width - 80, baseY: height * 0.55, h: 240 },
+    { x: width - 200, baseY: height * 0.55, h: 180 },
+    { x: 380, baseY: height * 0.55, h: 110 },
+    { x: width - 380, baseY: height * 0.55, h: 130 },
+  ]
+  for (const sp of spires) {
+    const w = 30 + sp.h * 0.15
+    g.fillRect(sp.x - w / 2, sp.baseY - sp.h, w, sp.h)
+    g.fillRect(sp.x - w / 4, sp.baseY - sp.h - 20, w / 2, 22)
+    g.fillRect(sp.x - w / 8, sp.baseY - sp.h - 32, w / 4, 14)
+  }
+
+  // Rocky ground (mid section)
+  g.fillStyle(0x120a0a)
+  g.fillRect(0, height * 0.55, width, height * 0.12)
+  g.fillStyle(0x6a2200)
+  for (let x = 60; x < width; x += 180) {
+    g.fillRect(x, height * 0.55, 3, height * 0.12)
+    g.fillRect(x + 60, height * 0.57, 3, height * 0.08)
+  }
+
+  // Lava river (lower third)
+  g.fillStyle(0x3a0f00)
+  g.fillRect(0, height * 0.67, width, height * 0.33)
+  g.fillStyle(0x1a0800)
+  for (let x = 0; x < width; x += 90) {
+    g.fillRect(x, height * 0.67, 70, 14)
+    g.fillRect(x + 40, height * 0.72, 50, 10)
+  }
+  g.fillStyle(0xcc4400)
+  for (let x = 10; x < width; x += 90) {
+    g.fillRect(x, height * 0.68, 50, 6)
+    g.fillRect(x + 35, height * 0.73, 35, 4)
+  }
+  g.destroy()
+
+  // Lava glow overlay (alpha tween — NOT fillColor tween)
+  const lavaGlow = scene.add.rectangle(width / 2, height * 0.835, width, height * 0.33, 0xff5500, 0.08)
+  scene.tweens.add({
+    targets: lavaGlow,
+    alpha: 0.18,
+    duration: 1800,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Rising ash particles
+  let ashAlive = 0
+  const MAX_ASH = 12
+  scene.time.addEvent({
+    delay: 400,
+    loop: true,
+    callback: () => {
+      if (ashAlive >= MAX_ASH) return
+      const ax = 40 + Math.random() * (width - 80)
+      const ash = scene.add.rectangle(ax, height * 0.65, 3, 3, 0x442222, 0.7)
+      ashAlive++
+      scene.tweens.add({
+        targets: ash,
+        y: height * 0.1,
+        x: ax + (Math.random() - 0.5) * 80,
+        alpha: 0,
+        duration: 3500 + Math.random() * 2000,
+        ease: 'Linear',
+        onComplete: () => { ash.destroy(); ashAlive-- },
+      })
+    },
+  })
+
+  // Steam vents
+  const ventXs = [160, 520, 880, width - 160]
+  let steamsAlive = 0
+  const MAX_STEAMS = 6
+  scene.time.addEvent({
+    delay: 700,
+    loop: true,
+    callback: () => {
+      if (steamsAlive >= MAX_STEAMS) return
+      const vx = ventXs[Math.floor(Math.random() * ventXs.length)]
+      const sg = scene.add.graphics()
+      sg.fillStyle(0xaaaaaa, 0.15)
+      sg.fillEllipse(0, 0, 24, 32)
+      sg.x = vx; sg.y = height * 0.67
+      steamsAlive++
+      scene.tweens.add({
+        targets: sg,
+        y: height * 0.67 - 80,
+        scaleX: 2.5, scaleY: 2,
+        alpha: 0,
+        duration: 1200,
+        onComplete: () => { sg.destroy(); steamsAlive-- },
+      })
+    },
+  })
+}
 export function drawSteampunkWorkshopBg(_scene: Phaser.Scene): void {}
 export function drawGraveyardBg(_scene: Phaser.Scene): void {}
 export function drawDarkForestBg(_scene: Phaser.Scene): void {}
