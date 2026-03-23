@@ -344,7 +344,117 @@ export function drawWebCavernBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawCryptBg(_scene: Phaser.Scene): void {}
+export function drawCryptBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Black upper half
+  g.fillStyle(0x050505)
+  g.fillRect(0, 0, width, height * 0.6)
+
+  // Gothic arches (left and right framing)
+  g.fillStyle(0x111111)
+  g.fillRect(0, 0, 80, height * 0.7)
+  g.fillStyle(0x0a0a0a)
+  g.fillRect(80, 0, 16, height * 0.65)
+  g.fillStyle(0x111111)
+  g.fillRect(width - 80, 0, 80, height * 0.7)
+  g.fillStyle(0x0a0a0a)
+  g.fillRect(width - 96, 0, 16, height * 0.65)
+
+  // Stone tile floor (bottom 35%)
+  g.fillStyle(0x141414)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x0a0a0a)
+  for (let x = 0; x < width; x += 64) {
+    g.fillRect(x, height * 0.65, 2, height * 0.35)
+  }
+  for (let y = height * 0.65; y < height; y += 48) {
+    g.fillRect(0, y, width, 2)
+  }
+  // Offset alternate rows
+  g.fillStyle(0x0d0d0d)
+  for (let row = 0; row < 4; row++) {
+    const rowY = height * 0.65 + row * 48
+    const offset = row % 2 === 1 ? 32 : 0
+    for (let x = offset; x < width; x += 64) {
+      g.fillRect(x - 1, rowY, 2, 48)
+    }
+  }
+
+  // Wall torch brackets
+  g.fillStyle(0x2a1a0a)
+  g.fillRect(100, height * 0.25, 12, 30)
+  g.fillRect(100, height * 0.22, 24, 8)
+  g.fillRect(width - 112, height * 0.25, 12, 30)
+  g.fillRect(width - 124, height * 0.22, 24, 8)
+
+  // Floating rune glyphs (static, drawn)
+  g.fillStyle(0x440066)
+  const runePositions = [
+    { x: width * 0.3, y: height * 0.15 },
+    { x: width * 0.5, y: height * 0.08 },
+    { x: width * 0.7, y: height * 0.18 },
+    { x: width * 0.2, y: height * 0.35 },
+    { x: width * 0.8, y: height * 0.32 },
+  ]
+  for (const rp of runePositions) {
+    g.fillRect(rp.x - 2, rp.y - 10, 4, 20)
+    g.fillRect(rp.x - 10, rp.y - 2, 20, 4)
+    g.fillRect(rp.x - 6, rp.y - 6, 4, 4)
+    g.fillRect(rp.x + 2, rp.y - 6, 4, 4)
+    g.fillRect(rp.x - 6, rp.y + 2, 4, 4)
+    g.fillRect(rp.x + 2, rp.y + 2, 4, 4)
+  }
+  g.destroy()
+
+  // Torch flames (animated)
+  const torchPositions = [
+    { x: 106, y: height * 0.22 },
+    { x: width - 106, y: height * 0.22 },
+  ]
+  for (const tp of torchPositions) {
+    const flame1 = scene.add.graphics()
+    flame1.fillStyle(0xff6600, 0.9)
+    flame1.fillRect(-5, -16, 10, 16)
+    flame1.fillRect(-3, -20, 6, 6)
+    flame1.fillRect(-1, -24, 2, 6)
+    flame1.x = tp.x; flame1.y = tp.y
+    const flame2 = scene.add.graphics()
+    flame2.fillStyle(0xffcc00, 0.8)
+    flame2.fillRect(-3, -12, 6, 12)
+    flame2.fillRect(-1, -16, 2, 5)
+    flame2.x = tp.x; flame2.y = tp.y
+    scene.tweens.add({
+      targets: flame1,
+      alpha: 0.4, scaleY: 0.8, scaleX: 1.2,
+      duration: 120, yoyo: true, repeat: -1,
+    })
+    scene.tweens.add({
+      targets: flame2,
+      alpha: 0.5, scaleY: 0.75,
+      duration: 90, yoyo: true, repeat: -1,
+    })
+  }
+
+  // Rune pulse + slow rotation
+  for (let i = 0; i < runePositions.length; i++) {
+    const rp = runePositions[i]
+    const runeGfx = scene.add.graphics()
+    runeGfx.fillStyle(0x6600aa, 0.6)
+    runeGfx.fillRect(-2, -10, 4, 20)
+    runeGfx.fillRect(-10, -2, 20, 4)
+    runeGfx.x = rp.x; runeGfx.y = rp.y
+    scene.tweens.add({
+      targets: runeGfx,
+      angle: 360,
+      alpha: { from: 0.3, to: 0.9 },
+      duration: 4000 + i * 600,
+      repeat: -1,
+      ease: 'Linear',
+    })
+  }
+}
 export function drawCastleThroneRoomBg(_scene: Phaser.Scene): void {}
 export function drawEtherealVoidBg(_scene: Phaser.Scene): void {}
 export function drawVolcanicLairBg(_scene: Phaser.Scene): void {}
