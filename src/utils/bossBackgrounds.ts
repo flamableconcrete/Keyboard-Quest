@@ -1148,69 +1148,88 @@ export function drawDigitalVoidBg(scene: Phaser.Scene): void {
 
 function drawForestClearingBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — single persistent Graphics object (do NOT destroy) ──────
   const g = scene.add.graphics()
 
-  g.fillStyle(0x3a7abb)
-  g.fillRect(0, 0, width, height * 0.55)
-  g.fillStyle(0x5090cc)
-  g.fillRect(0, height * 0.42, width, height * 0.15)
-
-  g.fillStyle(0x4a8c2a)
-  g.fillRect(0, height * 0.55, width, height * 0.45)
-  g.fillStyle(0x3a7c1a)
-  for (let x = 0; x < width; x += 40) {
-    g.fillRect(x, height * 0.55, 28, 6)
-  }
-
-  // Tree border (left and right edges)
-  g.fillStyle(0x2a5a18)
-  for (let i = 0; i < 4; i++) {
-    g.fillRect(i * 22, 0, 20, height)
-    g.fillRect(width - i * 22 - 20, 0, 20, height)
-    g.fillStyle(0x3a7c1a)
-    g.fillRect(i * 22, 0, 18, height)
-    g.fillRect(width - i * 22 - 18, 0, 18, height)
-    g.fillStyle(0x2a5a18)
-  }
-
-  // Dappled light patches on ground
-  g.fillStyle(0x6aaa3a)
-  const lightPatches = [
-    { x: 300, y: height * 0.65, w: 80, h: 16 },
-    { x: 560, y: height * 0.72, w: 60, h: 12 },
-    { x: 820, y: height * 0.68, w: 90, h: 18 },
-    { x: 1000, y: height * 0.75, w: 50, h: 10 },
+  // Layer 1: Sky — 4-band stacked-rect gradient (GoblinWhacker technique)
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.18, 0x050c03],
+    [height * 0.18, height * 0.35, 0x081508],
+    [height * 0.35, height * 0.50, 0x0c200a],
+    [height * 0.50, height * 0.58, 0x102808],
   ]
-  for (const lp of lightPatches) {
-    g.fillRect(lp.x, lp.y, lp.w, lp.h)
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
-  g.destroy()
 
-  let motesAlive = 0
-  const MAX_MOTES = 10
-  scene.time.addEvent({
-    delay: 500,
-    loop: true,
-    callback: () => {
-      if (motesAlive >= MAX_MOTES) return
-      const mx = 120 + Math.random() * (width - 240)
-      const my = height * 0.4 + Math.random() * (height * 0.35)
-      const mote = scene.add.graphics()
-      mote.fillStyle(0xffffaa, 0.6)
-      mote.fillCircle(0, 0, 3)
-      mote.x = mx; mote.y = my
-      motesAlive++
-      scene.tweens.add({
-        targets: mote,
-        y: my - 60,
-        x: mx + (Math.random() - 0.5) * 40,
-        alpha: 0,
-        duration: 3000 + Math.random() * 2000,
-        ease: 'Sine.easeInOut',
-        onComplete: () => { mote.destroy(); motesAlive-- },
-      })
-    },
-  })
+  // Layer 2: Canopy overhang — irregular silhouette using two additive sin terms
+  // Narrow vertical slices build the organic lower edge (GoblinWhacker mountain technique)
+  g.fillStyle(0x0d1e0b)
+  for (let x = 0; x <= width * 0.42; x += 6) {
+    const edgeY = 30 + Math.sin(x * 0.06) * 18 + Math.sin(x * 0.13) * 10
+    g.fillRect(x, 0, 6, edgeY)
+  }
+  for (let x = width; x >= width * 0.52; x -= 6) {
+    const edgeY = 35 + Math.sin(x * 0.07) * 20 + Math.sin(x * 0.11) * 12
+    g.fillRect(x - 6, 0, 6, edgeY)
+  }
+
+  // Layer 3: Far trees — sin-varied heights, darkest
+  g.fillStyle(0x0f2810)
+  for (let x = 0; x < width; x += 28) {
+    const th = 55 + Math.sin(x * 0.09) * 25 + Math.sin(x * 0.21) * 12
+    g.fillRect(x, height * 0.58 - th, 24, th + height * 0.45)
+  }
+
+  // Layer 4: Mid trees — slightly lighter, with two branch forks each
+  g.fillStyle(0x0a1e08)
+  for (let x = 8; x < width; x += 42) {
+    const th = 80 + Math.sin(x * 0.07) * 30 + Math.sin(x * 0.18) * 15
+    g.fillRect(x, height * 0.58 - th, 32, th + height * 0.42)
+    g.fillRect(x + 10, height * 0.58 - th + 20, 30, 4)  // right fork
+    g.fillRect(x - 18, height * 0.58 - th + 38, 20, 3)  // left fork
+  }
+
+  // Layer 5: Foreground trunk columns — 6 each side, branches cross inward
+  g.fillStyle(0x060e04)
+  for (let i = 0; i < 6; i++) {
+    g.fillRect(i * 16 - 6,          0, 17, height)  // left column
+    g.fillRect(width - i * 16 - 11, 0, 17, height)  // right column
+    if (i < 3) {
+      // Inward branches (drawn into static base; swaying branches are separate objects in Task 4)
+      g.fillRect(i * 16 + 8,          height * 0.20 + i * 18, 50, 6)
+      g.fillRect(i * 16 + 6,          height * 0.38 + i * 12, 38, 5)
+      g.fillRect(width - i * 16 - 58, height * 0.25 + i * 14, 50, 6)
+      g.fillRect(width - i * 16 - 44, height * 0.40 + i * 10, 38, 5)
+    }
+  }
+
+  // Layer 6: Ground — 4-band gradient
+  const groundSections: Array<[number, number, number]> = [
+    [height * 0.55, height * 0.65, 0x1a2e0c],
+    [height * 0.65, height * 0.78, 0x142408],
+    [height * 0.78, height * 0.88, 0x0e1c06],
+    [height * 0.88, height,        0x091504],
+  ]
+  for (const [y1, y2, color] of groundSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+
+  // Exposed roots — 5 lines from foreground tree bases across floor
+  g.lineStyle(3, 0x0a1204, 1)
+  const rootLines: Array<[number, number, number, number]> = [
+    [18,          height * 0.57, 65,          height * 0.72],
+    [28,          height * 0.59, 110,         height * 0.80],
+    [width - 55,  height * 0.57, width - 15,  height * 0.74],
+    [width - 30,  height * 0.59, width - 80,  height * 0.78],
+    [80,          height * 0.56, 160,         height * 0.76],
+  ]
+  for (const [x1, y1, x2, y2] of rootLines) {
+    g.lineBetween(x1, y1, x2, y2)
+  }
 }
 
 function drawMoonlitGladeBg(scene: Phaser.Scene): void {
