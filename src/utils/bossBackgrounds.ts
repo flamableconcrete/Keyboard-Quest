@@ -1263,7 +1263,7 @@ function drawForestClearingBg(scene: Phaser.Scene): void {
 
   const motes: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_MOTES }, () => {
     const m = scene.add.graphics()
-    m.fillStyle(0x66ff44, 0.75)
+    m.fillStyle(0x66ff44, 1)
     m.fillCircle(0, 0, 3)
     m.setAlpha(0)
     return m
