@@ -1,0 +1,1973 @@
+# Boss Backgrounds Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add unique, richly layered pixel-art-style backgrounds with animations to all 12 boss battle scenes via a central `bossBackgrounds.ts` utility.
+
+**Architecture:** Create `src/utils/bossBackgrounds.ts` with one exported draw function per boss. Each function uses Phaser's procedural Graphics API (same pattern as `PreloadScene` tilesets). Boss scenes replace their single flat-color rectangle with a call to the matching function. `drawMiniBossBg` dispatches to per-bossId private helpers, extensible for future worlds.
+
+**Tech Stack:** Phaser 3, TypeScript, Vite
+
+---
+
+## File Map
+
+| File | Action | Responsibility |
+|---|---|---|
+| `src/utils/bossBackgrounds.ts` | **Create** | All background drawing functions |
+| `src/scenes/boss-types/SlimeKingBoss.ts` | Modify line 43 | Replace bg rect |
+| `src/scenes/boss-types/HydraBoss.ts` | Modify line 50 | Replace bg rect |
+| `src/scenes/boss-types/SpiderBoss.ts` | Modify line 54 | Replace bg rect |
+| `src/scenes/boss-types/DiceLichBoss.ts` | Modify line 38 | Replace bg rect |
+| `src/scenes/boss-types/BaronTypoBoss.ts` | Modify line 37 | Replace bg rect |
+| `src/scenes/boss-types/FlashWordBoss.ts` | Modify line 32 | Replace bg rect |
+| `src/scenes/boss-types/AncientDragonBoss.ts` | Modify line 34 | Replace bg rect |
+| `src/scenes/boss-types/ClockworkDragonBoss.ts` | Modify line 54 | Replace bg rect |
+| `src/scenes/boss-types/BoneKnightBoss.ts` | Modify line 42 | Replace bg rect |
+| `src/scenes/boss-types/GrizzlefangBoss.ts` | Modify line 53 | Replace bg rect |
+| `src/scenes/boss-types/TypemancerBoss.ts` | Modify line 38 | Replace bg rect |
+| `src/scenes/boss-types/MiniBossTypical.ts` | Modify line 38 | Replace bg rect + pass bossId |
+
+---
+
+## Task 1: Scaffold `bossBackgrounds.ts` and wire all boss scenes
+
+**Files:**
+- Create: `src/utils/bossBackgrounds.ts`
+- Modify: all 12 boss scene files listed above
+
+- [ ] **Step 1: Create the scaffold file with all function stubs**
+
+```typescript
+// src/utils/bossBackgrounds.ts
+import Phaser from 'phaser'
+
+export function drawSlimeCaveBg(_scene: Phaser.Scene): void {}
+export function drawSwampBg(_scene: Phaser.Scene): void {}
+export function drawWebCavernBg(_scene: Phaser.Scene): void {}
+export function drawCryptBg(_scene: Phaser.Scene): void {}
+export function drawCastleThroneRoomBg(_scene: Phaser.Scene): void {}
+export function drawEtherealVoidBg(_scene: Phaser.Scene): void {}
+export function drawVolcanicLairBg(_scene: Phaser.Scene): void {}
+export function drawSteampunkWorkshopBg(_scene: Phaser.Scene): void {}
+export function drawGraveyardBg(_scene: Phaser.Scene): void {}
+export function drawDarkForestBg(_scene: Phaser.Scene): void {}
+export function drawDigitalVoidBg(_scene: Phaser.Scene): void {}
+export function drawMiniBossBg(_scene: Phaser.Scene, _bossId: string): void {}
+```
+
+- [ ] **Step 2: Update each boss scene — replace bg rect with function call**
+
+In each file, remove the `this.add.rectangle(width / 2, height / 2, width, height, 0x...)` line and add the import + function call. Do all 12 files:
+
+**SlimeKingBoss.ts** — add to imports, replace rect:
+```typescript
+import { drawSlimeCaveBg } from '../../utils/bossBackgrounds'
+// in create(), replace the rectangle line with:
+drawSlimeCaveBg(this)
+```
+
+**HydraBoss.ts:**
+```typescript
+import { drawSwampBg } from '../../utils/bossBackgrounds'
+drawSwampBg(this)
+```
+
+**SpiderBoss.ts:**
+```typescript
+import { drawWebCavernBg } from '../../utils/bossBackgrounds'
+drawWebCavernBg(this)
+```
+
+**DiceLichBoss.ts:**
+```typescript
+import { drawCryptBg } from '../../utils/bossBackgrounds'
+drawCryptBg(this)
+```
+
+**BaronTypoBoss.ts:**
+```typescript
+import { drawCastleThroneRoomBg } from '../../utils/bossBackgrounds'
+drawCastleThroneRoomBg(this)
+```
+
+**FlashWordBoss.ts:**
+```typescript
+import { drawEtherealVoidBg } from '../../utils/bossBackgrounds'
+drawEtherealVoidBg(this)
+```
+
+**AncientDragonBoss.ts:**
+```typescript
+import { drawVolcanicLairBg } from '../../utils/bossBackgrounds'
+drawVolcanicLairBg(this)
+```
+
+**ClockworkDragonBoss.ts:**
+```typescript
+import { drawSteampunkWorkshopBg } from '../../utils/bossBackgrounds'
+drawSteampunkWorkshopBg(this)
+```
+
+**BoneKnightBoss.ts:**
+```typescript
+import { drawGraveyardBg } from '../../utils/bossBackgrounds'
+drawGraveyardBg(this)
+```
+
+**GrizzlefangBoss.ts:**
+```typescript
+import { drawDarkForestBg } from '../../utils/bossBackgrounds'
+drawDarkForestBg(this)
+```
+
+**TypemancerBoss.ts:**
+```typescript
+import { drawDigitalVoidBg } from '../../utils/bossBackgrounds'
+drawDigitalVoidBg(this)
+```
+
+**MiniBossTypical.ts** — also pass bossId:
+```typescript
+import { drawMiniBossBg } from '../../utils/bossBackgrounds'
+// replace line 38 with:
+drawMiniBossBg(this, this.level.bossId ?? '')
+```
+
+- [ ] **Step 3: Verify TypeScript compiles cleanly**
+
+```bash
+npm run build
+```
+Expected: Build succeeds, no type errors. Boss scenes now render with blank (transparent) backgrounds — that's fine, stubs are empty.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts src/scenes/boss-types/
+git commit -m "feat: scaffold bossBackgrounds utility and wire all boss scenes"
+```
+
+---
+
+## Task 2: SlimeKingBoss background — Slimy Underground Cave
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawSlimeCaveBg`**
+
+Replace the stub with:
+
+```typescript
+export function drawSlimeCaveBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Base cave fill
+  g.fillStyle(0x0a0a0e)
+  g.fillRect(0, 0, width, height)
+
+  // Rocky ceiling (top 20%) with pixel variation
+  g.fillStyle(0x111118)
+  g.fillRect(0, 0, width, height * 0.2)
+  g.fillStyle(0x0d0d15)
+  for (let x = 0; x < width; x += 48) {
+    const rockH = 16 + (Math.sin(x * 0.08) * 12 + 12)
+    g.fillRect(x, 0, 44, rockH)
+  }
+
+  // Stalactites
+  const stalactiteXs = [70, 190, 310, 430, 560, 690, 820, 950, 1080, 1190]
+  for (const sx of stalactiteXs) {
+    const sh = 44 + ((sx * 7) % 56)
+    g.fillStyle(0x1c1c2a)
+    g.fillRect(sx - 7, 0, 14, sh)
+    g.fillRect(sx - 4, sh, 8, 10)
+    g.fillRect(sx - 2, sh + 10, 4, 6)
+    // Slime drip trail (static)
+    g.fillStyle(0x0f3a0f)
+    g.fillRect(sx - 2, sh + 4, 4, 28 + ((sx * 5) % 24))
+  }
+
+  // Wet walls
+  g.fillStyle(0x141420)
+  g.fillRect(0, 0, 44, height)
+  g.fillRect(width - 44, 0, 44, height)
+  g.fillStyle(0x1a4a1a)
+  for (let y = 80; y < height * 0.75; y += 90) {
+    g.fillRect(10, y, 6, 50)
+    g.fillRect(width - 16, y + 30, 6, 50)
+  }
+
+  // Stone floor (bottom 25%)
+  g.fillStyle(0x0e0e14)
+  g.fillRect(0, height * 0.75, width, height * 0.25)
+  g.fillStyle(0x0a0a10)
+  g.fillRect(80, height * 0.77, 220, 2)
+  g.fillRect(420, height * 0.80, 160, 2)
+  g.fillRect(730, height * 0.77, 200, 2)
+  g.fillRect(1000, height * 0.82, 140, 2)
+
+  // Slime pools (static base)
+  const pools: Array<{ x: number; y: number; w: number; h: number }> = [
+    { x: 110, y: height * 0.82, w: 90, h: 18 },
+    { x: 490, y: height * 0.85, w: 130, h: 22 },
+    { x: 820, y: height * 0.80, w: 70, h: 14 },
+    { x: 1020, y: height * 0.87, w: 100, h: 18 },
+  ]
+  for (const p of pools) {
+    g.fillStyle(0x0a2a0a)
+    g.fillRect(p.x, p.y, p.w, p.h)
+    g.fillStyle(0x195019)
+    g.fillRect(p.x + 4, p.y + 3, p.w - 8, 5)
+  }
+  g.destroy()
+
+  // Pool shimmer (tweened rectangles)
+  for (let i = 0; i < pools.length; i++) {
+    const p = pools[i]
+    const shimmer = scene.add.rectangle(
+      p.x + p.w / 2, p.y + p.h / 2,
+      p.w - 8, 6,
+      0x33ff33, 0.25
+    )
+    scene.tweens.add({
+      targets: shimmer,
+      alpha: 0.55,
+      duration: 1100 + i * 280,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // Animated slime drips
+  const stalactiteXsCopy = [...stalactiteXs]
+  let dripsAlive = 0
+  const MAX_DRIPS = 8
+  scene.time.addEvent({
+    delay: 550,
+    loop: true,
+    callback: () => {
+      if (dripsAlive >= MAX_DRIPS) return
+      const sx = stalactiteXsCopy[Math.floor(Math.random() * stalactiteXsCopy.length)]
+      const sh = 44 + ((sx * 7) % 56)
+      const startY = sh + 32
+      const drip = scene.add.rectangle(sx, startY, 4, 10, 0x22cc22, 0.85)
+      dripsAlive++
+      scene.tweens.add({
+        targets: drip,
+        y: startY + 130,
+        alpha: 0,
+        duration: 1400,
+        ease: 'Quad.easeIn',
+        onComplete: () => { drip.destroy(); dripsAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build to verify no type errors**
+
+```bash
+npm run build
+```
+Expected: Success.
+
+- [ ] **Step 3: Visual check**
+
+Run `npm run dev`, navigate to a SlimeKing encounter. Confirm: dark cave, stalactites, slime pools, drips falling.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add SlimeKing cave background with animated slime drips"
+```
+
+---
+
+## Task 3: HydraBoss background — Fetid Swamp
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawSwampBg`**
+
+```typescript
+export function drawSwampBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Murky sky (stacked gradient strips)
+  const skyBands = [0x061206, 0x081608, 0x0a1a0a, 0x0c1e0c, 0x0e220e, 0x102610]
+  const bandH = (height * 0.58) / skyBands.length
+  for (let i = 0; i < skyBands.length; i++) {
+    g.fillStyle(skyBands[i])
+    g.fillRect(0, i * bandH, width, bandH + 1)
+  }
+
+  // Dead tree silhouettes (back layer)
+  g.fillStyle(0x040c04)
+  const trees = [50, 160, 290, 400, 540, 680, 810, 940, 1080, 1200]
+  for (const tx of trees) {
+    const th = 130 + ((tx * 3) % 70)
+    const baseY = height * 0.55 - th
+    // Trunk
+    g.fillRect(tx - 6, baseY, 12, th)
+    // Branches
+    g.fillRect(tx - 32, baseY + 20, 64, 5)
+    g.fillRect(tx - 22, baseY + 45, 44, 4)
+    g.fillRect(tx + 8, baseY + 32, 32, 3)
+    g.fillRect(tx - 38, baseY + 32, 28, 3)
+    // Twigs
+    g.fillRect(tx - 44, baseY + 20, 14, 3)
+    g.fillRect(tx + 32, baseY + 20, 14, 3)
+  }
+
+  // Water surface
+  g.fillStyle(0x050e05)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  // Water shimmer lines
+  g.fillStyle(0x0a1a0a)
+  for (let wy = height * 0.60; wy < height; wy += 22) {
+    g.fillRect(20, wy, width - 40, 2)
+  }
+
+  // Lily pads
+  const lilies = [
+    { x: 160, y: height * 0.68, r: 20 },
+    { x: 430, y: height * 0.72, r: 24 },
+    { x: 700, y: height * 0.64, r: 18 },
+    { x: 960, y: height * 0.76, r: 22 },
+    { x: 1120, y: height * 0.68, r: 15 },
+  ]
+  for (const lily of lilies) {
+    g.fillStyle(0x1a4a1a)
+    const r = lily.r
+    g.fillRect(lily.x - r, lily.y - r / 2, r * 2, r)
+    g.fillRect(lily.x - r / 2, lily.y - r, r, r * 2)
+    // Notch (lily pad gap)
+    g.fillStyle(0x050e05)
+    g.fillRect(lily.x - 2, lily.y - r, 4, r + 2)
+    // Tiny flower
+    g.fillStyle(0xeeddaa)
+    g.fillRect(lily.x - 2, lily.y - 2, 4, 4)
+  }
+
+  // Surface debris / dead leaves
+  g.fillStyle(0x080f08)
+  const debris = [[200, height * 0.65], [570, height * 0.73], [840, height * 0.66], [1050, height * 0.71]]
+  for (const [dx, dy] of debris) {
+    g.fillRect(dx, dy, 22, 7)
+    g.fillRect(dx + 4, dy - 4, 14, 5)
+  }
+  g.destroy()
+
+  // Fog layer (tweened)
+  const fog1 = scene.add.rectangle(width / 2, height * 0.59, width + 200, 55, 0x1a3a1a, 0.2)
+  const fog2 = scene.add.rectangle(width / 2, height * 0.62, width + 200, 40, 0x1a3a1a, 0.15)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 50, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 40, duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // Water ripples
+  let ripplesAlive = 0
+  const MAX_RIPPLES = 5
+  scene.time.addEvent({
+    delay: 1300,
+    loop: true,
+    callback: () => {
+      if (ripplesAlive >= MAX_RIPPLES) return
+      const rx = 80 + Math.random() * (width - 160)
+      const ry = height * 0.63 + Math.random() * (height * 0.28)
+      const rg = scene.add.graphics()
+      rg.lineStyle(1, 0x1a4a1a, 0.5)
+      rg.strokeEllipse(0, 0, 24, 10)
+      rg.x = rx; rg.y = ry
+      ripplesAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 3.5, scaleY: 3.5, alpha: 0,
+        duration: 2000,
+        onComplete: () => { rg.destroy(); ripplesAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev server, navigate to a Hydra encounter. Confirm: murky sky, dead trees, water, lily pads, rolling fog, ripples.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add Hydra swamp background with fog and water ripples"
+```
+
+---
+
+## Task 4: SpiderBoss background — Web Cavern
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+> **Note:** `SpiderBoss` draws its own central radial gameplay web in `create()`. Background cobwebs must be in corners and wall edges only — NOT the screen center — to avoid visual overlap with the interactive web.
+
+- [ ] **Step 1: Implement `drawWebCavernBg`**
+
+```typescript
+export function drawWebCavernBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Black cave fill
+  g.fillStyle(0x06060e)
+  g.fillRect(0, 0, width, height)
+
+  // Stone wall texture (pixel dots)
+  g.fillStyle(0x0c0c18)
+  for (let x = 0; x < width; x += 64) {
+    for (let y = 0; y < height; y += 64) {
+      g.fillRect(x + 8, y + 8, 4, 4)
+      g.fillRect(x + 36, y + 28, 4, 4)
+      g.fillRect(x + 52, y + 48, 4, 4)
+      g.fillRect(x + 20, y + 52, 4, 4)
+    }
+  }
+
+  // Wall outlines (sides)
+  g.fillStyle(0x0e0e1c)
+  g.fillRect(0, 0, 56, height)
+  g.fillRect(width - 56, 0, 56, height)
+
+  // Corner cobwebs — top-left
+  g.fillStyle(0x1a1a2a)
+  for (let i = 1; i <= 7; i++) {
+    const span = i * 28
+    g.fillRect(0, span, span, 1)   // horizontal strand
+    g.fillRect(span, 0, 1, span)   // vertical strand
+    // diagonal strands
+    g.fillRect(0, 0, i * 14, 1)
+    g.fillRect(0, 0, 1, i * 14)
+  }
+  // Top-right corner
+  for (let i = 1; i <= 7; i++) {
+    const span = i * 28
+    g.fillRect(width - span, span, span, 1)
+    g.fillRect(width - span - 1, 0, 1, span)
+  }
+  // Bottom-left corner
+  for (let i = 1; i <= 5; i++) {
+    const span = i * 24
+    g.fillRect(0, height - span, span, 1)
+    g.fillRect(span, height - span, 1, span)
+  }
+
+  // Mid-wall web clusters (left and right wall edges)
+  g.fillStyle(0x181828)
+  const midWebL = { x: 40, y: height * 0.45 }
+  const midWebR = { x: width - 40, y: height * 0.5 }
+  for (let r = 20; r <= 100; r += 20) {
+    g.fillRect(midWebL.x - r, midWebL.y, r * 2, 1)
+    g.fillRect(midWebL.x, midWebL.y - r, 1, r * 2)
+  }
+  for (let r = 20; r <= 80; r += 20) {
+    g.fillRect(midWebR.x - r, midWebR.y, r * 2, 1)
+    g.fillRect(midWebR.x, midWebR.y - r, 1, r * 2)
+  }
+  g.destroy()
+
+  // Egg sacs — glowing blue circles
+  const eggs = [
+    { x: 160, y: height * 0.15 },
+    { x: width - 180, y: height * 0.12 },
+    { x: 90, y: height * 0.35 },
+    { x: width - 100, y: height * 0.38 },
+    { x: 260, y: height * 0.08 },
+  ]
+  for (const egg of eggs) {
+    const eg = scene.add.graphics()
+    eg.fillStyle(0x334488, 0.7)
+    eg.fillCircle(0, 0, 12)
+    eg.fillStyle(0x6688cc, 0.4)
+    eg.fillCircle(-3, -3, 5)
+    eg.x = egg.x; eg.y = egg.y
+    scene.tweens.add({
+      targets: eg,
+      alpha: 0.4,
+      duration: 1600 + Math.random() * 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // Web strand sway — corner strands as individual Rectangle objects
+  const strandData = [
+    { x: 100, y: 80, w: 120, h: 2, angle: -20 },
+    { x: width - 110, y: 70, w: 110, h: 2, angle: 25 },
+    { x: 60, y: 200, w: 90, h: 2, angle: -35 },
+    { x: width - 70, y: 220, w: 90, h: 2, angle: 30 },
+  ]
+  for (const sd of strandData) {
+    const strand = scene.add.rectangle(sd.x, sd.y, sd.w, sd.h, 0x2a2a44, 0.6)
+    strand.angle = sd.angle
+    scene.tweens.add({
+      targets: strand,
+      angle: sd.angle + 6,
+      duration: 2400 + Math.random() * 1200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // Crawling spiders
+  let spidersAlive = 0
+  const MAX_SPIDERS = 3
+  scene.time.addEvent({
+    delay: 3000,
+    loop: true,
+    callback: () => {
+      if (spidersAlive >= MAX_SPIDERS) return
+      // Spawn on wall edges, crawl across
+      const startLeft = Math.random() < 0.5
+      const startX = startLeft ? 20 : width - 20
+      const endX = startLeft ? 180 : width - 180
+      const sy = 50 + Math.random() * (height * 0.3)
+      const spider = scene.add.graphics()
+      spider.fillStyle(0x222222, 0.9)
+      spider.fillRect(-5, -3, 10, 6)
+      spider.fillRect(-8, -2, 4, 4)
+      spider.fillRect(4, -2, 4, 4)
+      spider.x = startX; spider.y = sy
+      spidersAlive++
+      scene.tweens.add({
+        targets: spider,
+        x: endX,
+        duration: 4000,
+        ease: 'Linear',
+        onComplete: () => { spider.destroy(); spidersAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to SpiderBoss. Confirm: dark cave walls, corner webs, glowing egg sacs pulsing, strand sway, background spiders crawl along edges. Background cobwebs must NOT overlap the center-screen gameplay web.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add SpiderBoss web cavern background with egg sacs and crawling spiders"
+```
+
+---
+
+## Task 5: DiceLichBoss background — Necromantic Crypt
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawCryptBg`**
+
+```typescript
+export function drawCryptBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Black upper half
+  g.fillStyle(0x050505)
+  g.fillRect(0, 0, width, height * 0.6)
+
+  // Gothic arches (left and right framing)
+  g.fillStyle(0x111111)
+  // Left arch
+  g.fillRect(0, 0, 80, height * 0.7)
+  g.fillStyle(0x0a0a0a)
+  g.fillRect(80, 0, 16, height * 0.65)
+  // Right arch
+  g.fillStyle(0x111111)
+  g.fillRect(width - 80, 0, 80, height * 0.7)
+  g.fillStyle(0x0a0a0a)
+  g.fillRect(width - 96, 0, 16, height * 0.65)
+
+  // Stone tile floor (bottom 35%)
+  g.fillStyle(0x141414)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  // Tile grid
+  g.fillStyle(0x0a0a0a)
+  for (let x = 0; x < width; x += 64) {
+    g.fillRect(x, height * 0.65, 2, height * 0.35)
+  }
+  for (let y = height * 0.65; y < height; y += 48) {
+    g.fillRect(0, y, width, 2)
+  }
+  // Offset alternate rows
+  g.fillStyle(0x0d0d0d)
+  for (let row = 0; row < 4; row++) {
+    const rowY = height * 0.65 + row * 48
+    const offset = row % 2 === 1 ? 32 : 0
+    for (let x = offset; x < width; x += 64) {
+      g.fillRect(x - 1, rowY, 2, 48)
+    }
+  }
+
+  // Wall torch brackets
+  g.fillStyle(0x2a1a0a)
+  g.fillRect(100, height * 0.25, 12, 30)
+  g.fillRect(100, height * 0.22, 24, 8)
+  g.fillRect(width - 112, height * 0.25, 12, 30)
+  g.fillRect(width - 124, height * 0.22, 24, 8)
+
+  // Floating rune glyphs (static, drawn)
+  g.fillStyle(0x440066)
+  const runePositions = [
+    { x: width * 0.3, y: height * 0.15 },
+    { x: width * 0.5, y: height * 0.08 },
+    { x: width * 0.7, y: height * 0.18 },
+    { x: width * 0.2, y: height * 0.35 },
+    { x: width * 0.8, y: height * 0.32 },
+  ]
+  for (const rp of runePositions) {
+    // Simple rune shape (cross + dots)
+    g.fillRect(rp.x - 2, rp.y - 10, 4, 20)
+    g.fillRect(rp.x - 10, rp.y - 2, 20, 4)
+    g.fillRect(rp.x - 6, rp.y - 6, 4, 4)
+    g.fillRect(rp.x + 2, rp.y - 6, 4, 4)
+    g.fillRect(rp.x - 6, rp.y + 2, 4, 4)
+    g.fillRect(rp.x + 2, rp.y + 2, 4, 4)
+  }
+  g.destroy()
+
+  // Torch flames (animated)
+  const torchPositions = [
+    { x: 106, y: height * 0.22 },
+    { x: width - 106, y: height * 0.22 },
+  ]
+  for (const tp of torchPositions) {
+    // Outer flame
+    const flame1 = scene.add.graphics()
+    flame1.fillStyle(0xff6600, 0.9)
+    flame1.fillRect(-5, -16, 10, 16)
+    flame1.fillRect(-3, -20, 6, 6)
+    flame1.fillRect(-1, -24, 2, 6)
+    flame1.x = tp.x; flame1.y = tp.y
+    // Inner flame
+    const flame2 = scene.add.graphics()
+    flame2.fillStyle(0xffcc00, 0.8)
+    flame2.fillRect(-3, -12, 6, 12)
+    flame2.fillRect(-1, -16, 2, 5)
+    flame2.x = tp.x; flame2.y = tp.y
+    scene.tweens.add({
+      targets: flame1,
+      alpha: 0.4, scaleY: 0.8, scaleX: 1.2,
+      duration: 120, yoyo: true, repeat: -1,
+    })
+    scene.tweens.add({
+      targets: flame2,
+      alpha: 0.5, scaleY: 0.75,
+      duration: 90, yoyo: true, repeat: -1,
+    })
+  }
+
+  // Rune pulse + slow rotation
+  for (let i = 0; i < runePositions.length; i++) {
+    const rp = runePositions[i]
+    const runeGfx = scene.add.graphics()
+    runeGfx.fillStyle(0x6600aa, 0.6)
+    runeGfx.fillRect(-2, -10, 4, 20)
+    runeGfx.fillRect(-10, -2, 20, 4)
+    runeGfx.x = rp.x; runeGfx.y = rp.y
+    scene.tweens.add({
+      targets: runeGfx,
+      angle: 360,
+      alpha: { from: 0.3, to: 0.9 },
+      duration: 4000 + i * 600,
+      repeat: -1,
+      ease: 'Linear',
+    })
+  }
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to DiceLich. Confirm: stone floor grid, arch framing, torch flicker, rotating purple runes.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add DiceLich necromantic crypt background with torch flicker and runes"
+```
+
+---
+
+## Task 6: BaronTypoBoss background — Castle Throne Room
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawCastleThroneRoomBg`**
+
+```typescript
+export function drawCastleThroneRoomBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Stone brick wall (upper 65%)
+  g.fillStyle(0x1a1420)
+  g.fillRect(0, 0, width, height * 0.65)
+  // Brick rows
+  const brickH = 28, brickW = 64
+  for (let row = 0; row < Math.ceil(height * 0.65 / brickH); row++) {
+    const offsetX = row % 2 === 0 ? 0 : brickW / 2
+    g.fillStyle(0x120e1a)
+    for (let col = -1; col < Math.ceil(width / brickW) + 1; col++) {
+      const bx = col * brickW + offsetX
+      const by = row * brickH
+      // Mortar lines
+      g.fillRect(bx, by, brickW, 2)
+      g.fillRect(bx, by, 2, brickH)
+    }
+  }
+
+  // Dark stone floor (bottom 35%)
+  g.fillStyle(0x0e0c12)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x0a0810)
+  for (let x = 0; x < width; x += 80) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 60) g.fillRect(0, y, width, 2)
+
+  // Stained glass window (top center) — colored pixel panels
+  const winX = width / 2, winY = 60, winW = 120, winH = 140
+  g.fillStyle(0x330044)
+  g.fillRect(winX - winW / 2, winY, winW, winH)
+  const panels = [
+    { dx: -50, dy: 10, w: 40, h: 50, color: 0x8800aa },
+    { dx: -8, dy: 10, w: 16, h: 80, color: 0xaa6600 },
+    { dx: 10, dy: 10, w: 40, h: 50, color: 0x006688 },
+    { dx: -50, dy: 65, w: 40, h: 50, color: 0x554400 },
+    { dx: 10, dy: 65, w: 40, h: 50, color: 0x004455 },
+  ]
+  for (const p of panels) {
+    g.fillStyle(p.color)
+    g.fillRect(winX + p.dx, winY + p.dy, p.w, p.h)
+  }
+  // Window frame
+  g.fillStyle(0x221a2a)
+  g.fillRect(winX - winW / 2 - 6, winY - 6, winW + 12, 6)
+  g.fillRect(winX - winW / 2 - 6, winY + winH, winW + 12, 6)
+  g.fillRect(winX - winW / 2 - 6, winY, 6, winH)
+  g.fillRect(winX + winW / 2, winY, 6, winH)
+
+  // Purple tapestries
+  g.fillStyle(0x3a0a50)
+  g.fillRect(200, 10, 60, height * 0.55)
+  g.fillRect(width - 260, 10, 60, height * 0.55)
+  // Gold trim
+  g.fillStyle(0x886600)
+  g.fillRect(200, 10, 4, height * 0.55)
+  g.fillRect(256, 10, 4, height * 0.55)
+  g.fillRect(width - 260, 10, 4, height * 0.55)
+  g.fillRect(width - 204, 10, 4, height * 0.55)
+  g.fillRect(200, 10, 60, 4)
+  g.fillRect(width - 260, 10, 60, 4)
+
+  // Candelabra silhouettes
+  const candleXs = [360, width - 360]
+  for (const cx of candleXs) {
+    g.fillStyle(0x221a2a)
+    g.fillRect(cx - 3, height * 0.5, 6, height * 0.18)  // stem
+    g.fillRect(cx - 18, height * 0.5, 36, 5)             // arms
+    g.fillRect(cx - 18, height * 0.47, 5, 8)             // left arm candle holder
+    g.fillRect(cx + 13, height * 0.47, 5, 8)             // right arm candle holder
+    g.fillRect(cx - 2, height * 0.44, 4, 8)              // center candle holder
+  }
+  g.destroy()
+
+  // Candle flames (animated)
+  const candleFlamePositions = [
+    { x: 342, y: height * 0.44 },
+    { x: 358, y: height * 0.44 },
+    { x: 350, y: height * 0.41 },
+    { x: width - 342, y: height * 0.44 },
+    { x: width - 358, y: height * 0.44 },
+    { x: width - 350, y: height * 0.41 },
+  ]
+  for (let i = 0; i < candleFlamePositions.length; i++) {
+    const cf = candleFlamePositions[i]
+    const flame = scene.add.graphics()
+    flame.fillStyle(0xff8800, 0.95)
+    flame.fillRect(-2, -8, 4, 8)
+    flame.fillStyle(0xffdd00, 0.8)
+    flame.fillRect(-1, -10, 2, 5)
+    flame.x = cf.x; flame.y = cf.y
+    scene.tweens.add({
+      targets: flame,
+      alpha: 0.4 + (i % 3) * 0.1,
+      scaleY: 0.75,
+      scaleX: 1.3,
+      duration: 80 + i * 20,
+      yoyo: true,
+      repeat: -1,
+    })
+  }
+
+  // Tapestry sway
+  const tapestryL = scene.add.rectangle(230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
+  const tapestryR = scene.add.rectangle(width - 230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
+  scene.tweens.add({ targets: tapestryL, angle: 1.5, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: tapestryR, angle: -1.5, duration: 3500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to BaronTypo. Confirm: stone brick walls, colored stained glass window, purple tapestries, candle flicker.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add BaronTypo castle throne room background with stained glass and candles"
+```
+
+---
+
+## Task 7: FlashWordBoss background — Ethereal Void
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawEtherealVoidBg`**
+
+```typescript
+export function drawEtherealVoidBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Pure black base
+  g.fillStyle(0x000000)
+  g.fillRect(0, 0, width, height)
+
+  // Static arcane light rings (varied sizes)
+  const rings = [
+    { x: width * 0.5, y: height * 0.5, r: 180, color: 0x220044, a: 0.3 },
+    { x: width * 0.5, y: height * 0.5, r: 280, color: 0x110033, a: 0.2 },
+    { x: width * 0.3, y: height * 0.3, r: 80, color: 0x330055, a: 0.25 },
+    { x: width * 0.7, y: height * 0.4, r: 60, color: 0x220055, a: 0.2 },
+  ]
+  for (const ring of rings) {
+    g.lineStyle(2, ring.color, ring.a)
+    g.strokeCircle(ring.x, ring.y, ring.r)
+    g.lineStyle(1, ring.color, ring.a * 0.5)
+    g.strokeCircle(ring.x, ring.y, ring.r + 12)
+  }
+  g.destroy()
+
+  // Drifting glyph text objects
+  const glyphs = ['Ω', 'Σ', 'Ψ', 'Δ', 'Λ', 'Φ', 'Γ', 'Θ', '∞', '⌬', '⊕', '✦']
+  for (let i = 0; i < 14; i++) {
+    const glyph = glyphs[i % glyphs.length]
+    const startX = 60 + Math.random() * (width - 120)
+    const startY = height * 0.3 + Math.random() * (height * 0.5)
+    const gt = scene.add.text(startX, startY, glyph, {
+      fontSize: `${14 + Math.floor(Math.random() * 20)}px`,
+      color: i % 2 === 0 ? '#8800ff' : '#ff44ff',
+      alpha: 0.6,
+    }).setOrigin(0.5)
+    scene.tweens.add({
+      targets: gt,
+      y: startY - 80 - Math.random() * 60,
+      alpha: 0,
+      duration: 5000 + Math.random() * 4000,
+      delay: Math.random() * 3000,
+      onComplete: () => {
+        gt.y = height * 0.3 + Math.random() * (height * 0.5)
+        gt.x = 60 + Math.random() * (width - 120)
+        gt.alpha = 0.6
+        scene.tweens.add({
+          targets: gt,
+          y: gt.y - 80,
+          alpha: 0,
+          duration: 5000 + Math.random() * 4000,
+          repeat: -1,
+        })
+      },
+    })
+  }
+
+  // Expanding ring pulses from center
+  let ringsAlive = 0
+  const MAX_RINGS = 4
+  scene.time.addEvent({
+    delay: 1500,
+    loop: true,
+    callback: () => {
+      if (ringsAlive >= MAX_RINGS) return
+      const rg = scene.add.graphics()
+      rg.lineStyle(2, 0x6600cc, 0.6)
+      rg.strokeCircle(0, 0, 10)
+      rg.x = width * 0.5; rg.y = height * 0.45
+      ringsAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 18, scaleY: 18, alpha: 0,
+        duration: 2500,
+        ease: 'Quad.easeOut',
+        onComplete: () => { rg.destroy(); ringsAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to FlashWord boss. Confirm: black void, arcane rings, floating glyphs drifting upward, expanding ring pulses from center.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add FlashWord ethereal void background with drifting glyphs and ring pulses"
+```
+
+---
+
+## Task 8: AncientDragonBoss background — Volcanic Dragon Lair
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+> **Note:** Lava color cannot be tweened directly on a `Graphics` object. Use an alpha-tweened semi-transparent orange overlay rectangle on top of the static lava river.
+
+- [ ] **Step 1: Implement `drawVolcanicLairBg`**
+
+```typescript
+export function drawVolcanicLairBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Ash-gray sky
+  g.fillStyle(0x1a1212)
+  g.fillRect(0, 0, width, height * 0.55)
+  // Ash cloud wisps
+  g.fillStyle(0x1f1616)
+  for (let x = 0; x < width; x += 120) {
+    const cy = 40 + ((x * 3) % 60)
+    g.fillRect(x, cy, 100, 20)
+    g.fillRect(x + 10, cy - 8, 80, 10)
+    g.fillRect(x + 20, cy + 20, 60, 8)
+  }
+
+  // Black rock spires
+  g.fillStyle(0x0a0808)
+  const spires = [
+    { x: 80, baseY: height * 0.55, h: 220 },
+    { x: 200, baseY: height * 0.55, h: 160 },
+    { x: width - 80, baseY: height * 0.55, h: 240 },
+    { x: width - 200, baseY: height * 0.55, h: 180 },
+    { x: 380, baseY: height * 0.55, h: 110 },
+    { x: width - 380, baseY: height * 0.55, h: 130 },
+  ]
+  for (const sp of spires) {
+    const w = 30 + sp.h * 0.15
+    g.fillRect(sp.x - w / 2, sp.baseY - sp.h, w, sp.h)
+    g.fillRect(sp.x - w / 4, sp.baseY - sp.h - 20, w / 2, 22)
+    g.fillRect(sp.x - w / 8, sp.baseY - sp.h - 32, w / 4, 14)
+  }
+
+  // Rocky ground (mid section)
+  g.fillStyle(0x120a0a)
+  g.fillRect(0, height * 0.55, width, height * 0.12)
+  // Ground cracks
+  g.fillStyle(0x6a2200)
+  for (let x = 60; x < width; x += 180) {
+    g.fillRect(x, height * 0.55, 3, height * 0.12)
+    g.fillRect(x + 60, height * 0.57, 3, height * 0.08)
+  }
+
+  // Lava river (lower third)
+  g.fillStyle(0x3a0f00)
+  g.fillRect(0, height * 0.67, width, height * 0.33)
+  // Lava dark crust patches
+  g.fillStyle(0x1a0800)
+  for (let x = 0; x < width; x += 90) {
+    g.fillRect(x, height * 0.67, 70, 14)
+    g.fillRect(x + 40, height * 0.72, 50, 10)
+  }
+  // Lava bright veins
+  g.fillStyle(0xcc4400)
+  for (let x = 10; x < width; x += 90) {
+    g.fillRect(x, height * 0.68, 50, 6)
+    g.fillRect(x + 35, height * 0.73, 35, 4)
+  }
+  g.destroy()
+
+  // Lava glow overlay (alpha tween — this is the "pulse" effect)
+  const lavaGlow = scene.add.rectangle(width / 2, height * 0.835, width, height * 0.33, 0xff5500, 0.08)
+  scene.tweens.add({
+    targets: lavaGlow,
+    alpha: 0.18,
+    duration: 1800,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Rising ash particles
+  let ashAlive = 0
+  const MAX_ASH = 12
+  scene.time.addEvent({
+    delay: 400,
+    loop: true,
+    callback: () => {
+      if (ashAlive >= MAX_ASH) return
+      const ax = 40 + Math.random() * (width - 80)
+      const ash = scene.add.rectangle(ax, height * 0.65, 3, 3, 0x442222, 0.7)
+      ashAlive++
+      scene.tweens.add({
+        targets: ash,
+        y: height * 0.1,
+        x: ax + (Math.random() - 0.5) * 80,
+        alpha: 0,
+        duration: 3500 + Math.random() * 2000,
+        ease: 'Linear',
+        onComplete: () => { ash.destroy(); ashAlive-- },
+      })
+    },
+  })
+
+  // Steam vents
+  const ventXs = [160, 520, 880, width - 160]
+  let steamsAlive = 0
+  const MAX_STEAMS = 6
+  scene.time.addEvent({
+    delay: 700,
+    loop: true,
+    callback: () => {
+      if (steamsAlive >= MAX_STEAMS) return
+      const vx = ventXs[Math.floor(Math.random() * ventXs.length)]
+      const sg = scene.add.graphics()
+      sg.fillStyle(0xaaaaaa, 0.15)
+      sg.fillEllipse(0, 0, 24, 32)
+      sg.x = vx; sg.y = height * 0.67
+      steamsAlive++
+      scene.tweens.add({
+        targets: sg,
+        y: height * 0.67 - 80,
+        scaleX: 2.5, scaleY: 2,
+        alpha: 0,
+        duration: 1200,
+        onComplete: () => { sg.destroy(); steamsAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to AncientDragon. Confirm: ash sky, rock spires, glowing lava river pulses, ash particles rise, steam puffs.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add AncientDragon volcanic lair background with lava glow and ash particles"
+```
+
+---
+
+## Task 9: ClockworkDragonBoss background — Steampunk Workshop
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+> **Note:** `ClockworkDragonBoss` already creates gameplay gear objects (orbiting containers) in its own `create()`. Background gears must be visually distinct: large, behind other elements, slow-rotating, using a different visual style (solid filled circles with rectangular teeth).
+
+- [ ] **Step 1: Implement `drawSteampunkWorkshopBg`**
+
+```typescript
+export function drawSteampunkWorkshopBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Dark metal panel wall (upper 65%)
+  g.fillStyle(0x141414)
+  g.fillRect(0, 0, width, height * 0.65)
+  // Panel grid
+  const panelW = 80, panelH = 80
+  for (let col = 0; col < Math.ceil(width / panelW); col++) {
+    for (let row = 0; row < Math.ceil(height * 0.65 / panelH); row++) {
+      const px = col * panelW, py = row * panelH
+      g.fillStyle(0x1a1a1a)
+      g.fillRect(px + 2, py + 2, panelW - 4, panelH - 4)
+      // Rivet dots at corners
+      g.fillStyle(0x0a0a0a)
+      g.fillRect(px + 5, py + 5, 4, 4)
+      g.fillRect(px + panelW - 9, py + 5, 4, 4)
+      g.fillRect(px + 5, py + panelH - 9, 4, 4)
+      g.fillRect(px + panelW - 9, py + panelH - 9, 4, 4)
+    }
+  }
+
+  // Metal floor (bottom 35%)
+  g.fillStyle(0x1c1c1c)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x141414)
+  for (let x = 0; x < width; x += 40) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 40) g.fillRect(0, y, width, 2)
+
+  // Pipe network along walls
+  g.fillStyle(0x2a2a2a)
+  // Horizontal main pipes
+  g.fillRect(0, height * 0.2, width, 12)
+  g.fillRect(0, height * 0.45, width * 0.3, 10)
+  g.fillRect(width * 0.7, height * 0.45, width * 0.3, 10)
+  // Vertical pipes
+  g.fillRect(width * 0.1, 0, 10, height * 0.65)
+  g.fillRect(width * 0.9 - 10, 0, 10, height * 0.65)
+  // Pipe joints (circles)
+  g.fillStyle(0x333333)
+  const joints = [
+    { x: width * 0.1 + 5, y: height * 0.2 + 6 },
+    { x: width * 0.9 - 5, y: height * 0.2 + 6 },
+    { x: width * 0.3, y: height * 0.45 + 5 },
+    { x: width * 0.7, y: height * 0.45 + 5 },
+  ]
+  for (const jt of joints) {
+    g.fillCircle(jt.x, jt.y, 10)
+  }
+
+  // Gauge/dial details
+  g.fillStyle(0x222222)
+  g.fillCircle(width * 0.15, height * 0.55, 20)
+  g.fillCircle(width * 0.85, height * 0.55, 20)
+  g.fillStyle(0x111111)
+  g.fillCircle(width * 0.15, height * 0.55, 14)
+  g.fillCircle(width * 0.85, height * 0.55, 14)
+  // Gauge needle
+  g.fillStyle(0xcc4400)
+  g.fillRect(width * 0.15 - 1, height * 0.55 - 12, 2, 12)
+  g.fillRect(width * 0.85 - 1, height * 0.55 - 12, 2, 12)
+  g.destroy()
+
+  // Background gears (large, slow rotating) — drawn as Graphics objects
+  function drawGear(gfx: Phaser.GameObjects.Graphics, r: number, teeth: number, color: number): void {
+    gfx.fillStyle(color, 0.5)
+    gfx.fillCircle(0, 0, r)
+    gfx.fillStyle(color, 0.4)
+    for (let t = 0; t < teeth; t++) {
+      const angle = (t / teeth) * Math.PI * 2
+      const tx = Math.cos(angle) * (r + 10)
+      const ty = Math.sin(angle) * (r + 10)
+      gfx.fillRect(tx - 5, ty - 5, 10, 10)
+    }
+    gfx.fillStyle(0x111111, 0.8)
+    gfx.fillCircle(0, 0, r * 0.35)
+    gfx.fillStyle(color, 0.3)
+    gfx.fillCircle(0, 0, r * 0.15)
+  }
+
+  const gearConfigs = [
+    { x: width * 0.05, y: height * 0.1, r: 70, teeth: 14, color: 0x444444, speed: 8000 },
+    { x: width * 0.92, y: height * 0.15, r: 55, teeth: 12, color: 0x3a3a3a, speed: 6000 },
+    { x: width * 0.08, y: height * 0.62, r: 45, teeth: 10, color: 0x3a3a3a, speed: 10000 },
+    { x: width * 0.88, y: height * 0.58, r: 50, teeth: 11, color: 0x444444, speed: 7500 },
+  ]
+  for (const gc of gearConfigs) {
+    const gearGfx = scene.add.graphics()
+    drawGear(gearGfx, gc.r, gc.teeth, gc.color)
+    gearGfx.x = gc.x; gearGfx.y = gc.y
+    scene.tweens.add({
+      targets: gearGfx,
+      angle: 360,
+      duration: gc.speed,
+      repeat: -1,
+      ease: 'Linear',
+    })
+  }
+
+  // Steam puffs from pipe joints
+  let steamsAlive = 0
+  const MAX_STEAMS = 5
+  scene.time.addEvent({
+    delay: 800,
+    loop: true,
+    callback: () => {
+      if (steamsAlive >= MAX_STEAMS) return
+      const jt = joints[Math.floor(Math.random() * joints.length)]
+      const sg = scene.add.graphics()
+      sg.fillStyle(0xcccccc, 0.12)
+      sg.fillEllipse(0, 0, 20, 28)
+      sg.x = jt.x; sg.y = jt.y
+      steamsAlive++
+      scene.tweens.add({
+        targets: sg,
+        y: jt.y - 60,
+        scaleX: 2.5, scaleY: 2,
+        alpha: 0,
+        duration: 1000,
+        onComplete: () => { sg.destroy(); steamsAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to ClockworkDragon. Confirm: riveted metal panels, pipe network, slowly rotating background gears, steam puffs from joints.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add ClockworkDragon steampunk workshop background with rotating gears"
+```
+
+---
+
+## Task 10: BoneKnightBoss background — Cursed Graveyard
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawGraveyardBg`**
+
+```typescript
+export function drawGraveyardBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Stormy sky (near-black purple)
+  g.fillStyle(0x0e0810)
+  g.fillRect(0, 0, width, height * 0.6)
+  // Storm cloud bands
+  g.fillStyle(0x110d14)
+  for (let x = 0; x < width; x += 160) {
+    const cy = 20 + ((x * 5) % 80)
+    g.fillRect(x, cy, 140, 30)
+    g.fillRect(x + 20, cy - 12, 100, 14)
+  }
+
+  // Dead gnarled trees
+  g.fillStyle(0x070508)
+  const treeDefs = [
+    { x: 80, h: 180 }, { x: 200, h: 140 }, { x: width - 80, h: 200 },
+    { x: width - 200, h: 150 }, { x: 440, h: 100 }, { x: width - 440, h: 110 },
+  ]
+  for (const td of treeDefs) {
+    const baseY = height * 0.58
+    g.fillRect(td.x - 8, baseY - td.h, 16, td.h)
+    // Gnarled branches
+    g.fillRect(td.x - 40, baseY - td.h + 20, 80, 5)
+    g.fillRect(td.x - 28, baseY - td.h + 40, 56, 4)
+    g.fillRect(td.x + 10, baseY - td.h + 30, 36, 3)
+    g.fillRect(td.x - 44, baseY - td.h + 30, 26, 3)
+    // Bare twigs
+    g.fillRect(td.x - 48, baseY - td.h + 20, 10, 3)
+    g.fillRect(td.x + 38, baseY - td.h + 20, 10, 3)
+    g.fillRect(td.x - 52, baseY - td.h + 17, 6, 3)
+    g.fillRect(td.x + 46, baseY - td.h + 17, 6, 3)
+  }
+
+  // Dead grass ground (lower 40%)
+  g.fillStyle(0x0c0c0c)
+  g.fillRect(0, height * 0.6, width, height * 0.4)
+  g.fillStyle(0x0f0f0f)
+  for (let x = 0; x < width; x += 30) {
+    g.fillRect(x, height * 0.6, 20, 4)
+  }
+
+  // Tombstones
+  const tombstones = [
+    { x: 140, y: height * 0.68, w: 36, h: 50 },
+    { x: 320, y: height * 0.7, w: 30, h: 44 },
+    { x: 550, y: height * 0.66, w: 40, h: 54 },
+    { x: 780, y: height * 0.69, w: 34, h: 48 },
+    { x: 990, y: height * 0.67, w: 38, h: 52 },
+    { x: 1150, y: height * 0.71, w: 28, h: 42 },
+  ]
+  for (const ts of tombstones) {
+    g.fillStyle(0x1a1a1a)
+    g.fillRect(ts.x - ts.w / 2, ts.y - ts.h, ts.w, ts.h)
+    // Rounded top (pixel approximate)
+    g.fillRect(ts.x - ts.w / 2 + 4, ts.y - ts.h - 8, ts.w - 8, 10)
+    // Engraved cross
+    g.fillStyle(0x0d0d0d)
+    g.fillRect(ts.x - 2, ts.y - ts.h + 8, 4, 18)
+    g.fillRect(ts.x - 8, ts.y - ts.h + 12, 16, 4)
+    // Stone base slab
+    g.fillStyle(0x141414)
+    g.fillRect(ts.x - ts.w / 2 - 4, ts.y - 6, ts.w + 8, 6)
+  }
+  g.destroy()
+
+  // Ground fog layer
+  const fog = scene.add.rectangle(width / 2, height * 0.66, width + 300, 70, 0x221a33, 0.2)
+  scene.tweens.add({
+    targets: fog,
+    x: width / 2 + 60,
+    duration: 6000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Lightning flash (white overlay, triggered by timer)
+  const lightning = scene.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 0)
+  scene.time.addEvent({
+    delay: 5000,
+    loop: true,
+    callback: () => {
+      // Random delay offset per flash so it's not perfectly periodic
+      const flashDelay = Math.random() * 4000
+      scene.time.delayedCall(flashDelay, () => {
+        scene.tweens.add({
+          targets: lightning,
+          alpha: 0.18,
+          duration: 60,
+          yoyo: true,
+          repeat: 1,
+        })
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to BoneKnight. Confirm: stormy purple sky, bare gnarled trees, tombstones, rolling fog, occasional lightning flash.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add BoneKnight graveyard background with fog and lightning"
+```
+
+---
+
+## Task 11: GrizzlefangBoss background — Ancient Dark Forest
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawDarkForestBg`**
+
+```typescript
+export function drawDarkForestBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Deep blue-black sky
+  g.fillStyle(0x050810)
+  g.fillRect(0, 0, width, height * 0.55)
+
+  // Background tree layer (farthest, darkest)
+  g.fillStyle(0x040608)
+  for (let x = 0; x < width; x += 70) {
+    const th = 140 + ((x * 3) % 80)
+    const tw = 40 + ((x * 7) % 20)
+    g.fillRect(x, height * 0.55 - th, tw, th)
+    g.fillRect(x - 10, height * 0.55 - th + 20, tw + 20, 20)
+    g.fillRect(x - 5, height * 0.55 - th + 40, tw + 10, 20)
+  }
+
+  // Mid tree layer
+  g.fillStyle(0x060a0e)
+  for (let x = -20; x < width; x += 90) {
+    const th = 110 + ((x * 11) % 60)
+    const tw = 36 + ((x * 5) % 22)
+    g.fillRect(x, height * 0.58 - th, tw, th)
+    g.fillRect(x - 14, height * 0.58 - th + 10, tw + 28, 22)
+    g.fillRect(x - 8, height * 0.58 - th + 30, tw + 16, 18)
+  }
+
+  // Foreground tree layer (closest, tallest)
+  g.fillStyle(0x040507)
+  for (let x = -30; x < width + 30; x += 120) {
+    const th = 200 + ((x * 7) % 100)
+    const tw = 50 + ((x * 3) % 30)
+    g.fillRect(x, 0, tw, height * 0.65)
+    g.fillRect(x - 20, height * 0.1, tw + 40, 30)
+    g.fillRect(x - 12, height * 0.2, tw + 24, 24)
+  }
+
+  // Dense undergrowth
+  g.fillStyle(0x040706)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  g.fillStyle(0x060a08)
+  for (let x = 0; x < width; x += 50) {
+    const bh = 16 + ((x * 3) % 20)
+    g.fillRect(x, height * 0.58, 44, bh)
+  }
+
+  // Moonlight shaft (tall narrow semi-transparent white)
+  const moonShaft = scene.add.rectangle(width * 0.52, height * 0.35, 60, height * 0.7, 0xffffff, 0.04)
+
+  // Pale moon
+  g.fillStyle(0x8888aa)
+  g.fillCircle(width * 0.52, 60, 30)
+  g.fillStyle(0xaaaabb)
+  g.fillCircle(width * 0.52, 60, 22)
+  g.fillStyle(0x050810)  // cloud occlusion patches
+  g.fillRect(width * 0.52 - 28, 44, 20, 10)
+  g.fillRect(width * 0.52 + 8, 38, 24, 12)
+  g.destroy()
+
+  // Moon shimmer
+  scene.tweens.add({
+    targets: moonShaft,
+    alpha: 0.07,
+    duration: 3000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Firefly particles
+  let firefliesAlive = 0
+  const MAX_FIREFLIES = 10
+  scene.time.addEvent({
+    delay: 600,
+    loop: true,
+    callback: () => {
+      if (firefliesAlive >= MAX_FIREFLIES) return
+      const fx = 100 + Math.random() * (width - 200)
+      const fy = height * 0.25 + Math.random() * (height * 0.4)
+      const ff = scene.add.graphics()
+      ff.fillStyle(0xffff88, 0.8)
+      ff.fillRect(-2, -2, 4, 4)
+      ff.x = fx; ff.y = fy
+      firefliesAlive++
+      scene.tweens.add({
+        targets: ff,
+        x: fx + (Math.random() - 0.5) * 100,
+        y: fy + (Math.random() - 0.5) * 60,
+        alpha: 0,
+        duration: 3000 + Math.random() * 2000,
+        ease: 'Sine.easeInOut',
+        onComplete: () => { ff.destroy(); firefliesAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to GrizzlefangBoss. Confirm: layered dark tree silhouettes, pale moon, moonlight shaft, drifting fireflies.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add Grizzlefang dark forest background with moon and fireflies"
+```
+
+---
+
+## Task 12: TypemancerBoss background — Dimensional Void
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement `drawDigitalVoidBg`**
+
+```typescript
+export function drawDigitalVoidBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Pure black
+  g.fillStyle(0x000000)
+  g.fillRect(0, 0, width, height)
+
+  // Energy rift cracks (static jagged lines)
+  g.lineStyle(2, 0x00ffcc, 0.3)
+  // Main rift — horizontal jagged path across center
+  const riftY = height * 0.45
+  const segments = 18
+  const segW = width / segments
+  let ry = riftY
+  for (let i = 0; i < segments; i++) {
+    const nextRy = riftY + (Math.sin(i * 1.7) * 30)
+    g.lineBetween(i * segW, ry, (i + 1) * segW, nextRy)
+    ry = nextRy
+  }
+  // Secondary smaller rift
+  g.lineStyle(1, 0xcc00ff, 0.2)
+  let ry2 = height * 0.3
+  for (let i = 0; i < segments; i++) {
+    const nextRy2 = height * 0.3 + (Math.sin(i * 2.3 + 1) * 20)
+    g.lineBetween(i * segW, ry2, (i + 1) * segW, nextRy2)
+    ry2 = nextRy2
+  }
+  g.destroy()
+
+  // Letter rain columns
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?@#$%'
+  const columnCount = 18
+  const columnSpacing = width / columnCount
+
+  for (let col = 0; col < columnCount; col++) {
+    const cx = (col + 0.5) * columnSpacing
+    const color = col % 3 === 0 ? '#00ff88' : col % 3 === 1 ? '#aa00ff' : '#00aaff'
+    const startY = -height * Math.random()  // stagger initial positions
+    const speed = 4000 + Math.random() * 3000
+
+    let charY = startY
+    let charAlive = false
+
+    scene.time.addEvent({
+      delay: Math.floor(speed / 8),
+      loop: true,
+      callback: () => {
+        if (charAlive) return
+        const ch = letters[Math.floor(Math.random() * letters.length)]
+        const ct = scene.add.text(cx, charY, ch, {
+          fontSize: '14px',
+          color,
+          alpha: 0.7,
+        }).setOrigin(0.5)
+        charAlive = true
+        scene.tweens.add({
+          targets: ct,
+          y: charY + height * 1.2,
+          duration: speed,
+          ease: 'Linear',
+          onComplete: () => { ct.destroy(); charY = -30; charAlive = false },
+        })
+      },
+    })
+  }
+
+  // Rift pulse from center
+  let riftsAlive = 0
+  const MAX_RIFTS = 3
+  scene.time.addEvent({
+    delay: 2000,
+    loop: true,
+    callback: () => {
+      if (riftsAlive >= MAX_RIFTS) return
+      const rg = scene.add.graphics()
+      rg.lineStyle(3, 0x00ffcc, 0.5)
+      rg.strokeRect(-80, -20, 160, 40)
+      rg.x = width * 0.5; rg.y = height * 0.45
+      riftsAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 8, scaleY: 12, alpha: 0,
+        duration: 1800,
+        ease: 'Quad.easeOut',
+        onComplete: () => { rg.destroy(); riftsAlive-- },
+      })
+    },
+  })
+}
+```
+
+- [ ] **Step 2: Build and visual check**
+
+```bash
+npm run build
+```
+Run dev, navigate to Typemancer. Confirm: black void, cascading letter rain in green/purple/blue columns, jagged rift lines, pulsing rift bursts.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add Typemancer dimensional void background with letter rain and rift pulses"
+```
+
+---
+
+## Task 13: MiniBossTypical backgrounds — Three variants + fallback
+
+**Files:**
+- Modify: `src/utils/bossBackgrounds.ts`
+
+- [ ] **Step 1: Implement all four mini-boss helpers and `drawMiniBossBg`**
+
+Replace the `drawMiniBossBg` stub with:
+
+```typescript
+// ── Private mini-boss helpers ────────────────────────────────────────────────
+
+function drawForestClearingBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Bright blue sky
+  g.fillStyle(0x3a7abb)
+  g.fillRect(0, 0, width, height * 0.55)
+  // Lighter sky horizon
+  g.fillStyle(0x5090cc)
+  g.fillRect(0, height * 0.42, width, height * 0.15)
+
+  // Sunlit grass
+  g.fillStyle(0x4a8c2a)
+  g.fillRect(0, height * 0.55, width, height * 0.45)
+  g.fillStyle(0x3a7c1a)
+  for (let x = 0; x < width; x += 40) {
+    g.fillRect(x, height * 0.55, 28, 6)
+  }
+
+  // Tree border (left and right framing)
+  g.fillStyle(0x2a5a18)
+  for (let side = 0; side < 2; side++) {
+    const baseX = side === 0 ? 0 : width - 80
+    for (let i = 0; i < 4; i++) {
+      const tx = baseX + (side === 0 ? i * 22 : -(i * 22))
+      g.fillRect(tx, 0, 20, height)
+      g.fillStyle(0x3a7c1a)
+      g.fillRect(tx, 0, 18, height)
+      g.fillStyle(0x2a5a18)
+    }
+  }
+
+  // Dappled light patches on ground
+  g.fillStyle(0x6aaa3a)
+  const lightPatches = [
+    { x: 300, y: height * 0.65, w: 80, h: 16 },
+    { x: 560, y: height * 0.72, w: 60, h: 12 },
+    { x: 820, y: height * 0.68, w: 90, h: 18 },
+    { x: 1000, y: height * 0.75, w: 50, h: 10 },
+  ]
+  for (const lp of lightPatches) {
+    g.fillRect(lp.x, lp.y, lp.w, lp.h)
+  }
+  g.destroy()
+
+  // Floating light motes
+  let motesAlive = 0
+  const MAX_MOTES = 10
+  scene.time.addEvent({
+    delay: 500,
+    loop: true,
+    callback: () => {
+      if (motesAlive >= MAX_MOTES) return
+      const mx = 120 + Math.random() * (width - 240)
+      const my = height * 0.4 + Math.random() * (height * 0.35)
+      const mote = scene.add.graphics()
+      mote.fillStyle(0xffffaa, 0.6)
+      mote.fillCircle(0, 0, 3)
+      mote.x = mx; mote.y = my
+      motesAlive++
+      scene.tweens.add({
+        targets: mote,
+        y: my - 60,
+        x: mx + (Math.random() - 0.5) * 40,
+        alpha: 0,
+        duration: 3000 + Math.random() * 2000,
+        ease: 'Sine.easeInOut',
+        onComplete: () => { mote.destroy(); motesAlive-- },
+      })
+    },
+  })
+}
+
+function drawMoonlitGladeBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Deep navy night sky
+  g.fillStyle(0x05081a)
+  g.fillRect(0, 0, width, height * 0.6)
+
+  // Stars
+  g.fillStyle(0xccccdd)
+  const starPositions = [
+    [120, 40], [240, 80], [400, 30], [560, 60], [720, 25], [880, 70],
+    [1040, 45], [1180, 55], [180, 120], [340, 100], [660, 110], [820, 90],
+    [1100, 115], [500, 140], [760, 135], [980, 125], [300, 160], [700, 155],
+  ]
+  for (const [sx, sy] of starPositions) {
+    g.fillRect(sx - 1, sy - 1, 2, 2)
+  }
+
+  // Large full moon
+  g.fillStyle(0x9999aa)
+  g.fillCircle(width * 0.72, 80, 48)
+  g.fillStyle(0xbbbbcc)
+  g.fillCircle(width * 0.72, 80, 38)
+  g.fillStyle(0xccccdd)
+  g.fillCircle(width * 0.72, 80, 28)
+  // Moon craters
+  g.fillStyle(0xaaaabc)
+  g.fillCircle(width * 0.72 + 12, 68, 7)
+  g.fillCircle(width * 0.72 - 10, 88, 5)
+
+  // Silver-lit tree silhouettes
+  g.fillStyle(0x0a0f1e)
+  for (let x = 20; x < width; x += 80) {
+    const th = 160 + ((x * 5) % 80)
+    const tw = 32 + ((x * 3) % 18)
+    g.fillRect(x - tw / 2, height * 0.58 - th, tw, th)
+    g.fillRect(x - tw, height * 0.58 - th + 15, tw * 2, 22)
+    g.fillRect(x - tw * 0.7, height * 0.58 - th + 38, tw * 1.4, 18)
+  }
+
+  // Silver-tinted ground
+  g.fillStyle(0x0e1020)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  g.fillStyle(0x131525)
+  for (let x = 0; x < width; x += 50) g.fillRect(x, height * 0.58, 36, 5)
+
+  // Moonlight shaft on ground
+  const moonbeam = scene.add.rectangle(width * 0.72, height * 0.78, 100, height * 0.44, 0xaaaadd, 0.05)
+  g.destroy()
+
+  scene.tweens.add({
+    targets: moonbeam,
+    alpha: 0.1,
+    duration: 4000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Mist drift
+  const mist = scene.add.rectangle(width / 2, height * 0.65, width + 200, 50, 0x8888aa, 0.15)
+  scene.tweens.add({
+    targets: mist,
+    x: width / 2 + 50,
+    duration: 5500,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+}
+
+function drawVolcanicArenaBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Red-tinted rocky sky
+  g.fillStyle(0x1a0808)
+  g.fillRect(0, 0, width, height * 0.5)
+  g.fillStyle(0x220a0a)
+  for (let x = 0; x < width; x += 100) {
+    const cy = 30 + ((x * 7) % 50)
+    g.fillRect(x, cy, 88, 22)
+  }
+
+  // Jagged rock outcrops (left and right framing)
+  g.fillStyle(0x0e0808)
+  const rocks = [
+    { x: 60, h: 120, w: 50 }, { x: 130, h: 80, w: 40 },
+    { x: width - 60, h: 130, w: 50 }, { x: width - 130, h: 90, w: 42 },
+    { x: 220, h: 60, w: 34 }, { x: width - 220, h: 70, w: 36 },
+  ]
+  for (const rk of rocks) {
+    const baseY = height * 0.5
+    g.fillRect(rk.x - rk.w / 2, baseY - rk.h, rk.w, rk.h)
+    g.fillRect(rk.x - rk.w / 4, baseY - rk.h - 16, rk.w / 2, 18)
+    g.fillRect(rk.x - rk.w / 8, baseY - rk.h - 28, rk.w / 4, 14)
+  }
+
+  // Cracked dark stone floor
+  g.fillStyle(0x120808)
+  g.fillRect(0, height * 0.5, width, height * 0.5)
+  // Crack glow lines (orange)
+  g.fillStyle(0x883300)
+  for (let x = 40; x < width; x += 160) {
+    g.fillRect(x, height * 0.5, 3, height * 0.5)
+    g.fillRect(x + 80, height * 0.6, 3, height * 0.4)
+    g.fillRect(x + 40, height * 0.55, width * 0.08, 2)
+  }
+  g.destroy()
+
+  // Crack glow alpha tween (orange overlay)
+  const crackGlow = scene.add.rectangle(width / 2, height * 0.75, width, height * 0.5, 0xff4400, 0.06)
+  scene.tweens.add({
+    targets: crackGlow,
+    alpha: 0.12,
+    duration: 1400,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Rising embers/sparks
+  let embersAlive = 0
+  const MAX_EMBERS = 12
+  scene.time.addEvent({
+    delay: 350,
+    loop: true,
+    callback: () => {
+      if (embersAlive >= MAX_EMBERS) return
+      const ex = 50 + Math.random() * (width - 100)
+      const ember = scene.add.rectangle(ex, height * 0.9, 3, 3, 0xff6600, 0.8)
+      embersAlive++
+      scene.tweens.add({
+        targets: ember,
+        y: height * 0.3,
+        x: ex + (Math.random() - 0.5) * 60,
+        alpha: 0,
+        duration: 2000 + Math.random() * 1500,
+        ease: 'Quad.easeOut',
+        onComplete: () => { ember.destroy(); embersAlive-- },
+      })
+    },
+  })
+}
+
+function drawGenericArenaBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Dark stone walls
+  g.fillStyle(0x1a1420)
+  g.fillRect(0, 0, width, height * 0.65)
+  const brickH = 28, brickW = 56
+  g.fillStyle(0x120e18)
+  for (let row = 0; row < Math.ceil(height * 0.65 / brickH); row++) {
+    const offsetX = row % 2 === 0 ? 0 : brickW / 2
+    for (let col = -1; col < Math.ceil(width / brickW) + 1; col++) {
+      g.fillRect(col * brickW + offsetX, row * brickH, brickW, 2)
+      g.fillRect(col * brickW + offsetX, row * brickH, 2, brickH)
+    }
+  }
+  // Stone floor
+  g.fillStyle(0x0e0c12)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x0a0810)
+  for (let x = 0; x < width; x += 60) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 50) g.fillRect(0, y, width, 2)
+
+  // Simple archway at center
+  g.fillStyle(0x111118)
+  g.fillRect(width / 2 - 80, 0, 160, height * 0.5)
+  g.fillStyle(0x1a1420)
+  g.fillRect(width / 2 - 60, 0, 120, height * 0.45)
+
+  // Torch brackets
+  g.fillStyle(0x2a1a0a)
+  g.fillRect(180, height * 0.3, 10, 24)
+  g.fillRect(180, height * 0.27, 20, 7)
+  g.fillRect(width - 190, height * 0.3, 10, 24)
+  g.fillRect(width - 200, height * 0.27, 20, 7)
+  g.destroy()
+
+  // Torch flames
+  for (const tx of [185, width - 185]) {
+    const flame = scene.add.graphics()
+    flame.fillStyle(0xff7700, 0.9)
+    flame.fillRect(-4, -14, 8, 14)
+    flame.fillStyle(0xffcc00, 0.8)
+    flame.fillRect(-2, -18, 4, 10)
+    flame.x = tx; flame.y = height * 0.27
+    scene.tweens.add({
+      targets: flame,
+      alpha: 0.4, scaleY: 0.78, scaleX: 1.25,
+      duration: 110, yoyo: true, repeat: -1,
+    })
+  }
+}
+
+// ── Exported dispatch function ────────────────────────────────────────────────
+
+const miniBossVariants: Record<string, (scene: Phaser.Scene) => void> = {
+  knuckle_keeper_of_e: drawForestClearingBg,
+  nessa_keeper_of_n: drawMoonlitGladeBg,
+  rend_the_red: drawVolcanicArenaBg,
+  // Add future world mini-boss bossIds here
+}
+
+export function drawMiniBossBg(scene: Phaser.Scene, bossId: string): void {
+  const drawFn = miniBossVariants[bossId] ?? drawGenericArenaBg
+  drawFn(scene)
+}
+```
+
+- [ ] **Step 2: Build to verify all functions compile**
+
+```bash
+npm run build
+```
+Expected: success, no type errors.
+
+- [ ] **Step 3: Visual check — all three mini-boss variants**
+
+Run `npm run dev`. Navigate to three World 1 mini-boss encounters:
+- Knuckle (knuckle_keeper_of_e): sunlit forest clearing, bright sky, motes
+- Nessa (nessa_keeper_of_n): night sky, large moon, mist drift
+- Rend the Red (rend_the_red): red rocky arena, embers rising, crack glow
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/utils/bossBackgrounds.ts
+git commit -m "feat: add MiniBossTypical background variants (forest clearing, moonlit glade, volcanic arena)"
+```
+
+---
+
+## Task 14: Final build verification
+
+- [ ] **Step 1: Full production build**
+
+```bash
+npm run build
+```
+Expected: TypeScript type-check passes, build succeeds.
+
+- [ ] **Step 2: Run existing tests**
+
+```bash
+npm run test
+```
+Expected: all tests pass (backgrounds add no testable logic; this confirms nothing was broken in shared utilities).
+
+- [ ] **Step 3: Final commit**
+
+```bash
+git add -A
+git commit -m "feat: complete boss backgrounds implementation (issue #94)" --allow-empty
+```
+
+(Use `--allow-empty` only if nothing is unstaged; otherwise just commit normally.)
