@@ -1059,5 +1059,89 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawDigitalVoidBg(_scene: Phaser.Scene): void {}
+export function drawDigitalVoidBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Pure black
+  g.fillStyle(0x000000)
+  g.fillRect(0, 0, width, height)
+
+  // Energy rift cracks (static jagged lines)
+  g.lineStyle(2, 0x00ffcc, 0.3)
+  const riftY = height * 0.45
+  const segments = 18
+  const segW = width / segments
+  let ry = riftY
+  for (let i = 0; i < segments; i++) {
+    const nextRy = riftY + (Math.sin(i * 1.7) * 30)
+    g.lineBetween(i * segW, ry, (i + 1) * segW, nextRy)
+    ry = nextRy
+  }
+  g.lineStyle(1, 0xcc00ff, 0.2)
+  let ry2 = height * 0.3
+  for (let i = 0; i < segments; i++) {
+    const nextRy2 = height * 0.3 + (Math.sin(i * 2.3 + 1) * 20)
+    g.lineBetween(i * segW, ry2, (i + 1) * segW, nextRy2)
+    ry2 = nextRy2
+  }
+  g.destroy()
+
+  // Letter rain columns
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?@#$%'
+  const columnCount = 18
+  const columnSpacing = width / columnCount
+
+  for (let col = 0; col < columnCount; col++) {
+    const cx = (col + 0.5) * columnSpacing
+    const color = col % 3 === 0 ? '#00ff88' : col % 3 === 1 ? '#aa00ff' : '#00aaff'
+    const speed = 4000 + Math.random() * 3000
+    let charY = -(Math.random() * height)
+    let charAlive = false
+
+    scene.time.addEvent({
+      delay: Math.floor(speed / 8),
+      loop: true,
+      callback: () => {
+        if (charAlive) return
+        const ch = letters[Math.floor(Math.random() * letters.length)]
+        const ct = scene.add.text(cx, charY, ch, {
+          fontSize: '14px',
+          color,
+        }).setOrigin(0.5).setAlpha(0.7)
+        charAlive = true
+        scene.tweens.add({
+          targets: ct,
+          y: charY + height * 1.2,
+          duration: speed,
+          ease: 'Linear',
+          onComplete: () => { ct.destroy(); charY = -30; charAlive = false },
+        })
+      },
+    })
+  }
+
+  // Rift pulse from center
+  let riftsAlive = 0
+  const MAX_RIFTS = 3
+  scene.time.addEvent({
+    delay: 2000,
+    loop: true,
+    callback: () => {
+      if (riftsAlive >= MAX_RIFTS) return
+      const rg = scene.add.graphics()
+      rg.lineStyle(3, 0x00ffcc, 0.5)
+      rg.strokeRect(-80, -20, 160, 40)
+      rg.x = width * 0.5; rg.y = height * 0.45
+      riftsAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 8, scaleY: 12, alpha: 0,
+        duration: 1800,
+        ease: 'Quad.easeOut',
+        onComplete: () => { rg.destroy(); riftsAlive-- },
+      })
+    },
+  })
+}
 export function drawMiniBossBg(_scene: Phaser.Scene, _bossId: string): void {}
