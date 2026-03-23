@@ -92,7 +92,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     // Interactive hit area over the panel
     const box = this.add.rectangle(width / 2, y, panelW, panelH, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-    box.on('pointerdown', () => this.startGame(slot, profile))
+    box.on('pointerup', () => this.startGame(slot, profile))
 
     // Avatar
     const avatarX = width / 2 - panelW / 2 + 50
@@ -213,7 +213,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     imp.on('pointerover', () => imp.setColor('#aaffaa'))
     imp.on('pointerout', () => imp.setColor('#88cc88'))
 
-    box.on('pointerdown', () => {
+    box.on('pointerup', () => {
       this.startNaming(slot)
     })
     imp.on('pointerdown', (ptr: Phaser.Input.Pointer) => {

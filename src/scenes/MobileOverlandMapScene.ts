@@ -30,6 +30,7 @@ export class MobileOverlandMapScene extends Phaser.Scene {
   private profileSlot!: number;
   private profile!: ProfileData;
   private isDragging = false;
+  private hasPointerDownInScene = false;
 
   constructor() {
     super('MobileOverlandMap');
@@ -151,7 +152,7 @@ export class MobileOverlandMapScene extends Phaser.Scene {
     if (isUnlocked) {
       card.setInteractive({ useHandCursor: true });
       card.on('pointerup', () => {
-        if (!this.isDragging) {
+        if (!this.isDragging && this.hasPointerDownInScene) {
           this.scene.start('LevelIntro', {
             level,
             profileSlot: this.profileSlot,
@@ -166,6 +167,7 @@ export class MobileOverlandMapScene extends Phaser.Scene {
     let cameraStartY = 0;
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.hasPointerDownInScene = true;
       if (pointer.y >= viewableHeight) return;
       dragStartY = pointer.y;
       cameraStartY = this.cameras.main.scrollY;

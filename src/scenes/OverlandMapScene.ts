@@ -35,6 +35,7 @@ export class OverlandMapScene extends Phaser.Scene {
   private worldTitleText!: Phaser.GameObjects.Text
   private allNodes: { level: LevelConfig; pos: NodePosition }[] = []
   private dropdownOpen = false
+  private hasPointerDownInScene = false
   private dropdownItems: (Phaser.GameObjects.Text | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Zone)[] = []
 
   private readonly WORLD_NAMES = [
@@ -279,6 +280,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
     // ── Click-drag panning ───────────────────────────────────
     this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.hasPointerDownInScene = true
       this.isPanning = false
       this.panStartX = ptr.x
       this.panCamStartX = this.cameras.main.scrollX
@@ -437,7 +439,7 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
         })
 
         nodeSprite.on('pointerup', () => {
-          if (!this.isPanning) this.enterLevel(level, pos)
+          if (!this.isPanning && this.hasPointerDownInScene) this.enterLevel(level, pos)
         })
       }
 
