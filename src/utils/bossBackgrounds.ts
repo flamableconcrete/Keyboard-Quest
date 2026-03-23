@@ -1144,4 +1144,272 @@ export function drawDigitalVoidBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawMiniBossBg(_scene: Phaser.Scene, _bossId: string): void {}
+// ── Private mini-boss helpers ────────────────────────────────────────────────
+
+function drawForestClearingBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  g.fillStyle(0x3a7abb)
+  g.fillRect(0, 0, width, height * 0.55)
+  g.fillStyle(0x5090cc)
+  g.fillRect(0, height * 0.42, width, height * 0.15)
+
+  g.fillStyle(0x4a8c2a)
+  g.fillRect(0, height * 0.55, width, height * 0.45)
+  g.fillStyle(0x3a7c1a)
+  for (let x = 0; x < width; x += 40) {
+    g.fillRect(x, height * 0.55, 28, 6)
+  }
+
+  // Tree border (left and right edges)
+  g.fillStyle(0x2a5a18)
+  for (let i = 0; i < 4; i++) {
+    g.fillRect(i * 22, 0, 20, height)
+    g.fillRect(width - i * 22 - 20, 0, 20, height)
+    g.fillStyle(0x3a7c1a)
+    g.fillRect(i * 22, 0, 18, height)
+    g.fillRect(width - i * 22 - 18, 0, 18, height)
+    g.fillStyle(0x2a5a18)
+  }
+
+  // Dappled light patches on ground
+  g.fillStyle(0x6aaa3a)
+  const lightPatches = [
+    { x: 300, y: height * 0.65, w: 80, h: 16 },
+    { x: 560, y: height * 0.72, w: 60, h: 12 },
+    { x: 820, y: height * 0.68, w: 90, h: 18 },
+    { x: 1000, y: height * 0.75, w: 50, h: 10 },
+  ]
+  for (const lp of lightPatches) {
+    g.fillRect(lp.x, lp.y, lp.w, lp.h)
+  }
+  g.destroy()
+
+  let motesAlive = 0
+  const MAX_MOTES = 10
+  scene.time.addEvent({
+    delay: 500,
+    loop: true,
+    callback: () => {
+      if (motesAlive >= MAX_MOTES) return
+      const mx = 120 + Math.random() * (width - 240)
+      const my = height * 0.4 + Math.random() * (height * 0.35)
+      const mote = scene.add.graphics()
+      mote.fillStyle(0xffffaa, 0.6)
+      mote.fillCircle(0, 0, 3)
+      mote.x = mx; mote.y = my
+      motesAlive++
+      scene.tweens.add({
+        targets: mote,
+        y: my - 60,
+        x: mx + (Math.random() - 0.5) * 40,
+        alpha: 0,
+        duration: 3000 + Math.random() * 2000,
+        ease: 'Sine.easeInOut',
+        onComplete: () => { mote.destroy(); motesAlive-- },
+      })
+    },
+  })
+}
+
+function drawMoonlitGladeBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  g.fillStyle(0x05081a)
+  g.fillRect(0, 0, width, height * 0.6)
+
+  // Stars
+  g.fillStyle(0xccccdd)
+  const starPositions = [
+    [120, 40], [240, 80], [400, 30], [560, 60], [720, 25], [880, 70],
+    [1040, 45], [1180, 55], [180, 120], [340, 100], [660, 110], [820, 90],
+    [1100, 115], [500, 140], [760, 135], [980, 125], [300, 160], [700, 155],
+  ]
+  for (const [sx, sy] of starPositions) {
+    g.fillRect(sx - 1, sy - 1, 2, 2)
+  }
+
+  // Large full moon
+  g.fillStyle(0x9999aa)
+  g.fillCircle(width * 0.72, 80, 48)
+  g.fillStyle(0xbbbbcc)
+  g.fillCircle(width * 0.72, 80, 38)
+  g.fillStyle(0xccccdd)
+  g.fillCircle(width * 0.72, 80, 28)
+  g.fillStyle(0xaaaabc)
+  g.fillCircle(width * 0.72 + 12, 68, 7)
+  g.fillCircle(width * 0.72 - 10, 88, 5)
+
+  // Silver-lit tree silhouettes
+  g.fillStyle(0x0a0f1e)
+  for (let x = 20; x < width; x += 80) {
+    const th = 160 + ((x * 5) % 80)
+    const tw = 32 + ((x * 3) % 18)
+    g.fillRect(x - tw / 2, height * 0.58 - th, tw, th)
+    g.fillRect(x - tw, height * 0.58 - th + 15, tw * 2, 22)
+    g.fillRect(x - tw * 0.7, height * 0.58 - th + 38, tw * 1.4, 18)
+  }
+
+  // Silver ground
+  g.fillStyle(0x0e1020)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  g.fillStyle(0x131525)
+  for (let x = 0; x < width; x += 50) g.fillRect(x, height * 0.58, 36, 5)
+  g.destroy()
+
+  const moonbeam = scene.add.rectangle(width * 0.72, height * 0.78, 100, height * 0.44, 0xaaaadd, 0.05)
+  scene.tweens.add({
+    targets: moonbeam,
+    alpha: 0.1,
+    duration: 4000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  const mist = scene.add.rectangle(width / 2, height * 0.65, width + 200, 50, 0x8888aa, 0.15)
+  scene.tweens.add({
+    targets: mist,
+    x: width / 2 + 50,
+    duration: 5500,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+}
+
+function drawVolcanicArenaBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Red-tinted rocky sky
+  g.fillStyle(0x1a0808)
+  g.fillRect(0, 0, width, height * 0.5)
+  g.fillStyle(0x220a0a)
+  for (let x = 0; x < width; x += 100) {
+    const cy = 30 + ((x * 7) % 50)
+    g.fillRect(x, cy, 88, 22)
+  }
+
+  // Jagged rock outcrops
+  g.fillStyle(0x0e0808)
+  const rocks = [
+    { x: 60, h: 120, w: 50 }, { x: 130, h: 80, w: 40 },
+    { x: width - 60, h: 130, w: 50 }, { x: width - 130, h: 90, w: 42 },
+    { x: 220, h: 60, w: 34 }, { x: width - 220, h: 70, w: 36 },
+  ]
+  for (const rk of rocks) {
+    const baseY = height * 0.5
+    g.fillRect(rk.x - rk.w / 2, baseY - rk.h, rk.w, rk.h)
+    g.fillRect(rk.x - rk.w / 4, baseY - rk.h - 16, rk.w / 2, 18)
+    g.fillRect(rk.x - rk.w / 8, baseY - rk.h - 28, rk.w / 4, 14)
+  }
+
+  // Cracked stone floor
+  g.fillStyle(0x120808)
+  g.fillRect(0, height * 0.5, width, height * 0.5)
+  g.fillStyle(0x883300)
+  for (let x = 40; x < width; x += 160) {
+    g.fillRect(x, height * 0.5, 3, height * 0.5)
+    g.fillRect(x + 80, height * 0.6, 3, height * 0.4)
+    g.fillRect(x + 40, height * 0.55, width * 0.08, 2)
+  }
+  g.destroy()
+
+  const crackGlow = scene.add.rectangle(width / 2, height * 0.75, width, height * 0.5, 0xff4400, 0.06)
+  scene.tweens.add({
+    targets: crackGlow,
+    alpha: 0.12,
+    duration: 1400,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  let embersAlive = 0
+  const MAX_EMBERS = 12
+  scene.time.addEvent({
+    delay: 350,
+    loop: true,
+    callback: () => {
+      if (embersAlive >= MAX_EMBERS) return
+      const ex = 50 + Math.random() * (width - 100)
+      const ember = scene.add.rectangle(ex, height * 0.9, 3, 3, 0xff6600, 0.8)
+      embersAlive++
+      scene.tweens.add({
+        targets: ember,
+        y: height * 0.3,
+        x: ex + (Math.random() - 0.5) * 60,
+        alpha: 0,
+        duration: 2000 + Math.random() * 1500,
+        ease: 'Quad.easeOut',
+        onComplete: () => { ember.destroy(); embersAlive-- },
+      })
+    },
+  })
+}
+
+function drawGenericArenaBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  g.fillStyle(0x1a1420)
+  g.fillRect(0, 0, width, height * 0.65)
+  const brickH = 28, brickW = 56
+  g.fillStyle(0x120e18)
+  for (let row = 0; row < Math.ceil(height * 0.65 / brickH); row++) {
+    const offsetX = row % 2 === 0 ? 0 : brickW / 2
+    for (let col = -1; col < Math.ceil(width / brickW) + 1; col++) {
+      g.fillRect(col * brickW + offsetX, row * brickH, brickW, 2)
+      g.fillRect(col * brickW + offsetX, row * brickH, 2, brickH)
+    }
+  }
+  g.fillStyle(0x0e0c12)
+  g.fillRect(0, height * 0.65, width, height * 0.35)
+  g.fillStyle(0x0a0810)
+  for (let x = 0; x < width; x += 60) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 50) g.fillRect(0, y, width, 2)
+
+  // Archway
+  g.fillStyle(0x111118)
+  g.fillRect(width / 2 - 80, 0, 160, height * 0.5)
+  g.fillStyle(0x1a1420)
+  g.fillRect(width / 2 - 60, 0, 120, height * 0.45)
+
+  g.fillStyle(0x2a1a0a)
+  g.fillRect(180, height * 0.3, 10, 24)
+  g.fillRect(180, height * 0.27, 20, 7)
+  g.fillRect(width - 190, height * 0.3, 10, 24)
+  g.fillRect(width - 200, height * 0.27, 20, 7)
+  g.destroy()
+
+  for (const tx of [185, width - 185]) {
+    const flame = scene.add.graphics()
+    flame.fillStyle(0xff7700, 0.9)
+    flame.fillRect(-4, -14, 8, 14)
+    flame.fillStyle(0xffcc00, 0.8)
+    flame.fillRect(-2, -18, 4, 10)
+    flame.x = tx; flame.y = height * 0.27
+    scene.tweens.add({
+      targets: flame,
+      alpha: 0.4, scaleY: 0.78, scaleX: 1.25,
+      duration: 110, yoyo: true, repeat: -1,
+    })
+  }
+}
+
+// ── Exported dispatch function ────────────────────────────────────────────────
+
+const miniBossVariants: Record<string, (scene: Phaser.Scene) => void> = {
+  knuckle_keeper_of_e: drawForestClearingBg,
+  nessa_keeper_of_n: drawMoonlitGladeBg,
+  rend_the_red: drawVolcanicArenaBg,
+  // Add future world mini-boss bossIds here
+}
+
+export function drawMiniBossBg(scene: Phaser.Scene, bossId: string): void {
+  const drawFn = miniBossVariants[bossId] ?? drawGenericArenaBg
+  drawFn(scene)
+}
