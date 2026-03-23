@@ -107,7 +107,107 @@ export function drawSlimeCaveBg(scene: Phaser.Scene): void {
     },
   })
 }
-export function drawSwampBg(_scene: Phaser.Scene): void {}
+export function drawSwampBg(scene: Phaser.Scene): void {
+  const { width, height } = scene.scale
+  const g = scene.add.graphics()
+
+  // Murky sky (stacked gradient strips)
+  const skyBands = [0x061206, 0x081608, 0x0a1a0a, 0x0c1e0c, 0x0e220e, 0x102610]
+  const bandH = (height * 0.58) / skyBands.length
+  for (let i = 0; i < skyBands.length; i++) {
+    g.fillStyle(skyBands[i])
+    g.fillRect(0, i * bandH, width, bandH + 1)
+  }
+
+  // Dead tree silhouettes (back layer)
+  g.fillStyle(0x040c04)
+  const trees = [50, 160, 290, 400, 540, 680, 810, 940, 1080, 1200]
+  for (const tx of trees) {
+    const th = 130 + ((tx * 3) % 70)
+    const baseY = height * 0.55 - th
+    // Trunk
+    g.fillRect(tx - 6, baseY, 12, th)
+    // Branches
+    g.fillRect(tx - 32, baseY + 20, 64, 5)
+    g.fillRect(tx - 22, baseY + 45, 44, 4)
+    g.fillRect(tx + 8, baseY + 32, 32, 3)
+    g.fillRect(tx - 38, baseY + 32, 28, 3)
+    // Bare twigs
+    g.fillRect(tx - 44, baseY + 20, 14, 3)
+    g.fillRect(tx + 38, baseY + 20, 14, 3)
+    g.fillRect(tx - 52, baseY + 17, 6, 3)
+    g.fillRect(tx + 46, baseY + 17, 6, 3)
+  }
+
+  // Water surface
+  g.fillStyle(0x050e05)
+  g.fillRect(0, height * 0.58, width, height * 0.42)
+  // Water shimmer lines
+  g.fillStyle(0x0a1a0a)
+  for (let wy = height * 0.60; wy < height; wy += 22) {
+    g.fillRect(20, wy, width - 40, 2)
+  }
+
+  // Lily pads
+  const lilies = [
+    { x: 160, y: height * 0.68, r: 20 },
+    { x: 430, y: height * 0.72, r: 24 },
+    { x: 700, y: height * 0.64, r: 18 },
+    { x: 960, y: height * 0.76, r: 22 },
+    { x: 1120, y: height * 0.68, r: 15 },
+  ]
+  for (const lily of lilies) {
+    g.fillStyle(0x1a4a1a)
+    const r = lily.r
+    g.fillRect(lily.x - r, lily.y - r / 2, r * 2, r)
+    g.fillRect(lily.x - r / 2, lily.y - r, r, r * 2)
+    // Notch (lily pad gap)
+    g.fillStyle(0x050e05)
+    g.fillRect(lily.x - 2, lily.y - r, 4, r + 2)
+    // Tiny flower
+    g.fillStyle(0xeeddaa)
+    g.fillRect(lily.x - 2, lily.y - 2, 4, 4)
+  }
+
+  // Surface debris / dead leaves
+  g.fillStyle(0x080f08)
+  const debris = [[200, height * 0.65], [570, height * 0.73], [840, height * 0.66], [1050, height * 0.71]]
+  for (const [dx, dy] of debris) {
+    g.fillRect(dx, dy, 22, 7)
+    g.fillRect(dx + 4, dy - 4, 14, 5)
+  }
+  g.destroy()
+
+  // Fog layer (tweened)
+  const fog1 = scene.add.rectangle(width / 2, height * 0.59, width + 200, 55, 0x1a3a1a, 0.2)
+  const fog2 = scene.add.rectangle(width / 2, height * 0.62, width + 200, 40, 0x1a3a1a, 0.15)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 50, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 40, duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // Water ripples
+  let ripplesAlive = 0
+  const MAX_RIPPLES = 5
+  scene.time.addEvent({
+    delay: 1300,
+    loop: true,
+    callback: () => {
+      if (ripplesAlive >= MAX_RIPPLES) return
+      const rx = 80 + Math.random() * (width - 160)
+      const ry = height * 0.63 + Math.random() * (height * 0.28)
+      const rg = scene.add.graphics()
+      rg.lineStyle(1, 0x1a4a1a, 0.5)
+      rg.strokeEllipse(0, 0, 24, 10)
+      rg.x = rx; rg.y = ry
+      ripplesAlive++
+      scene.tweens.add({
+        targets: rg,
+        scaleX: 3.5, scaleY: 3.5, alpha: 0,
+        duration: 2000,
+        onComplete: () => { rg.destroy(); ripplesAlive-- },
+      })
+    },
+  })
+}
 export function drawWebCavernBg(_scene: Phaser.Scene): void {}
 export function drawCryptBg(_scene: Phaser.Scene): void {}
 export function drawCastleThroneRoomBg(_scene: Phaser.Scene): void {}
