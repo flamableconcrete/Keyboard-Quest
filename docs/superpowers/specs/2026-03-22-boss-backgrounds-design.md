@@ -51,6 +51,17 @@ They use `scene.add.graphics()`, `scene.add.rectangle()`, `scene.tweens.add()`, 
 | `drawDigitalVoidBg(scene)` | `TypemancerBoss` |
 | `drawMiniBossBg(scene, bossId)` | `MiniBossTypical` |
 
+### Private Helper Functions (mini-boss variants, not exported)
+
+These are called only via `drawMiniBossBg`. They are not exported.
+
+| Function | Visual |
+|---|---|
+| `drawForestClearingBg(scene)` | Sunlit forest clearing (Knuckle) |
+| `drawMoonlitGladeBg(scene)` | Moonlit glade (Nessa) |
+| `drawVolcanicArenaBg(scene)` | Volcanic rock arena (Rend) |
+| `drawGenericArenaBg(scene)` | Fallback dark stone arena |
+
 ### Boss Scene Changes
 
 Each boss scene's `create()` method replaces its single background rectangle:
@@ -106,7 +117,8 @@ All backgrounds draw bottom-up: sky/ground layer → midground → foreground de
 - **Sky/ground:** Black cave walls with faint stone texture (small pixel dots)
 - **Midground:** Large cobweb patterns radiating from corners and mid-wall (lines of single pixels)
 - **Foreground:** Glowing blue egg sacs (small circles with alpha pulse)
-- **Animations:** Small spider shapes crawl along web lines (path tween); web strands sway (scaleX tween)
+- **Animations:** Small spider shapes crawl along web lines (path tween); web strands sway — each strand is a separate `Rectangle` game object so it can be tweened individually via `rotation` tween (not a `Graphics` object; `scaleX` tweens on `Graphics` apply to the whole object from its origin and cannot animate individual drawn lines)
+- **Note:** `SpiderBoss` draws its own central radial gameplay web in `create()`. The background cobwebs must be visually distinct: positioned in corners and along wall edges, not the screen center, to avoid conflating background decoration with the interactive gameplay web.
 
 ### DiceLichBoss — Necromantic Crypt
 - **Sky/ground:** Stone tile floor (grid of 32×32 dark gray squares with darker border lines), black upper half
@@ -130,7 +142,7 @@ All backgrounds draw bottom-up: sky/ground layer → midground → foreground de
 - **Sky/ground:** Dark ash-gray sky, black rocky ground with glowing orange cracks
 - **Midground:** Black rock spires (irregular triangular shapes), lava river stripe across lower third
 - **Foreground:** Molten floor cracks (thin orange/red lines), steam vent openings
-- **Animations:** Lava river glow pulses (fillColor oscillation via tween alpha overlay); ash particles float upward (time-spawned); steam puffs billow from vents
+- **Animations:** Lava river glow pulses via a semi-transparent orange overlay rectangle whose alpha tweens yoyo (Phaser 3 cannot tween `fillColor` on `Graphics` objects; use an alpha-animated overlay instead); ash particles float upward (time-spawned); steam puffs billow from vents
 
 ### ClockworkDragonBoss — Steampunk Workshop
 - **Sky/ground:** Dark metal panel wall (grid pattern of charcoal squares with rivet dots at corners), metal floor
@@ -181,7 +193,9 @@ All backgrounds draw bottom-up: sky/ground layer → midground → foreground de
 
 ## Layering and Depth
 
-All background objects use Phaser's default depth (0). Boss sprites, HUD, and typing engine objects are added after the background call in each scene's `create()`, so they naturally render on top.
+All background objects use Phaser's default depth (0). Boss sprites, HUD, and typing engine objects are added after the background call in each scene's `create()`, so they naturally render on top via draw order.
+
+**Do not call `setDepth()` on any background object.** Assigning explicit depth values risks pushing background elements above HUD or gameplay objects if those objects also use default depth.
 
 ---
 
@@ -189,9 +203,10 @@ All background objects use Phaser's default depth (0). Boss sprites, HUD, and ty
 
 - Use `scene.scale.width` / `scene.scale.height` throughout — never hardcoded pixel values.
 - Pixel art texture: prefer `fillRect` calls with 2–8px block sizes over `fillCircle` or anti-aliased shapes, except for large smooth elements (moon, lava glow overlay).
-- Time-driven particle emitters: use `scene.time.addEvent({ loop: true, delay: N, callback: spawnFn })` and limit active particle count to avoid accumulation.
+- Time-driven particle emitters: use `scene.time.addEvent({ loop: true, delay: N, callback: spawnFn })`. Each spawned object (drip, ember, letter, etc.) must be destroyed when its animation completes — call `obj.destroy()` in the tween's `onComplete` callback. Also cap concurrent live particles (e.g. skip spawning if a local counter ≥ N) to prevent accumulation in long sessions.
 - No new files needed beyond `bossBackgrounds.ts` and the 12 boss scene edits.
 - No changes to types, data files, `BaseBossScene`, `BossBattleScene`, or tests.
+- `bossId: 'grizzlefang'` appears in `world1.ts`, `world3.ts`, and `world5.ts` — all three map to `GrizzlefangBoss` and will use `drawDarkForestBg`. This is intentional: the same boss reappears in World 3, and the shared forest background is appropriate for both encounters.
 
 ---
 
