@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawSwampBg } from '../../utils/bossBackgrounds'
 
 interface Head {
   sprite: Phaser.GameObjects.Rectangle
@@ -46,8 +47,7 @@ export class HydraBoss extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Dark swampy background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x051a05)
+    drawSwampBg(this)
 
     // HUD
     this.hp = this.setupBossHP(this.targetDefeated)

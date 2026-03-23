@@ -8,6 +8,7 @@ import { generateGenericBossTextures } from '../../art/genericBossArt'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawMiniBossBg } from '../../utils/bossBackgrounds'
 
 export class MiniBossTypical extends BaseBossScene {
   private bossSprite!: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle
@@ -34,8 +35,7 @@ export class MiniBossTypical extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x4a1e2a)
+    drawMiniBossBg(this, this.level.bossId ?? '')
 
     // Apply weakness reduction to word queue and initialize HP state
     this.initWordPool()

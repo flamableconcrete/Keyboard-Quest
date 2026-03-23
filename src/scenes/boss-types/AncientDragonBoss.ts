@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawVolcanicLairBg } from '../../utils/bossBackgrounds'
 
 export class AncientDragonBoss extends BaseBossScene {
   private phase = 1
@@ -30,8 +31,7 @@ export class AncientDragonBoss extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Deep purple/black background for Ancient Dragon
-    this.add.rectangle(width / 2, height / 2, width, height, 0x0a001a)
+    drawVolcanicLairBg(this)
 
     // HUD
     this.hp = this.setupBossHP(this.level.wordCount)

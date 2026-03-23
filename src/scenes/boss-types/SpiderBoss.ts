@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawWebCavernBg } from '../../utils/bossBackgrounds'
 
 interface WebLine {
   index: number;
@@ -50,8 +51,7 @@ export class SpiderBoss extends BaseBossScene {
     const centerX = width / 2
     const centerY = height / 2
 
-    // Dark Background
-    this.add.rectangle(centerX, centerY, width, height, 0x0a0a1a)
+    drawWebCavernBg(this)
 
     this.initWordPool()
     this.preCreate(undefined, undefined, {

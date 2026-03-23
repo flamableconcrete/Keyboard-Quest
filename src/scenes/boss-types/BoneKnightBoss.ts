@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawGraveyardBg } from '../../utils/bossBackgrounds'
 
 interface Shield {
     sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle
@@ -38,8 +39,7 @@ export class BoneKnightBoss extends BaseBossScene {
     create() {
         const { width, height } = this.scale
 
-        // Dark Background
-        this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a0a)
+        drawGraveyardBg(this)
 
         // HUD
         this.hp = this.setupBossHP(this.level.wordCount)

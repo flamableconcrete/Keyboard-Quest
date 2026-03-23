@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawDigitalVoidBg } from '../../utils/bossBackgrounds'
 
 export class TypemancerBoss extends BaseBossScene {
   private phase = 1
@@ -34,8 +35,7 @@ export class TypemancerBoss extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Pitch black background for the ultimate boss
-    this.add.rectangle(width / 2, height / 2, width, height, 0x000000)
+    drawDigitalVoidBg(this)
 
     this.hp = this.setupBossHP(this.level.wordCount)
 

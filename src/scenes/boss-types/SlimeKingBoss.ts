@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawSlimeCaveBg } from '../../utils/bossBackgrounds'
 
 interface Slime {
   word: string
@@ -39,8 +40,7 @@ export class SlimeKingBoss extends BaseBossScene {
     this.hp = this.setupBossHP(this.level.wordCount)
     const { width, height } = this.scale
 
-    // Dark Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
+    drawSlimeCaveBg(this)
 
     this.initWordPool()
     this.preCreate(undefined, undefined, {

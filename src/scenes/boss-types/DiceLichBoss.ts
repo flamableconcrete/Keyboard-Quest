@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawCryptBg } from '../../utils/bossBackgrounds'
 
 export class DiceLichBoss extends BaseBossScene {
   private phase = 1
@@ -34,8 +35,7 @@ export class DiceLichBoss extends BaseBossScene {
 
   create() {
     const { width, height } = this.scale
-    // Dark background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x050505)
+    drawCryptBg(this)
 
     // HUD
     this.hp = this.setupBossHP(this.level.wordCount)

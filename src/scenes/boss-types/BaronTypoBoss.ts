@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawCastleThroneRoomBg } from '../../utils/bossBackgrounds'
 
 export class BaronTypoBoss extends BaseBossScene {
   private phase = 1
@@ -33,8 +34,7 @@ export class BaronTypoBoss extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Deep Purple/Dark Background for Baron Typo
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a0a2a)
+    drawCastleThroneRoomBg(this)
 
     // HUD
     this.hp = this.setupBossHP(this.level.wordCount)

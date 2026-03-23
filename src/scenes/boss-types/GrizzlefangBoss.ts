@@ -8,6 +8,7 @@ import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawDarkForestBg } from '../../utils/bossBackgrounds'
 
 export class GrizzlefangBoss extends BaseBossScene {
   private phase = 1
@@ -49,8 +50,7 @@ export class GrizzlefangBoss extends BaseBossScene {
 
     const { width, height } = this.scale
 
-    // Dark Background for major boss
-    this.add.rectangle(width / 2, height / 2, width, height, 0x111111)
+    drawDarkForestBg(this)
 
     const effectiveWordCount = this.weaknessActive
       ? Math.max(1, Math.floor(this.level.wordCount * 0.8))

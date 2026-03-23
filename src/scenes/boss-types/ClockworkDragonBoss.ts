@@ -7,6 +7,7 @@ import { getWordPool } from '../../utils/words'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
+import { drawSteampunkWorkshopBg } from '../../utils/bossBackgrounds'
 
 interface Gear {
   container: Phaser.GameObjects.Container
@@ -50,8 +51,7 @@ export class ClockworkDragonBoss extends BaseBossScene {
   create() {
     const { width, height } = this.scale
 
-    // Metallic/Dark Industrial Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a1a)
+    drawSteampunkWorkshopBg(this)
 
     // HUD
     this.hp = this.setupBossHP(this.targetDefeated)
