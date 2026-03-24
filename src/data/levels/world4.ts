@@ -233,6 +233,28 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     phases: 2,
   },
   {
+    id: 'w4_mm',
+    name: 'The Bone-Scholar\'s Archive',
+    type: 'MonsterManual',
+    world: 4,
+    unlockedLetters: W4_AFTER_MB4,
+    wordCount: 5,
+    timeLimit: 240,
+    dialogue: [
+      { speaker: "enemy", text: "The Dice Lich has played this game for centuries. You should know the stakes before you enter." },
+      { speaker: "hero", text: "Show me what you have. Every scrap." },
+    ],
+    rewards: { xp: 500 },
+    bossGate: null,
+    phrases: [
+      "the lich gambles with your very bones",
+      "watch the dice but keep typing",
+      "every throw may summon new words",
+      "break the rhythm and you shatter",
+      "victory belongs to the steady hand",
+    ],
+  },
+  {
     id: 'w4_boss',
     name: 'Sanctum of the Dice Lich',
     type: 'BossBattle',
