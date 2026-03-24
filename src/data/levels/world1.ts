@@ -185,14 +185,19 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     type: 'MonsterManual',
     world: 1,
     unlockedLetters: W1_AFTER_MB3,
-    wordCount: 10,
-    timeLimit: null,
+    wordCount: 3,
+    timeLimit: 180,
     dialogue: [
       { speaker: "enemy", text: "Ah, a visitor! Come — I have notes on Grizzlefang. You'll need them." },
       { speaker: "hero",  text: "Tell me everything." },
     ],
     rewards: { xp: 100 },
     bossGate: null,
+    phrases: [
+      "dark feral dens",
+      "fear and flee",
+      "rend and snare",
+    ],
   },
   {
     id: 'w1_boss',
