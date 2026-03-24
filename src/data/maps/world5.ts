@@ -221,18 +221,18 @@ function buildDecorations(): DecorationPlacement[] {
 // cy offsets bow outward: -40 when going up, +40 when going down
 function buildPathSegments(): PathSegment[] {
   return [
-    { cx: 230,  cy: 520 }, // l1 → l2   (going up)
-    { cx: 430,  cy: 405 }, // l2 → l3   (going up)
-    { cx: 625,  cy: 290 }, // l3 → mb1  (going up)
-    { cx: 810,  cy: 375 }, // mb1 → l4  (going down)
-    { cx: 995,  cy: 295 }, // l4 → l5   (going up)
-    { cx: 1180, cy: 170 }, // l5 → mb2  (going up)
-    { cx: 1355, cy: 255 }, // mb2 → l6  (going down)
-    { cx: 1530, cy: 180 }, // l6 → l7   (going up)
-    { cx: 1710, cy: 115 }, // l7 → mb3  (going up)
-    { cx: 1885, cy: 230 }, // mb3 → l8  (going down)
-    { cx: 2055, cy: 150 }, // l8 → mb4  (going up)
-    { cx: 2220, cy: 245 }, // mb4 → boss (going down to center)
+    { cx: 230,  cy: 520 }, // l1 → l2
+    { cx: 430,  cy: 405 }, // l2 → mb1
+    { cx: 625,  cy: 290 }, // mb1 → l4
+    { cx: 810,  cy: 375 }, // l4 → l5
+    { cx: 995,  cy: 295 }, // l5 → mb2
+    { cx: 1180, cy: 170 }, // mb2 → l6
+    { cx: 1355, cy: 255 }, // l6 → l7
+    { cx: 1530, cy: 180 }, // l7 → mb3
+    { cx: 1710, cy: 115 }, // mb3 → l8
+    { cx: 1885, cy: 230 }, // l8 → mb4
+    { cx: 2055, cy: 150 }, // mb4 → l3
+    { cx: 2220, cy: 245 }, // l3 → boss
   ]
 }
 
@@ -290,16 +290,16 @@ export const WORLD5_MAP: WorldMapData = {
   nodePositions: [
     { x: 130,  y: 620 }, // l1 — tower base (left)
     { x: 330,  y: 500 }, // l2
-    { x: 530,  y: 390 }, // l3
-    { x: 720,  y: 270 }, // mb1
-    { x: 900,  y: 400 }, // l4
-    { x: 1090, y: 270 }, // l5
-    { x: 1270, y: 150 }, // mb2
-    { x: 1440, y: 280 }, // l6
-    { x: 1620, y: 160 }, // l7
-    { x: 1800, y: 150 }, // mb3
-    { x: 1970, y: 230 }, // l8
-    { x: 2140, y: 150 }, // mb4
+    { x: 530,  y: 390 }, // mb1 (was l3)
+    { x: 720,  y: 270 }, // l4 (was mb1)
+    { x: 900,  y: 400 }, // l5 (was l4)
+    { x: 1090, y: 270 }, // mb2 (was l5)
+    { x: 1270, y: 150 }, // l6 (was mb2)
+    { x: 1440, y: 280 }, // l7 (was l6)
+    { x: 1620, y: 160 }, // mb3 (was l7)
+    { x: 1800, y: 150 }, // l8 (was mb3)
+    { x: 1970, y: 230 }, // mb4 (was l8)
+    { x: 2140, y: 150 }, // l3 — MonsterManual (was mb4)
     { x: 2300, y: 360 }, // boss — Typemancer's throne (centered)
   ],
 
