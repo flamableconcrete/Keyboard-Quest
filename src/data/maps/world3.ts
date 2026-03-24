@@ -231,9 +231,9 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1510, cy: 380 }, // l6 → l7   (going up)
     { cx: 1690, cy: 230 }, // l7 → mb3  (going up)
     { cx: 1860, cy: 300 }, // mb3 → l8  (going down)
-    { cx: 2020, cy: 215 }, // l8 → l9   (going up)
-    { cx: 2185, cy: 140 }, // l9 → mb4  (going up)
-    { cx: 2350, cy: 125 }, // mb4 → boss (going up)
+    { cx: 2020, cy: 215 }, // l8 → mb4  (was l8 → l9)
+    { cx: 2185, cy: 140 }, // mb4 → l9  (was l9 → mb4)
+    { cx: 2350, cy: 125 }, // l9 → boss (was mb4 → boss)
   ]
 }
 
@@ -300,8 +300,8 @@ export const WORLD3_MAP: WorldMapData = {
     { x: 1600, y: 340 }, // l7
     { x: 1780, y: 200 }, // mb3
     { x: 1940, y: 320 }, // l8
-    { x: 2100, y: 190 }, // l9
-    { x: 2270, y: 170 }, // mb4
+    { x: 2100, y: 190 }, // mb4 (was l9)
+    { x: 2270, y: 170 }, // l9 — MonsterManual (was mb4)
     { x: 2430, y: 160 }, // boss — volcanic summit (right)
   ],
 
