@@ -104,6 +104,7 @@ export interface LevelConfig {
   maxWalkoffs?: number      // for CrazedCook: max angry walk-offs before losing
   waveCount?: number        // for SkeletonSwarm: number of waves before victory; see WaveLevelConfig
   castleHp?: number         // for UndeadSiege: castle hit points
+  phrases?: string[]             // MonsterManual only; hand-crafted boss-lore phrases
 }
 
 /** Config for wave-based levels (SkeletonSwarm, UndeadSiege, etc.) */
