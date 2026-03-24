@@ -14,7 +14,7 @@ import { WORLD4_MAP } from './world4'
 import { WORLD5_MAP } from './world5'
 import type { WorldMapData } from './types'
 
-const LEVEL_COUNTS = [12, 15, 14, 14, 13]
+const LEVEL_COUNTS = [12, 15, 14, 15, 13]
 
 describe('computeWorldWidth', () => {
   it('returns MARGIN + levels*SPACING + MARGIN', () => {
@@ -27,7 +27,7 @@ describe('computeWorldWidth', () => {
 
 describe('computeWorldWidths', () => {
   it('maps level counts to widths', () => {
-    expect(computeWorldWidths(LEVEL_COUNTS)).toEqual([2200, 2650, 2500, 2500, 2350])
+    expect(computeWorldWidths(LEVEL_COUNTS)).toEqual([2200, 2650, 2500, 2650, 2350])
   })
 })
 
@@ -46,13 +46,13 @@ describe('computeWorldXOffsets', () => {
   })
   it('returns correct offsets for all 5 worlds', () => {
     const offsets = computeWorldXOffsets(LEVEL_COUNTS)
-    expect(offsets).toEqual([0, 2200, 4850, 7350, 9850])
+    expect(offsets).toEqual([0, 2200, 4850, 7350, 10000])
   })
 })
 
 describe('computeTotalMapWidth', () => {
   it('sums all world widths', () => {
-    expect(computeTotalMapWidth(LEVEL_COUNTS)).toBe(12200)
+    expect(computeTotalMapWidth(LEVEL_COUNTS)).toBe(12350)
   })
 })
 
@@ -66,22 +66,19 @@ describe('computeTileCols', () => {
 })
 
 describe('worldIndexAtScrollX', () => {
-  // xOffsets = [0, 2200, 4850, 7350, 9850], totalWidth = 12200
-  // viewport width = 1280 (default)
   it('returns 0 when camera center is in world 1', () => {
-    expect(worldIndexAtScrollX(0, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(0)
-    expect(worldIndexAtScrollX(500, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(0)
+    expect(worldIndexAtScrollX(0, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(0)
+    expect(worldIndexAtScrollX(500, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(0)
   })
   it('returns 1 when camera center crosses into world 2', () => {
-    // camera center = scrollX + 640. Center at 2200 means scrollX = 1560
-    expect(worldIndexAtScrollX(1560, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(1)
+    expect(worldIndexAtScrollX(1560, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(1)
   })
   it('returns last world index when near end of map', () => {
-    expect(worldIndexAtScrollX(10920, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(4)
+    expect(worldIndexAtScrollX(11070, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(4)
   })
   it('clamps to valid range', () => {
-    expect(worldIndexAtScrollX(-100, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(0)
-    expect(worldIndexAtScrollX(99999, [0, 2200, 4850, 7350, 9850], 12200, 1280)).toBe(4)
+    expect(worldIndexAtScrollX(-100, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(0)
+    expect(worldIndexAtScrollX(99999, [0, 2200, 4850, 7350, 10000], 12350, 1280)).toBe(4)
   })
 })
 
@@ -90,7 +87,7 @@ describe('world map nodePositions layout constraints', () => {
     ['world1', WORLD1_MAP, 2200],
     ['world2', WORLD2_MAP, 2650],
     ['world3', WORLD3_MAP, 2500],
-    ['world4', WORLD4_MAP, 2500],
+    ['world4', WORLD4_MAP, 2650],
     ['world5', WORLD5_MAP, 2600],
   ]
 
