@@ -223,9 +223,9 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1600, cy: 490 }, // l7 → l8   (going down)
     { cx: 1770, cy: 395 }, // l8 → mb3  (going up)
     { cx: 1940, cy: 255 }, // mb3 → l9  (going up)
-    { cx: 2110, cy: 335 }, // l9 → l10  (going down)
-    { cx: 2285, cy: 250 }, // l10 → mb4 (going up)
-    { cx: 2445, cy: 155 }, // mb4 → boss (going up)
+    { cx: 2110, cy: 335 }, // l9 → mb4  (was l9 → l10)
+    { cx: 2285, cy: 250 }, // mb4 → l10 (was l10 → mb4)
+    { cx: 2445, cy: 155 }, // l10 → boss (was mb4 → boss)
   ]
 }
 
@@ -293,8 +293,8 @@ export const WORLD2_MAP: WorldMapData = {
     { x: 1680, y: 510 }, // l8
     { x: 1860, y: 360 }, // mb3
     { x: 2020, y: 230 }, // l9
-    { x: 2200, y: 360 }, // l10
-    { x: 2370, y: 220 }, // mb4
+    { x: 2200, y: 360 }, // mb4 (was l10)
+    { x: 2370, y: 220 }, // l10 — MonsterManual (was mb4)
     { x: 2520, y: 170 }, // boss (right)
   ],
 

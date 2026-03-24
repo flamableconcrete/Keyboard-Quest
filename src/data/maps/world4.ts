@@ -32,7 +32,7 @@ const TWISTED_ROOT = 30
 const FERN = 31
 
 // ── Grid helpers ────────────────────────────────────────────
-const COLS = 79
+const COLS = 84
 const ROWS = 23
 
 function fillGrid(value: number): TileGrid {
@@ -131,8 +131,10 @@ function buildGround(): TileGrid {
   hPath(g, 13, 61, 67, PATH_H); g[13][67] = PATH_CORNER; vPath(g, 67, 8, 13, PATH_V)
   // l9(67,8) → mb4(72,5)
   hPath(g, 8, 67, 72, PATH_H); g[8][72] = PATH_CORNER; vPath(g, 72, 5, 8, PATH_V)
-  // mb4(72,5) → boss(77,3)
-  hPath(g, 5, 72, 77, PATH_H); g[5][77] = PATH_CORNER; vPath(g, 77, 3, 5, PATH_V)
+  // mb4(72,5) → w4_mm(76,9)
+  hPath(g, 5, 72, 76, PATH_H); g[5][76] = PATH_CORNER; vPath(g, 76, 5, 9, PATH_V)
+  // w4_mm(76,9) → boss(81,5)
+  hPath(g, 9, 76, 81, PATH_H); g[9][81] = PATH_CORNER; vPath(g, 81, 5, 9, PATH_V)
 
   // Deep moss pools
   for (let r = 18; r <= 20; r++) {
@@ -250,7 +252,8 @@ function buildPathSegments(): PathSegment[] {
     { cx: 1875, cy: 380 }, // mb3 → l8  (going down)
     { cx: 2045, cy: 295 }, // l8 → l9   (going up)
     { cx: 2215, cy: 190 }, // l9 → mb4  (going up)
-    { cx: 2380, cy: 145 }, // mb4 → boss (going up)
+    { cx: 2370, cy: 290 }, // mb4 → w4_mm (going down)
+    { cx: 2510, cy: 195 }, // w4_mm → boss (going up)
   ]
 }
 
@@ -319,7 +322,8 @@ export const WORLD4_MAP: WorldMapData = {
     { x: 1960, y: 410 }, // l8
     { x: 2130, y: 260 }, // l9
     { x: 2300, y: 200 }, // mb4
-    { x: 2460, y: 170 }, // boss (right)
+    { x: 2440, y: 300 }, // w4_mm (MonsterManual)
+    { x: 2580, y: 170 }, // boss (right)
   ],
 
   pathSegments: buildPathSegments(),
