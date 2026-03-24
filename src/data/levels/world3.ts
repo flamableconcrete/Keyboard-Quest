@@ -195,21 +195,6 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     bossGate: null,
   },
   {
-    id: 'w3_l9',
-    name: 'The Drake-Scholar\'s Rest',
-    type: 'MonsterManual',
-    world: 3,
-    unlockedLetters: W3_AFTER_MB3,
-    wordCount: 22,
-    timeLimit: null,
-    dialogue: [
-      { speaker: "enemy", text: "You're heading to the Citadel. You should know what lives inside. Sit." },
-      { speaker: "hero", text: "I'm already sitting. Talk fast." }
-    ],
-    rewards: { xp: 280 },
-    bossGate: null,
-  },
-  {
     id: 'w3_mb4',
     name: 'The Gorgon\'s Pit',
     type: 'BossBattle',
@@ -223,12 +208,34 @@ export const WORLD3_LEVELS: LevelConfig[] = [
       { speaker: "enemy", text: "Clever. But cleverness has a way of... petrifying... under pressure." }
     ],
     rewards: { xp: 740, title: 'Seeker of G' },
-    bossGate: { minCombinedStars: 16, levelIds: ['w3_l8', 'w3_l9'] },
+    bossGate: { minCombinedStars: 8, levelIds: ['w3_l8'] },
     isMiniBoss: true,
     bossId: 'slime_king',
     bossName: 'King Sludge, Royal Ooze',
     miniBossUnlocksLetter: 'g',
     phases: 2,
+  },
+  {
+    id: 'w3_l9',
+    name: 'The Drake-Scholar\'s Rest',
+    type: 'MonsterManual',
+    world: 3,
+    unlockedLetters: W3_AFTER_MB3,
+    wordCount: 5,
+    timeLimit: 240,
+    dialogue: [
+      { speaker: "enemy", text: "You're heading to the Citadel. You should know what lives inside. Sit." },
+      { speaker: "hero", text: "I'm already sitting. Talk fast." }
+    ],
+    rewards: { xp: 280 },
+    bossGate: null,
+    phrases: [
+      "the machine hunts at dusk",
+      "no one can outrun its path",
+      "steam pours from its chest",
+      "a tick then the strike hits",
+      "cut the copper not the iron",
+    ],
   },
   {
     id: 'w3_boss',
