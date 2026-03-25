@@ -3,7 +3,7 @@ import { LevelConfig } from '../../types'
 import { loadProfile, saveProfile } from '../../utils/profile'
 import { BaseLevelScene } from '../BaseLevelScene'
 import { LevelHUD } from '../../components/LevelHUD'
-import { DEFAULT_PLAYER_HP, HUD_TOP_BAR_H, HUD_BOTTOM_BAR_H } from '../../constants'
+import { DEFAULT_PLAYER_HP, HUD_TOP_BAR_H, HUD_BOTTOM_BAR_H, GOLD_PER_KILL } from '../../constants'
 
 const PHRASES_PER_PAGE = 7
 
@@ -38,10 +38,59 @@ export class MonsterManualLevel extends BaseLevelScene {
   // Page counter
   private pageCounterText!: Phaser.GameObjects.Text
 
+  // Bottom Y of the last rendered text line (updated each render)
+  private textBottomY = 0
+
+  // ── Ink Curse state ───────────────────────────────────────────
+  private playerHp = DEFAULT_PLAYER_HP
+  private wrongKeySinceLastInk = 0
+  private nextInkThreshold = 0            // 5–8, randomized each cycle
+  private wrongKeySinceLastSmallInk = 0
+  private nextSmallInkThreshold = 0       // 2–3, randomized each cycle
+  private inkBlots: Phaser.GameObjects.Graphics[] = []
+
+  // ── Boss Phantasm state ───────────────────────────────────────
+  private phantasmTimer?: Phaser.Time.TimerEvent
+  private phantasmActive = false
+  private phantasmDeadline = 0            // timestamp when attack lands
+  private phantasmPhraseEndIdx = 0        // pageText index of the period that ends the target phrase
+  private phantasmBarBg?: Phaser.GameObjects.Rectangle
+  private phantasmBarFill?: Phaser.GameObjects.Rectangle
+  private phantasmWarningText?: Phaser.GameObjects.Text
+  private phantasmGlow?: Phaser.GameObjects.Graphics
+  private portraitCx = 0
+  private portraitCy = 0
+
+  // ── Ink Well state ────────────────────────────────────────────
+  private inkWellX = 0
+  private inkWellY = 0
+  private inkWellFill = 0                 // 0..1, fills per word, overflows on phrase end
+  private inkWellWordsInPhrase = 0        // words typed in current phrase
+  private inkWellBody?: Phaser.GameObjects.Graphics
+  private inkWellFillGfx?: Phaser.GameObjects.Graphics
+
   constructor() { super('MonsterManualLevel') }
 
   init(data: { level: LevelConfig; profileSlot: number }) {
     super.init(data)
+    this.playerHp = DEFAULT_PLAYER_HP
+    this.wrongKeySinceLastInk = 0
+    this.nextInkThreshold = this.rollInkThreshold()
+    this.wrongKeySinceLastSmallInk = 0
+    this.nextSmallInkThreshold = this.rollSmallInkThreshold()
+    this.inkBlots = []
+    this.phantasmActive = false
+    this.phantasmDeadline = 0
+    this.inkWellFill = 0
+    this.inkWellWordsInPhrase = 0
+  }
+
+  private rollInkThreshold(): number {
+    return 5 + Math.floor(Math.random() * 4) // 5, 6, 7, or 8
+  }
+
+  private rollSmallInkThreshold(): number {
+    return 2 + Math.floor(Math.random() * 2) // 2 or 3
   }
 
   create() {
@@ -89,6 +138,9 @@ export class MonsterManualLevel extends BaseLevelScene {
       0xff0000
     ).setAlpha(0).setDepth(15)
 
+    // ── Ink Well ─────────────────────────────────────────────────
+    this.drawInkWell(width, height)
+
     // ── Dust motes ──────────────────────────────────────────────
     this.createDustMotes(width, height)
 
@@ -102,6 +154,9 @@ export class MonsterManualLevel extends BaseLevelScene {
 
     // Re-render scroll on every character typed
     this.events.on('typing_next_char', () => this.renderPageText())
+
+    // ── Boss Phantasm — schedule first attack ───────────────────
+    this.schedulePhantasm()
   }
 
   // ── Pagination ────────────────────────────────────────────────
@@ -191,7 +246,10 @@ export class MonsterManualLevel extends BaseLevelScene {
           color = '#111111'
         } else if (gIdx === typedCount) {
           fontStyle = 'bold'
-          color = '#000000'
+          const inRedZone = this.phantasmActive && gIdx <= this.phantasmPhraseEndIdx
+          color = inRedZone ? '#ff2222' : '#000000'
+        } else if (this.phantasmActive && gIdx <= this.phantasmPhraseEndIdx) {
+          color = '#cc3333'
         }
 
         const t = this.add.text(startX + ci * charW, cursorY, ch, {
@@ -215,6 +273,7 @@ export class MonsterManualLevel extends BaseLevelScene {
       globalIdx += line.length
       cursorY += lineHeight
     }
+    this.textBottomY = cursorY
   }
 
   private wrapText(text: string, charW: number): string[] {
@@ -619,8 +678,23 @@ export class MonsterManualLevel extends BaseLevelScene {
 
   protected onWordComplete(_word: string, _elapsed: number) {
     if (this.transitioning) return
-    this.spawnWordGold()
     this.pageTypedCount += _word.length
+
+    // ── Ink Well: fill on each word, overflow gold on phrase end ──
+    const phraseEnded = _word.endsWith('.')
+    if (_word.trim().length > 0 && _word !== ' ') {
+      this.inkWellWordsInPhrase++
+      this.inkWellFill = Math.min(1, this.inkWellFill + 0.25)
+      this.redrawInkWellFill()
+    }
+    if (phraseEnded) {
+      this.overflowInkWell()
+    }
+
+    // Repel phantasm only when the player has typed past the target phrase's period
+    if (this.phantasmActive && this.pageTypedCount > this.phantasmPhraseEndIdx) {
+      this.repelPhantasm()
+    }
 
     if (this.pageTypedCount >= this.pageText.length) {
       // Page complete — check if there are more pages
@@ -652,9 +726,28 @@ export class MonsterManualLevel extends BaseLevelScene {
       duration: 100,
       ease: 'Linear',
     })
+
+    // ── Cosmetic ink blot every 2–3 wrong keys ────────────────
+    this.wrongKeySinceLastSmallInk++
+    if (this.wrongKeySinceLastSmallInk >= this.nextSmallInkThreshold) {
+      this.wrongKeySinceLastSmallInk = 0
+      this.nextSmallInkThreshold = this.rollSmallInkThreshold()
+      this.spawnInkBlot(false)
+    }
+
+    // ── Ink Curse: every 5th–8th wrong key deals 1 HP + bigger blot
+    this.wrongKeySinceLastInk++
+    if (this.wrongKeySinceLastInk >= this.nextInkThreshold) {
+      this.wrongKeySinceLastInk = 0
+      this.nextInkThreshold = this.rollInkThreshold()
+      this.applyInkCurse()
+    }
   }
 
   protected endLevel(passed: boolean) {
+    this.phantasmTimer?.remove(false)
+    this.clearPhantasmUI()
+
     const profile = loadProfile(this.profileSlot)
     if (profile && passed) {
       const worldBossMap: Record<number, string> = {
@@ -672,5 +765,512 @@ export class MonsterManualLevel extends BaseLevelScene {
 
   update(_time: number, delta: number) {
     super.update(_time, delta)
+    this.updatePhantasmBar()
+  }
+
+  // ── Ink Curse ─────────────────────────────────────────────────
+
+  /**
+   * Pick a random position in the scroll that never overlaps the text or portrait.
+   * Two safe bands:
+   *   • Top-right band — to the right of the portrait, above the text area
+   *   • Bottom band — below the last rendered text line
+   * Blot centres are inset by `pad` so the drawn circles stay inside the scroll.
+   */
+  private pickBlotPosition(large: boolean): { x: number; y: number } {
+    const pad = large ? 30 : 20  // keep blot circles inside the scroll
+
+    // Portrait occupies top-left: (scrollX+24, scrollY+24) sized portraitSize×portraitSize
+    const portraitRight = this.scrollX + 24 + this.portraitSize + 10
+    const scrollRight = this.scrollX + this.scrollW - pad
+    const scrollBottom = this.scrollY + this.scrollH - pad
+
+    // Band A: right of portrait, above text area
+    const bandATop = this.scrollY + pad
+    const bandABottom = this.textAreaY - pad
+    const bandAH = bandABottom - bandATop
+
+    // Band B: below last rendered text line
+    const bandBTop = this.textBottomY + pad
+    const bandBBottom = scrollBottom
+    const bandBH = bandBBottom - bandBTop
+
+    const useA = bandAH > 10 && (bandBH <= 10 || Math.random() < 0.4)
+
+    if (useA && bandAH > 10) {
+      return {
+        x: portraitRight + Math.random() * (scrollRight - portraitRight),
+        y: bandATop + Math.random() * bandAH,
+      }
+    }
+    // Band B (default)
+    const safeTop = bandBH > 10 ? bandBTop : scrollBottom - 20
+    return {
+      x: this.scrollX + pad + Math.random() * (this.scrollW - pad * 2),
+      y: safeTop + Math.random() * Math.max(10, bandBH),
+    }
+  }
+
+  /**
+   * Spawn an ink blot on the scroll in a margin zone.
+   * @param large  true = HP-damage blot (bigger), false = cosmetic only
+   */
+  private spawnInkBlot(large: boolean) {
+    const { x: blotX, y: blotY } = this.pickBlotPosition(large)
+    const blot = this.add.graphics().setDepth(14)
+
+    blot.fillStyle(0x1a0a2e, 0.85)
+    if (large) {
+      // Big blot: 6–9 circles, radius 12–24, spread 40×30
+      const blobCount = 6 + Math.floor(Math.random() * 4)
+      for (let i = 0; i < blobCount; i++) {
+        const ox = (Math.random() - 0.5) * 40
+        const oy = (Math.random() - 0.5) * 30
+        blot.fillCircle(blotX + ox, blotY + oy, 12 + Math.random() * 12)
+      }
+      // Satellite drops
+      for (let i = 0; i < 5; i++) {
+        const ox = (Math.random() - 0.5) * 70
+        const oy = (Math.random() - 0.5) * 55
+        blot.fillCircle(blotX + ox, blotY + oy, 3 + Math.random() * 5)
+      }
+    } else {
+      // Small cosmetic blot: 3–5 circles, radius 8–16, spread 30×24
+      const blobCount = 3 + Math.floor(Math.random() * 3)
+      for (let i = 0; i < blobCount; i++) {
+        const ox = (Math.random() - 0.5) * 30
+        const oy = (Math.random() - 0.5) * 24
+        blot.fillCircle(blotX + ox, blotY + oy, 8 + Math.random() * 8)
+      }
+      // A couple satellite drops
+      for (let i = 0; i < 2; i++) {
+        const ox = (Math.random() - 0.5) * 50
+        const oy = (Math.random() - 0.5) * 40
+        blot.fillCircle(blotX + ox, blotY + oy, 2 + Math.random() * 4)
+      }
+    }
+
+    this.inkBlots.push(blot)
+
+    // Splatter-expand animation
+    blot.setScale(0.2)
+    this.tweens.add({
+      targets: blot,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 250,
+      ease: 'Back.easeOut',
+    })
+  }
+
+  private applyInkCurse() {
+    this.playerHp = Math.max(0, this.playerHp - 1)
+    this.hud.setHeroHp(this.playerHp)
+
+    // Spawn a large ink blot
+    this.spawnInkBlot(true)
+
+    // Avatar flinch — shake horizontally and flash red tint
+    if (this.avatarSprite) {
+      const origX = this.avatarSprite.x
+      this.tweens.add({
+        targets: this.avatarSprite,
+        x: origX + 6,
+        duration: 40,
+        yoyo: true,
+        repeat: 3,
+        ease: 'Sine.easeInOut',
+        onComplete: () => this.avatarSprite?.setX(origX),
+      })
+      this.avatarSprite.setTint(0xff4444)
+      this.time.delayedCall(300, () => this.avatarSprite?.clearTint())
+    }
+
+    // Ink well pulses dark
+    this.pulseInkWell()
+
+    // Screen shake
+    this.cameras.main.shake(200, 0.008)
+
+    if (this.playerHp <= 0) {
+      this.endLevel(false)
+    }
+  }
+
+  // ── Boss Phantasm ─────────────────────────────────────────────
+
+  private static readonly PHANTASM_INTERVAL_MIN = 20_000
+  private static readonly PHANTASM_INTERVAL_MAX = 30_000
+  private static readonly PHANTASM_COUNTDOWN_MS = 18_000
+
+  private schedulePhantasm() {
+    const delay = MonsterManualLevel.PHANTASM_INTERVAL_MIN +
+      Math.random() * (MonsterManualLevel.PHANTASM_INTERVAL_MAX - MonsterManualLevel.PHANTASM_INTERVAL_MIN)
+    this.phantasmTimer = this.time.delayedCall(delay, () => {
+      if (!this.finished) this.startPhantasmAttack()
+    })
+  }
+
+  private startPhantasmAttack() {
+    this.phantasmActive = true
+    this.phantasmDeadline = Date.now() + MonsterManualLevel.PHANTASM_COUNTDOWN_MS
+
+    // Find the period that ends the current phrase
+    const dotIdx = this.pageText.indexOf('.', this.pageTypedCount)
+    this.phantasmPhraseEndIdx = dotIdx >= 0 ? dotIdx : this.pageText.length - 1
+
+    // Glow the boss portrait red
+    const inset = 10
+    const px = this.scrollX + inset + 14
+    const py = this.scrollY + inset + 14
+    const size = this.portraitSize
+    this.portraitCx = px + size / 2
+    this.portraitCy = py + size / 2
+
+    this.phantasmGlow = this.add.graphics().setDepth(11)
+    this.phantasmGlow.fillStyle(0xff0000, 0.3)
+    this.phantasmGlow.fillRect(px, py, size, size)
+    this.tweens.add({
+      targets: this.phantasmGlow,
+      alpha: { from: 0.3, to: 0.8 },
+      duration: 600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    // Progress bar below portrait
+    const barW = size
+    const barH = 8
+    const barX = px
+    const barY = py + size + 6
+    this.phantasmBarBg = this.add.rectangle(barX + barW / 2, barY + barH / 2, barW, barH, 0x330000)
+      .setDepth(11)
+    this.phantasmBarFill = this.add.rectangle(barX + barW / 2, barY + barH / 2, barW, barH, 0xff2222)
+      .setDepth(12)
+
+    // Warning text
+    this.phantasmWarningText = this.add.text(
+      this.scrollX + this.scrollW / 2,
+      this.scrollY + this.scrollH - 28,
+      'The beast stirs — finish the phrase!',
+      { fontSize: '14px', color: '#ff4444', fontFamily: 'serif', fontStyle: 'italic' }
+    ).setOrigin(0.5).setDepth(15)
+    this.tweens.add({
+      targets: this.phantasmWarningText,
+      alpha: { from: 1, to: 0.4 },
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+    })
+
+    // Tint the current phrase text red
+    this.renderPageText()
+  }
+
+  private updatePhantasmBar() {
+    if (!this.phantasmActive || !this.phantasmBarFill) return
+
+    const remaining = Math.max(0, this.phantasmDeadline - Date.now())
+    const fraction = remaining / MonsterManualLevel.PHANTASM_COUNTDOWN_MS
+
+    // Shrink bar from right — adjust width and x to keep left-aligned
+    const inset = 10
+    const fullW = this.portraitSize
+    const barX = this.scrollX + inset + 14
+    const newW = fullW * fraction
+    this.phantasmBarFill.setDisplaySize(newW, 8)
+    this.phantasmBarFill.setX(barX + newW / 2)
+
+    if (remaining <= 0) {
+      this.phantasmStrikes()
+    }
+  }
+
+  private phantasmStrikes() {
+    this.phantasmActive = false
+    this.clearPhantasmUI()
+
+    // The boss silhouette lunges — scale up portrait area briefly
+    const flashRect = this.add.rectangle(
+      this.portraitCx, this.portraitCy,
+      this.portraitSize + 20, this.portraitSize + 20,
+      0xff0000, 0.6
+    ).setDepth(15)
+    this.tweens.add({
+      targets: flashRect,
+      alpha: 0,
+      scaleX: 2,
+      scaleY: 2,
+      duration: 400,
+      ease: 'Quad.easeOut',
+      onComplete: () => flashRect.destroy(),
+    })
+
+    // Deal 1 HP damage
+    this.playerHp = Math.max(0, this.playerHp - 1)
+    this.hud.setHeroHp(this.playerHp)
+    this.cameras.main.shake(300, 0.015)
+
+    // Avatar knockback
+    if (this.avatarSprite) {
+      const origX = this.avatarSprite.x
+      this.tweens.add({
+        targets: this.avatarSprite,
+        x: origX - 12,
+        duration: 100,
+        yoyo: true,
+        ease: 'Quad.easeOut',
+        onComplete: () => this.avatarSprite?.setX(origX),
+      })
+      this.avatarSprite.setTint(0xff2222)
+      this.time.delayedCall(400, () => this.avatarSprite?.clearTint())
+    }
+
+    // Re-render to clear red text tint
+    this.renderPageText()
+
+    if (this.playerHp <= 0) {
+      this.endLevel(false)
+      return
+    }
+
+    // Schedule next attack
+    this.schedulePhantasm()
+  }
+
+  private repelPhantasm() {
+    this.phantasmActive = false
+    this.clearPhantasmUI()
+
+    // Green flash on portrait — the phantasm recoils
+    const flashRect = this.add.rectangle(
+      this.portraitCx, this.portraitCy,
+      this.portraitSize, this.portraitSize,
+      0x00ff66, 0.5
+    ).setDepth(15)
+    this.tweens.add({
+      targets: flashRect,
+      alpha: 0,
+      duration: 400,
+      ease: 'Quad.easeOut',
+      onComplete: () => flashRect.destroy(),
+    })
+
+    // Re-render to clear red text tint
+    this.renderPageText()
+
+    // Schedule next attack
+    this.schedulePhantasm()
+  }
+
+  private clearPhantasmUI() {
+    this.phantasmGlow?.destroy()
+    this.phantasmGlow = undefined
+    this.phantasmBarBg?.destroy()
+    this.phantasmBarBg = undefined
+    this.phantasmBarFill?.destroy()
+    this.phantasmBarFill = undefined
+    this.phantasmWarningText?.destroy()
+    this.phantasmWarningText = undefined
+  }
+
+  // ── Ink Well ──────────────────────────────────────────────────
+
+  private static readonly WELL_W = 64
+  private static readonly WELL_H = 74
+  private static readonly WELL_RIM = 8
+
+  private drawInkWell(_width: number, height: number) {
+    this.inkWellX = 130
+    this.inkWellY = Math.round(height * 0.35)
+
+    const { WELL_W, WELL_H, WELL_RIM } = MonsterManualLevel
+    const wx = this.inkWellX
+    const wy = this.inkWellY
+
+    this.inkWellBody = this.add.graphics().setDepth(6)
+    const body = this.inkWellBody
+
+    // ── Small wooden stand / table ───────────────────────────
+    const standW = WELL_W + 20
+    const standH = 12
+    const standY = wy + WELL_H / 2 - 2
+    body.fillStyle(0x3a2510, 1)
+    body.fillRect(wx - standW / 2, standY, standW, standH)
+    body.fillStyle(0x4a3520, 1)
+    body.fillRect(wx - standW / 2, standY, standW, 3) // top edge highlight
+    // Legs
+    body.fillStyle(0x2a1a0a, 1)
+    body.fillRect(wx - standW / 2 + 4, standY + standH, 6, 18)
+    body.fillRect(wx + standW / 2 - 10, standY + standH, 6, 18)
+
+    // ── Shadow beneath the pot on the stand ──────────────────
+    body.fillStyle(0x000000, 0.3)
+    body.fillEllipse(wx, standY + 2, WELL_W + 6, 8)
+
+    // ── Pot body — rounded ceramic with taper ────────────────
+    // Lower body (wider)
+    body.fillStyle(0x2a1a0e, 1)
+    body.fillRect(wx - WELL_W / 2, wy, WELL_W, WELL_H / 2)
+    // Upper body (slightly narrower for taper)
+    const taperInset = 4
+    body.fillRect(wx - WELL_W / 2 + taperInset, wy - WELL_H / 2 + WELL_RIM, WELL_W - taperInset * 2, WELL_H / 2 - WELL_RIM)
+    // Curved shoulder connecting upper to lower
+    body.fillRect(wx - WELL_W / 2, wy - 2, WELL_W, 6)
+
+    // Vertical highlight stripe (ceramic sheen)
+    body.fillStyle(0x3a2a1e, 0.6)
+    body.fillRect(wx - WELL_W / 4, wy - WELL_H / 2 + WELL_RIM + 2, 6, WELL_H - WELL_RIM - 4)
+
+    // Dark side shadow
+    body.fillStyle(0x1a0e06, 0.5)
+    body.fillRect(wx + WELL_W / 2 - 8, wy - WELL_H / 2 + WELL_RIM + 2, 6, WELL_H - WELL_RIM - 4)
+
+    // ── Decorative band around the belly ─────────────────────
+    const bandY = wy + 4
+    body.fillStyle(0xc8a830, 0.5)
+    body.fillRect(wx - WELL_W / 2 + 2, bandY, WELL_W - 4, 3)
+    body.fillStyle(0xc8a830, 0.3)
+    body.fillRect(wx - WELL_W / 2 + 2, bandY + 6, WELL_W - 4, 2)
+
+    // ── Thick rim ────────────────────────────────────────────
+    body.fillStyle(0x3a2a1a, 1)
+    body.fillRect(wx - WELL_W / 2 + taperInset - 4, wy - WELL_H / 2, WELL_W - taperInset * 2 + 8, WELL_RIM + 2)
+    // Rim top highlight
+    body.fillStyle(0x5a4a3a, 0.7)
+    body.fillRect(wx - WELL_W / 2 + taperInset - 2, wy - WELL_H / 2, WELL_W - taperInset * 2 + 4, 3)
+    // Inner rim shadow
+    body.fillStyle(0x1a0a06, 0.6)
+    body.fillRect(wx - WELL_W / 2 + taperInset, wy - WELL_H / 2 + WELL_RIM - 1, WELL_W - taperInset * 2, 2)
+
+    // ── Ink surface (dark pool) ──────────────────────────────
+    body.fillStyle(0x06060e, 0.95)
+    body.fillEllipse(wx, wy - WELL_H / 2 + WELL_RIM + 2, WELL_W - taperInset * 2 - 4, 10)
+    // Subtle ink sheen
+    body.fillStyle(0x2222aa, 0.15)
+    body.fillEllipse(wx - 4, wy - WELL_H / 2 + WELL_RIM + 1, 12, 4)
+
+    // ── Quill leaning against the pot ────────────────────────
+    const qx = wx + WELL_W / 2 + 6
+    const qTopY = wy - WELL_H / 2 - 28
+    const qBotY = wy + WELL_H / 4
+    // Shaft
+    body.lineStyle(2, 0x8a6a2a, 1)
+    body.lineBetween(qx, qBotY, qx - 8, qTopY)
+    // Feather vane
+    body.fillStyle(0xcccccc, 0.8)
+    body.fillTriangle(qx - 8, qTopY, qx - 20, qTopY - 12, qx - 14, qTopY + 10)
+    body.fillStyle(0xaaaaaa, 0.5)
+    body.fillTriangle(qx - 8, qTopY, qx - 2, qTopY - 8, qx - 4, qTopY + 8)
+    // Nib
+    body.fillStyle(0x333333, 1)
+    body.fillTriangle(qx, qBotY, qx + 2, qBotY + 6, qx - 2, qBotY + 6)
+
+    // ── Fill level graphic (redrawn dynamically) ─────────────
+    this.inkWellFillGfx = this.add.graphics().setDepth(7)
+  }
+
+  private redrawInkWellFill() {
+    if (!this.inkWellFillGfx) return
+    this.inkWellFillGfx.clear()
+
+    const { WELL_W, WELL_H, WELL_RIM } = MonsterManualLevel
+    const taperInset = 4
+    const wx = this.inkWellX
+    const wy = this.inkWellY
+
+    // Fill rises from the ink surface upward (overflows above the rim)
+    const inkTop = wy - WELL_H / 2 + WELL_RIM
+    const maxRise = WELL_RIM + 10
+
+    const fillH = this.inkWellFill * maxRise
+    if (fillH <= 0) return
+
+    // Glowing ink rising above the surface
+    const alpha = 0.5 + this.inkWellFill * 0.4
+    this.inkWellFillGfx.fillStyle(0x4422aa, alpha)
+    this.inkWellFillGfx.fillEllipse(wx, inkTop - fillH / 2, WELL_W - taperInset * 2 - 2, fillH + 6)
+
+    // Golden shimmer at high fill
+    if (this.inkWellFill > 0.5) {
+      const shimmer = (this.inkWellFill - 0.5) * 2  // 0..1
+      this.inkWellFillGfx.fillStyle(0xffcc00, 0.2 + shimmer * 0.3)
+      this.inkWellFillGfx.fillEllipse(wx, inkTop - fillH / 2 - 2, WELL_W - taperInset * 2 - 10, fillH)
+      // Sparkle dots
+      for (let i = 0; i < 3; i++) {
+        const sx = wx + (Math.random() - 0.5) * (WELL_W - 20)
+        const sy = inkTop - fillH * Math.random()
+        this.inkWellFillGfx.fillStyle(0xffffff, 0.4 + shimmer * 0.4)
+        this.inkWellFillGfx.fillCircle(sx, sy, 1.5)
+      }
+    }
+  }
+
+  private overflowInkWell() {
+    // Gold amount scales with words typed in the phrase
+    const goldAmount = GOLD_PER_KILL + this.inkWellWordsInPhrase * 2
+
+    // Spawn gold drops near the ink well base (on the floor)
+    const dropCount = 2 + Math.floor(Math.random() * 2)  // 2–3 drops
+    for (let i = 0; i < dropCount; i++) {
+      const dropX = this.inkWellX + (Math.random() * 60 - 30)
+      const dropY = this.inkWellY + MonsterManualLevel.WELL_H / 2 + 8 + Math.random() * 16
+      this.goldManager.spawnGold(dropX, dropY, Math.ceil(goldAmount / dropCount))
+    }
+
+    // Overflow animation — ink splashes up and out
+    if (this.inkWellFillGfx) {
+      const splash = this.add.graphics().setDepth(8)
+      const wx = this.inkWellX
+      const wy = this.inkWellY - MonsterManualLevel.WELL_H / 2
+
+      // Several small ink/gold droplets spray upward
+      for (let i = 0; i < 6; i++) {
+        const dx = (Math.random() - 0.5) * 40
+        const r = 2 + Math.random() * 3
+        const isGold = Math.random() < 0.5
+        splash.fillStyle(isGold ? 0xffcc00 : 0x2a1a4a, 0.9)
+        splash.fillCircle(wx + dx, wy, r)
+      }
+
+      this.tweens.add({
+        targets: splash,
+        y: wy - 20,
+        alpha: 0,
+        duration: 500,
+        ease: 'Quad.easeOut',
+        onComplete: () => splash.destroy(),
+      })
+    }
+
+    // Reset fill
+    this.inkWellFill = 0
+    this.inkWellWordsInPhrase = 0
+    this.redrawInkWellFill()
+  }
+
+  private pulseInkWell() {
+    if (!this.inkWellBody) return
+
+    // Flash the well body dark purple briefly
+    this.inkWellBody.setAlpha(0.5)
+    this.tweens.add({
+      targets: this.inkWellBody,
+      alpha: 1,
+      duration: 300,
+      ease: 'Sine.easeOut',
+    })
+
+    // Briefly tint the fill darker
+    if (this.inkWellFillGfx) {
+      this.inkWellFillGfx.setAlpha(0.3)
+      this.tweens.add({
+        targets: this.inkWellFillGfx,
+        alpha: 1,
+        duration: 300,
+        ease: 'Sine.easeOut',
+      })
+    }
   }
 }
