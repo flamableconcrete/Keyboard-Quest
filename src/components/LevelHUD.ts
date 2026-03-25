@@ -134,7 +134,13 @@ export class LevelHUD {
 
     // ── Top-right: Timer + counter ────────────────────────────────────────────
     if (config.timer) {
-      const timerText = scene.add.text(width - 16, 12, `⏳ ${config.timer.seconds}s`, {
+      const formatTime = (s: number) => {
+        const m = Math.floor(s / 60)
+        const sec = s % 60
+        return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+      }
+
+      const timerText = scene.add.text(width - 16, 12, `⏳ ${formatTime(config.timer.seconds)}`, {
         fontSize: '16px', color: '#c8a830',
       }).setOrigin(1, 0).setDepth(HUD_TEXT_DEPTH)
 
@@ -144,7 +150,7 @@ export class LevelHUD {
         repeat: config.timer.seconds - 1,
         callback: () => {
           timeLeft--
-          timerText.setText(`⏳ ${timeLeft}s`)
+          timerText.setText(`⏳ ${formatTime(timeLeft)}`)
           config.timer!.onTick?.(timeLeft)
           if (timeLeft <= 0) config.timer!.onExpire()
         },
