@@ -207,7 +207,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
     world: 5,
     unlockedLetters: W5_AFTER_MB4,
     wordCount: 50,
-    timeLimit: 360,
+    timeLimit: 600,
     dialogue: [
       { speaker: "enemy", text: "These scrolls contain the Typemancer's full history. It's unsettling. Read anyway." },
       { speaker: "hero",  text: "Show me." },

@@ -899,9 +899,9 @@ export class MonsterManualLevel extends BaseLevelScene {
 
   // ── Boss Phantasm ─────────────────────────────────────────────
 
-  private static readonly PHANTASM_INTERVAL_MIN = 20_000
-  private static readonly PHANTASM_INTERVAL_MAX = 30_000
-  private static readonly PHANTASM_COUNTDOWN_MS = 18_000
+  private static readonly PHANTASM_INTERVAL_MIN = 50_000
+  private static readonly PHANTASM_INTERVAL_MAX = 60_000
+  private static readonly PHANTASM_COUNTDOWN_MS = 30_000
 
   private schedulePhantasm() {
     const delay = MonsterManualLevel.PHANTASM_INTERVAL_MIN +

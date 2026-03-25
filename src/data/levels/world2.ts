@@ -238,7 +238,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
     world: 2,
     unlockedLetters: W2_AFTER_MB3,
     wordCount: 50,
-    timeLimit: 360,
+    timeLimit: 600,
     dialogue: [
       { speaker: "enemy", text: "You're heading toward the Hydra. Sit. Read this before you go." },
       { speaker: "hero", text: "I'm listening. Every detail." },

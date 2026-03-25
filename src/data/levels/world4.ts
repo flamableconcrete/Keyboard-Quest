@@ -239,7 +239,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
     world: 4,
     unlockedLetters: W4_AFTER_MB4,
     wordCount: 50,
-    timeLimit: 360,
+    timeLimit: 600,
     dialogue: [
       { speaker: "enemy", text: "The Dice Lich has played this game for centuries. You should know the stakes before you enter." },
       { speaker: "hero", text: "Show me what you have. Every scrap." },
