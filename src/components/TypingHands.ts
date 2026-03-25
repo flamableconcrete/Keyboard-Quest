@@ -30,10 +30,14 @@ export class TypingHands {
   }
 
   highlightFinger(ch: string) {
-    const finger = CHAR_FINGER[ch.toLowerCase()] ?? null
+    const lowerCh = ch.toLowerCase()
+    const isSpace = lowerCh === ' '
+    const finger = CHAR_FINGER[lowerCh] ?? null
 
-    if (finger === this.currentFinger) return
-    this.currentFinger = finger
+    // For space, we highlight both thumbs — use a sentinel so we always re-apply
+    const fingerKey = isSpace ? 'both-thumbs' : finger
+    if (fingerKey === this.currentFinger) return
+    this.currentFinger = fingerKey as Finger | null
     this.pulseTween?.stop()
 
     // Reset all finger overlays to invisible
@@ -41,8 +45,23 @@ export class TypingHands {
       graphics.forEach(g => { g.setAlpha(0) })
     })
 
-    // Highlight active finger overlay
-    if (finger) {
+    if (isSpace) {
+      // Highlight both thumbs
+      const targets: Phaser.GameObjects.Graphics[] = []
+      const lt = this.fingerOverlays.get('lt')
+      const rt = this.fingerOverlays.get('rt')
+      if (lt) targets.push(...lt)
+      if (rt) targets.push(...rt)
+      targets.forEach(g => { g.setAlpha(1.0) })
+      this.pulseTween = this.scene.tweens.add({
+        targets,
+        alpha: { from: 1.0, to: 0.4 },
+        duration: 500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    } else if (finger) {
       const active = this.fingerOverlays.get(finger)
       if (active) {
         active.forEach(g => { g.setAlpha(1.0) })

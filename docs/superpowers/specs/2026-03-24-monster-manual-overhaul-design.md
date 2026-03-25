@@ -50,6 +50,7 @@ The current `MonsterManualLevel.create()` calls `this.initWordPool()` and render
 | 5 | The Typemancer | full alphabet (26 letters) | 6 | 6–8 words |
 
 Letter sets are derived from the world constants in the source files:
+
 - W1: `W1_AFTER_MB3`
 - W2: `W2_AFTER_MB3`
 - W3: `W3_AFTER_MB3`
@@ -85,6 +86,7 @@ Move `w2_l10` to after `w2_mb4`:
 New order: `w2_l9` → `w2_mb4` → `w2_l10` (MonsterManual) → `w2_boss`
 
 Changes required:
+
 - `w2_mb4.bossGate`: change from `{ minCombinedStars: 12, levelIds: ['w2_l9', 'w2_l10'] }` to `{ minCombinedStars: 6, levelIds: ['w2_l9'] }`. The total required stars drops from 12 to 6. This is intentional: halving the required total when removing one of two levels preserves the per-level average (6 avg). The gate remains meaningful for a single level (6 stars from 1 level = minimum 1-star + 5-star or 2-star + 4-star combination on that level).
 - `w2_l10.bossGate`: set to `null`
 - `w2_l10.unlockedLetters`: keep as `W2_AFTER_MB3` (unchanged — same letter set regardless of position)
@@ -101,6 +103,7 @@ Move `w3_l9` to after `w3_mb4`:
 New order: `w3_l8` → `w3_mb4` → `w3_l9` (MonsterManual) → `w3_boss`
 
 Changes required:
+
 - `w3_mb4.bossGate`: change from `{ minCombinedStars: 16, levelIds: ['w3_l8', 'w3_l9'] }` to `{ minCombinedStars: 8, levelIds: ['w3_l8'] }`. The total required stars drops from 16 to 8. This is intentional: halving the required total when removing one of two levels preserves the per-level average (8 avg).
 - `w3_l9.bossGate`: set to `null`
 - `w3_l9.unlockedLetters`: keep as `W3_AFTER_MB3` (unchanged)
@@ -115,6 +118,7 @@ No MonsterManual currently exists. Add new level `w4_mm` between `w4_mb4` and `w
 New order: `w4_mb4` → `w4_mm` (new MonsterManual) → `w4_boss`
 
 New level config (authoring the `name` and `dialogue` is in scope for this ticket):
+
 ```ts
 {
   id: 'w4_mm',
@@ -142,6 +146,7 @@ Current order: `w5_l1` → `w5_l2` → `w5_l3` (MonsterManual) → `w5_mb1` → 
 New order: `w5_l1` → `w5_l2` → `w5_mb1` → ... → `w5_mb4` → `w5_l3` (MonsterManual) → `w5_boss`
 
 Changes required:
+
 - `w5_mb1.bossGate`: change from `{ minCombinedStars: 20, levelIds: ['w5_l1', 'w5_l2', 'w5_l3'] }` to `{ minCombinedStars: 12, levelIds: ['w5_l1', 'w5_l2'] }`. Total required stars drops from 20 to 12 (one level removed); this is intentional.
 - `w5_l3.bossGate`: set to `null`
 - `w5_l3.unlockedLetters`: change from `W5_BASE` to `W5_AFTER_MB4` (full alphabet — q, x, z are the meaningful additions)
@@ -182,6 +187,7 @@ Centered on screen, approximately 560×400px. Built from Phaser Graphics primiti
 ### TypingEngine positioning
 
 The `TypingEngine` is positioned so its character texts land in the center of the right page's text area. The engine's existing character coloring applies:
+
 - Green = typed, White = current, Gray = remaining
 - Space = `·` when untyped (already handled by the engine)
 
@@ -200,6 +206,7 @@ The left page (parchment, boss sketch, page counter text) is built from standalo
 **Keyboard input blocking** is achieved implicitly: after `engine.clearWord()`, `TypingEngine.handleKey` returns early because `this.currentWord` is empty. Input resumes only when `engine.setWord(nextPhrase)` is called. No explicit enable/disable API is needed.
 
 Sequence:
+
 1. **At create() time:** Construct `new ProgressionController([...this.level.phrases])`. Call `progression.advance()` once to get the first phrase and pass it to `engine.setWord(firstPhrase)`. This mirrors the current scene's startup pattern.
 2. **On each `onWordComplete` callback:**
    a. Call `this.spawnWordGold()` (gold drops are kept for phrase completions).

@@ -150,15 +150,16 @@ export class TypingEngine {
     const totalW = layoutWord.length * charW
     const startX = x - totalW / 2
 
+    // When displayWord is longer than currentWord (e.g. "<space>" for " "),
+    // treat the entire display as a single unit for coloring.
+    const unitColor = layoutWord.length > this.currentWord.length
     layoutWord.split('').forEach((ch, i) => {
-      let displayChar = ch
-      if (ch === ' ' && i >= this.typedSoFar.length) {
-        displayChar = '·'
-      }
-      const color = i < this.typedSoFar.length ? '#44ff44'
-        : i === this.typedSoFar.length ? '#ffffff'
-        : '#888888'
-      const t = this.scene.add.text(startX + i * charW, y, displayChar, {
+      const color = unitColor
+        ? (this.typedSoFar.length > 0 ? '#44ff44' : '#ffffff')
+        : (i < this.typedSoFar.length ? '#44ff44'
+          : i === this.typedSoFar.length ? '#ffffff'
+          : '#888888')
+      const t = this.scene.add.text(startX + i * charW, y, ch, {
         fontSize: `${fontSize}px`, color
       }).setDepth(this.config.charDepth ?? TYPING_ENGINE_CHAR_DEPTH)
       this.charTexts.push(t)

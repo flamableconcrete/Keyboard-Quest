@@ -112,6 +112,35 @@ export class LevelIntroScene extends Phaser.Scene {
         g.destroy()
       }
       enemyTexture = 'slime_placeholder'
+    } else if (this.level.type === 'MonsterManual') {
+      // Pixel art scroll for Monster Manual levels
+      if (!this.textures.exists('scroll_icon')) {
+        const g = this.add.graphics()
+        const w = 32, h = 40
+        // Parchment body
+        g.fillStyle(0xf5e6c8)
+        g.fillRect(4, 6, 24, 28)
+        // Top roller
+        g.fillStyle(0x8b6914)
+        g.fillRoundedRect(2, 2, 28, 6, 3)
+        // Bottom roller
+        g.fillRoundedRect(2, 32, 28, 6, 3)
+        // Roller knobs
+        g.fillStyle(0x6b4e0a)
+        g.fillCircle(4, 5, 3)
+        g.fillCircle(28, 5, 3)
+        g.fillCircle(4, 35, 3)
+        g.fillCircle(28, 35, 3)
+        // Text lines on scroll
+        g.fillStyle(0x5c3a1e)
+        g.fillRect(8, 12, 16, 2)
+        g.fillRect(8, 17, 14, 2)
+        g.fillRect(8, 22, 16, 2)
+        g.fillRect(8, 27, 10, 2)
+        g.generateTexture('scroll_icon', w, h)
+        g.destroy()
+      }
+      enemyTexture = 'scroll_icon'
     } else {
       // Generic monster placeholder
       if (!this.textures.exists('generic_monster')) {
@@ -141,6 +170,8 @@ export class LevelIntroScene extends Phaser.Scene {
         enemy.setScale(2)
       } else if (enemyTexture === 'orc_customer') {
         enemy.setScale(2.5)
+      } else if (enemyTexture === 'scroll_icon') {
+        enemy.setScale(3)
       } else if (enemyTexture.includes('placeholder') || enemyTexture === 'generic_monster') {
         enemy.setScale(2.5)
       }
