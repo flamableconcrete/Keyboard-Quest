@@ -222,7 +222,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
     world: 3,
     unlockedLetters: W3_AFTER_MB3,
     wordCount: 50,
-    timeLimit: 240,
+    timeLimit: 360,
     dialogue: [
       { speaker: "enemy", text: "You're heading to the Citadel. You should know what lives inside. Sit." },
       { speaker: "hero", text: "I'm already sitting. Talk fast." }

@@ -186,7 +186,7 @@ export const WORLD1_LEVELS: LevelConfig[] = [
     world: 1,
     unlockedLetters: W1_AFTER_MB3,
     wordCount: 50,
-    timeLimit: 180,
+    timeLimit: 360,
     dialogue: [
       { speaker: "enemy", text: "Ah, a visitor! Come — I have notes on Grizzlefang. You'll need them." },
       { speaker: "hero",  text: "Tell me everything." },
