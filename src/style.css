@@ -18,6 +18,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 36px;
 
   /* Thematic repeating tile pattern for the safe bleed area */
   background-image:
@@ -53,4 +54,18 @@ html, body {
     0 0 60px rgba(0, 0, 0, 0.8);
   /* Ensure it sits slightly above the fancy background */
   z-index: 10;
+}
+
+/* Fullscreen: collapse border so canvas fills the display */
+#app:fullscreen,
+html:fullscreen #app,
+:root:fullscreen #app {
+  padding: 0;
+  animation: none;
+}
+
+#app:fullscreen canvas,
+html:fullscreen #app canvas,
+:root:fullscreen #app canvas {
+  animation: none;
 }
