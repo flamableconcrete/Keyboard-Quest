@@ -11,6 +11,19 @@ html, body {
   background-color: #0d0d14; /* Deep, dark magical night background */
 }
 
+@keyframes runeGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(212, 175, 55, 0.25),
+      0 0 40px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(212, 175, 55, 0.70),
+      0 0 70px rgba(0, 0, 0, 0.8);
+  }
+}
+
 /* Fancy, procedural RPG-style border */
 #app {
   width: 100%;
@@ -49,9 +62,7 @@ html, body {
   /* Give the canvas itself a sharp golden border to separate it from the bleed area */
   border: 4px solid #d4af37;
   border-radius: 8px;
-  box-shadow:
-    0 0 20px rgba(212, 175, 55, 0.4),
-    0 0 60px rgba(0, 0, 0, 0.8);
+  animation: runeGlow 4s ease-in-out infinite;
   /* Ensure it sits slightly above the fancy background */
   z-index: 10;
 }
