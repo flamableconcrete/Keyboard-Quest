@@ -24,6 +24,23 @@ html, body {
   }
 }
 
+@keyframes runeDrift {
+  0% {
+    background-position:
+      center center,
+      center center,
+      0 0,
+      center center;
+  }
+  100% {
+    background-position:
+      center center,
+      center center,
+      32px 0,
+      center center;
+  }
+}
+
 /* Fancy, procedural RPG-style border */
 #app {
   width: 100%;
@@ -55,6 +72,7 @@ html, body {
 
   /* Adds an inner shadow to frame the canvas deeply */
   box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.9);
+  animation: runeDrift 8s linear infinite;
 }
 
 /* The Phaser game canvas */
