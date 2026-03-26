@@ -64,6 +64,7 @@ export class SettingsScene extends Phaser.Scene {
     // Render active section
     if (this.activeTab === 'Profile') {
       this.renderProfileSection(width, profile)
+      this.renderFullscreenButton(width)
     } else if (this.activeTab === 'Gameplay') {
       this.renderGameplaySection(width, profile)
     } else if (this.activeTab === 'Audio') {
@@ -71,6 +72,38 @@ export class SettingsScene extends Phaser.Scene {
     } else if (this.activeTab === 'Debug') {
       this.renderDebugSection(width, profile)
     }
+  }
+
+  private renderFullscreenButton(width: number) {
+    const isFS = this.scale.isFullscreen;
+    const fsBtn = this.add.text(width / 2, 430, isFS ? '[ Exit Full Screen ]' : '[ Enter Full Screen ]', {
+      fontSize: '20px',
+      color: isFS ? '#ffaa00' : '#ffff00',
+      backgroundColor: '#222244',
+      padding: { x: 12, y: 6 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    fsBtn.on('pointerdown', () => {
+      if (this.scale.isFullscreen) {
+        this.scale.stopFullscreen();
+      } else {
+        this.scale.startFullscreen();
+      }
+    })
+
+    // Listen for scale events to update UI correctly without race conditions
+    this.scale.on('enterfullscreen', () => {
+      this.renderSettings()
+    })
+    this.scale.on('leavefullscreen', () => {
+      this.renderSettings()
+    })
+
+    // Clean up event listeners when the scene stops so they don't leak
+    this.events.once('shutdown', () => {
+      this.scale.off('enterfullscreen')
+      this.scale.off('leavefullscreen')
+    })
   }
 
   private renderProfileSection(width: number, profile: any) {
