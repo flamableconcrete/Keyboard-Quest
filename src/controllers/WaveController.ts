@@ -81,8 +81,13 @@ export class WaveController {
       const x = isRiser
         ? 300 + i * riserSpread + this.rng() * 30 - 15
         : this.config.canvasWidth + SPAWN_OFFSCREEN_MARGIN
+
+      const distanceToBarrier = x - this.config.barrierX
+      const maxAllowedSpeed = Math.max(0.1, distanceToBarrier / 8)
+      const finalSpeed = Math.min(this.speed, maxAllowedSpeed)
+
       const id = `skel_${this._currentWave}_${i}`
-      this._skeletons.push({ id, word, x, speed: this.speed, isRiser })
+      this._skeletons.push({ id, word, x, speed: finalSpeed, isRiser })
       events.push({ type: 'spawn', word, x, isRiser })
     }
     return events

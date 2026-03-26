@@ -90,6 +90,8 @@ describe('WaveController — skeleton movement (advanced mode)', () => {
     ctrl.startWave()
     // Force a skeleton to just past the barrier
     ;(ctrl as any)._skeletons[0].x = 270
+    // Force a higher speed so it can actually cross the barrier in this tick
+    ;(ctrl as any)._skeletons[0].speed = 60
     const events = ctrl.tick(1000, 'advanced')  // big delta to move it past
     expect(events.find(e => e.type === 'skeleton_reached')).toBeDefined()
   })
@@ -97,8 +99,11 @@ describe('WaveController — skeleton movement (advanced mode)', () => {
 
 describe('WaveController — regular mode slot positions', () => {
   it('tick does not move skeletons past battleX', () => {
-    const ctrl = new WaveController({ ...baseConfig, battleX: 350 })
+    // Make sure barrierX is small enough so skeletons don't get 0 speed
+    const ctrl = new WaveController({ ...baseConfig, battleX: 350, barrierX: 50 })
     ctrl.startWave()
+    // Give them a normal speed for the test
+    ctrl.activeSkeletons.forEach(s => { (s as any).speed = 60 })
     ctrl.tick(10000, 'regular')  // large delta
     ctrl.activeSkeletons.forEach(s => {
       expect(s.x).toBeGreaterThanOrEqual(350)
