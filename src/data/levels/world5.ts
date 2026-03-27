@@ -40,7 +40,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb1',
-    name: 'Chamber of the Quillmaster',
+    name: 'Ignis\' Chamber',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_BASE,
@@ -92,7 +92,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb2',
-    name: 'Spire of the Hexed Exile',
+    name: 'Lich\'s Spire',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB1,
@@ -145,7 +145,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb3',
-    name: "Zealot's Ascent",
+    name: "Grizzlefang's Ascent",
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB2,
@@ -181,7 +181,7 @@ export const WORLD5_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w5_mb4',
-    name: 'Hall of Illusions',
+    name: 'Arachna\'s Hall',
     type: 'BossBattle',
     world: 5,
     unlockedLetters: W5_AFTER_MB3,

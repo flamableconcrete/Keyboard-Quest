@@ -59,7 +59,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   } satisfies SiegeLevelConfig,
   {
     id: 'w2_mb1',
-    name: 'Bramblegate Watch',
+    name: 'Typo\'s Watch',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_BASE,
@@ -125,7 +125,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb2',
-    name: 'Ironweb Keep',
+    name: 'Arachna\'s Keep',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB1,
@@ -176,7 +176,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb3',
-    name: 'Hollowhorn Peak',
+    name: 'Flashword\'s Peak',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB2,
@@ -212,7 +212,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_mb4',
-    name: 'Frostbite Hollow',
+    name: 'Rattles\' Hollow',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB3,
@@ -300,7 +300,7 @@ export const WORLD2_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w2_boss',
-    name: 'Lair of the Deep Fen Hydra',
+    name: 'Tiamat\'s Lair',
     type: 'BossBattle',
     world: 2,
     unlockedLetters: W2_AFTER_MB4,

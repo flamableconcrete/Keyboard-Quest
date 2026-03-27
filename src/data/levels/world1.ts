@@ -55,7 +55,7 @@ export const WORLD1_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w1_mb1',
-    name: 'Grom\'s Thicket',
+    name: 'Knuckle\'s Thicket',
     type: 'BossBattle',
     world: 1,
     unlockedLetters: W1_LETTERS_BASE,
@@ -106,7 +106,7 @@ export const WORLD1_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w1_mb2',
-    name: 'Serpent\'s Coil',
+    name: 'Nessa\'s Coil',
     type: 'BossBattle',
     world: 1,
     unlockedLetters: W1_AFTER_MB1,
@@ -160,7 +160,7 @@ export const WORLD1_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w1_mb3',
-    name: 'Shadowfall Crag',
+    name: 'Rend\'s Crag',
     type: 'BossBattle',
     world: 1,
     unlockedLetters: W1_AFTER_MB2,

@@ -58,7 +58,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb1',
-    name: 'Obsidian Gate',
+    name: 'Lich\'s Gate',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_BASE,
@@ -109,7 +109,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb2',
-    name: 'Spire of the Phoenix',
+    name: 'Ignis\' Spire',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB1,
@@ -160,7 +160,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb3',
-    name: 'The Umber Bridge',
+    name: 'Grizzlefang\'s Bridge',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB2,
@@ -196,7 +196,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_mb4',
-    name: 'The Gorgon\'s Pit',
+    name: 'Sludge\'s Pit',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB3,
@@ -284,7 +284,7 @@ export const WORLD3_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w3_boss',
-    name: 'The Brass Citadel',
+    name: 'Mecha-Wyrm\'s Citadel',
     type: 'BossBattle',
     world: 3,
     unlockedLetters: W3_AFTER_MB4,

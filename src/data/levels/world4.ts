@@ -57,7 +57,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb1',
-    name: 'Troll\'s Toll Bridge',
+    name: 'Rattles\' Bridge',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_BASE,
@@ -109,7 +109,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb2',
-    name: 'Keep of the Wraith-Witch',
+    name: 'Flashword\'s Keep',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB1,
@@ -162,7 +162,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb3',
-    name: 'Frosthowl Summit',
+    name: 'Arachna\'s Summit',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB2,
@@ -213,7 +213,7 @@ export const WORLD4_LEVELS: LevelConfig[] = [
   },
   {
     id: 'w4_mb4',
-    name: 'Vault of the Ancients',
+    name: 'Typo\'s Vault',
     type: 'BossBattle',
     world: 4,
     unlockedLetters: W4_AFTER_MB3,
