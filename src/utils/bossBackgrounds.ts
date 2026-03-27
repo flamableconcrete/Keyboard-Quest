@@ -109,104 +109,173 @@ export function drawSlimeCaveBg(scene: Phaser.Scene): void {
 }
 export function drawSwampBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  // Murky sky (stacked gradient strips)
-  const skyBands = [0x061206, 0x081608, 0x0a1a0a, 0x0c1e0c, 0x0e220e, 0x102610]
-  const bandH = (height * 0.58) / skyBands.length
-  for (let i = 0; i < skyBands.length; i++) {
-    g.fillStyle(skyBands[i])
-    g.fillRect(0, i * bandH, width, bandH + 1)
+  // Layer 1: Murky sky — 5-band sickly-green gradient
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.12, 0x030804],
+    [height * 0.12, height * 0.25, 0x060e06],
+    [height * 0.25, height * 0.40, 0x091408],
+    [height * 0.40, height * 0.52, 0x0c1a0a],
+    [height * 0.52, height * 0.60, 0x0f2010],
+  ]
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
 
-  // Dead tree silhouettes (back layer)
-  g.fillStyle(0x040c04)
-  const trees = [50, 160, 290, 400, 540, 680, 810, 940, 1080, 1200]
-  for (const tx of trees) {
-    const th = 130 + ((tx * 3) % 70)
-    const baseY = height * 0.55 - th
-    // Trunk
-    g.fillRect(tx - 6, baseY, 12, th)
-    // Branches
-    g.fillRect(tx - 32, baseY + 20, 64, 5)
-    g.fillRect(tx - 22, baseY + 45, 44, 4)
-    g.fillRect(tx + 8, baseY + 32, 32, 3)
-    g.fillRect(tx - 38, baseY + 32, 28, 3)
-    // Bare twigs
-    g.fillRect(tx - 44, baseY + 20, 14, 3)
-    g.fillRect(tx + 38, baseY + 20, 14, 3)
-    g.fillRect(tx - 52, baseY + 17, 6, 3)
-    g.fillRect(tx + 46, baseY + 17, 6, 3)
+  // Layer 2: Far dead tree silhouettes — sine-varied heights
+  g.fillStyle(0x040904)
+  for (let x = 0; x < width; x += 52) {
+    const th = 100 + Math.sin(x * 0.07) * 35 + Math.sin(x * 0.17) * 18
+    g.fillRect(x - 6,  height * 0.57 - th, 12, th)
+    g.fillRect(x - 28, height * 0.57 - th + 18, 56, 4)
+    g.fillRect(x - 18, height * 0.57 - th + 36, 36, 3)
   }
 
-  // Water surface
-  g.fillStyle(0x050e05)
-  g.fillRect(0, height * 0.58, width, height * 0.42)
+  // Layer 3: Mid mangrove trees — wider, with root tendrils
+  g.fillStyle(0x030703)
+  const mangroves = [70, 180, 310, 470, 640, 800, 950, 1090, 1210]
+  for (const mx of mangroves) {
+    const mh = 140 + ((mx * 3) % 60)
+    const baseY = height * 0.60
+    g.fillRect(mx - 9, baseY - mh, 18, mh)
+    g.fillRect(mx - 38, baseY - mh + 22, 76, 5)
+    g.fillRect(mx - 26, baseY - mh + 44, 52, 4)
+    g.fillRect(mx + 10, baseY - mh + 33, 34, 3)
+    g.fillRect(mx - 44, baseY - mh + 33, 26, 3)
+    // Root tendrils into water
+    g.fillRect(mx - 14, baseY - 24, 4, 28)
+    g.fillRect(mx - 6,  baseY - 18, 3, 22)
+    g.fillRect(mx + 8,  baseY - 20, 4, 24)
+    g.fillRect(mx + 16, baseY - 16, 3, 20)
+  }
+
+  // Layer 4: Water surface — 4-band gradient (dark → murky green)
+  const waterSections: Array<[number, number, number]> = [
+    [height * 0.60, height * 0.70, 0x060e06],
+    [height * 0.70, height * 0.80, 0x050c05],
+    [height * 0.80, height * 0.90, 0x040a04],
+    [height * 0.90, height,        0x030803],
+  ]
+  for (const [y1, y2, color] of waterSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
   // Water shimmer lines
   g.fillStyle(0x0a1a0a)
-  for (let wy = height * 0.60; wy < height; wy += 22) {
-    g.fillRect(20, wy, width - 40, 2)
+  for (let wy = height * 0.62; wy < height; wy += 20) {
+    g.fillRect(18, wy, width - 36, 2)
   }
 
-  // Lily pads
+  // Lily pads — 7 pads, varied sizes
   const lilies = [
-    { x: 160, y: height * 0.68, r: 20 },
-    { x: 430, y: height * 0.72, r: 24 },
-    { x: 700, y: height * 0.64, r: 18 },
-    { x: 960, y: height * 0.76, r: 22 },
-    { x: 1120, y: height * 0.68, r: 15 },
+    { x: 130, y: height * 0.68, r: 18 },
+    { x: 310, y: height * 0.72, r: 22 },
+    { x: 490, y: height * 0.66, r: 16 },
+    { x: 680, y: height * 0.74, r: 24 },
+    { x: 860, y: height * 0.67, r: 19 },
+    { x: 1020, y: height * 0.71, r: 21 },
+    { x: 1170, y: height * 0.69, r: 17 },
   ]
   for (const lily of lilies) {
-    g.fillStyle(0x1a4a1a)
     const r = lily.r
+    g.fillStyle(0x1a4a1a)
     g.fillRect(lily.x - r, lily.y - r / 2, r * 2, r)
     g.fillRect(lily.x - r / 2, lily.y - r, r, r * 2)
-    // Notch (lily pad gap)
-    g.fillStyle(0x050e05)
-    g.fillRect(lily.x - 2, lily.y - r, 4, r + 2)
-    // Tiny flower
-    g.fillStyle(0xeeddaa)
-    g.fillRect(lily.x - 2, lily.y - 2, 4, 4)
+    g.fillStyle(0x060e06)
+    g.fillRect(lily.x - 2, lily.y - r, 4, r + 2)  // notch
+    g.fillStyle(0xddcc88)
+    g.fillRect(lily.x - 2, lily.y - 2, 4, 4)  // flower
   }
 
-  // Surface debris / dead leaves
-  g.fillStyle(0x080f08)
-  const debris = [[200, height * 0.65], [570, height * 0.73], [840, height * 0.66], [1050, height * 0.71]]
+  // Hydra neck silhouettes — 4 serpent necks breaking the surface
+  g.fillStyle(0x020502)
+  const necks = [
+    { x: 250, baseY: height * 0.68, h: 55, lean: -8 },
+    { x: 550, baseY: height * 0.65, h: 75, lean: 5 },
+    { x: 820, baseY: height * 0.70, h: 60, lean: -4 },
+    { x: 1060, baseY: height * 0.67, h: 65, lean: 6 },
+  ]
+  for (const nk of necks) {
+    g.fillRect(nk.x + nk.lean - 9, nk.baseY - nk.h, 18, nk.h)  // neck
+    g.fillRect(nk.x + nk.lean - 14, nk.baseY - nk.h - 8, 28, 10)  // head base
+    g.fillRect(nk.x + nk.lean - 10, nk.baseY - nk.h - 16, 20, 10)  // snout
+    // Eyes (toxic yellow)
+    g.fillStyle(0x223300)
+    g.fillRect(nk.x + nk.lean - 8, nk.baseY - nk.h - 12, 3, 3)
+    g.fillRect(nk.x + nk.lean + 5, nk.baseY - nk.h - 12, 3, 3)
+    g.fillStyle(0x020502)
+  }
+
+  // Surface debris
+  g.fillStyle(0x080e08)
+  const debris: Array<[number, number]> = [
+    [200, height * 0.65], [570, height * 0.73], [840, height * 0.66], [1050, height * 0.71],
+  ]
   for (const [dx, dy] of debris) {
     g.fillRect(dx, dy, 22, 7)
     g.fillRect(dx + 4, dy - 4, 14, 5)
   }
-  g.destroy()
 
-  // Fog layer (tweened)
-  const fog1 = scene.add.rectangle(width / 2, height * 0.59, width + 200, 55, 0x1a3a1a, 0.2)
-  const fog2 = scene.add.rectangle(width / 2, height * 0.62, width + 200, 40, 0x1a3a1a, 0.15)
-  scene.tweens.add({ targets: fog1, x: width / 2 + 50, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
-  scene.tweens.add({ targets: fog2, x: width / 2 - 40, duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  // ── Fog layers × 3 ──────────────────────────────────────────────────────────
+  const fog1 = scene.add.rectangle(width / 2,       height * 0.61, width + 200, 50, 0x1a3a1a, 1)
+  const fog2 = scene.add.rectangle(width / 2 + 25,  height * 0.65, width + 200, 36, 0x122a12, 1)
+  const fog3 = scene.add.rectangle(width / 2 - 15,  height * 0.70, width * 0.85, 26, 0x0e220e, 1)
+  fog1.setAlpha(0.20); fog2.setAlpha(0.16); fog3.setAlpha(0.12)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 50,  duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 40,  duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog3, x: width / 2 + 65,  duration: 9500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
 
-  // Water ripples
-  let ripplesAlive = 0
+  // ── Water ripple pool (5 ripples, recycled) ──────────────────────────────────
   const MAX_RIPPLES = 5
-  scene.time.addEvent({
-    delay: 1300,
-    loop: true,
-    callback: () => {
-      if (ripplesAlive >= MAX_RIPPLES) return
-      const rx = 80 + Math.random() * (width - 160)
-      const ry = height * 0.63 + Math.random() * (height * 0.28)
-      const rg = scene.add.graphics()
-      rg.lineStyle(1, 0x1a4a1a, 0.5)
-      rg.strokeEllipse(0, 0, 24, 10)
-      rg.x = rx; rg.y = ry
-      ripplesAlive++
-      scene.tweens.add({
-        targets: rg,
-        scaleX: 3.5, scaleY: 3.5, alpha: 0,
-        duration: 2000,
-        onComplete: () => { rg.destroy(); ripplesAlive-- },
-      })
-    },
+  const ripples: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_RIPPLES }, () => {
+    const rg = scene.add.graphics()
+    rg.lineStyle(1, 0x1a4a1a, 1)
+    rg.strokeEllipse(0, 0, 24, 10)
+    rg.setAlpha(0)
+    return rg
   })
+  const launchRipple = (index: number): void => {
+    const rg = ripples[index]
+    rg.setPosition(80 + Math.random() * (width - 160), height * 0.63 + Math.random() * (height * 0.26))
+    rg.setScale(1).setAlpha(0.5)
+    scene.tweens.add({
+      targets: rg,
+      scaleX: 3.5, scaleY: 3.5, alpha: 0,
+      duration: 2000,
+      ease: 'Quad.easeOut',
+      onComplete: () => { scene.time.delayedCall(800 + Math.random() * 1200, () => launchRipple(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_RIPPLES; i++) scene.time.delayedCall(i * 1300, () => launchRipple(i))
+
+  // ── Bubble pool (12 bubbles, recycled) ──────────────────────────────────────
+  const MAX_BUBBLES = 12
+  const bubbles: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_BUBBLES }, () => {
+    const bg = scene.add.graphics()
+    bg.lineStyle(1, 0x226622, 1)
+    bg.strokeCircle(0, 0, 3 + Math.floor(Math.random() * 3))
+    bg.setAlpha(0)
+    return bg
+  })
+  const launchBubble = (index: number): void => {
+    const bg = bubbles[index]
+    const bx = 50 + Math.random() * (width - 100)
+    const by = height * 0.80 + Math.random() * (height * 0.15)
+    bg.setPosition(bx, by).setAlpha(0.55)
+    scene.tweens.add({
+      targets: bg,
+      y: height * 0.60 + Math.random() * (height * 0.05),
+      alpha: 0,
+      duration: 2500 + Math.random() * 2000,
+      ease: 'Linear',
+      onComplete: () => { scene.time.delayedCall(Math.random() * 1500 + 400, () => launchBubble(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_BUBBLES; i++) scene.time.delayedCall(i * 350, () => launchBubble(i))
 }
 export function drawWebCavernBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
@@ -457,109 +526,217 @@ export function drawCryptBg(scene: Phaser.Scene): void {
 }
 export function drawCastleThroneRoomBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  // Stone brick wall (upper 65%)
-  g.fillStyle(0x1a1420)
-  g.fillRect(0, 0, width, height * 0.65)
+  // Layer 1: Stone brick wall — 4-band gradient
+  const wallSections: Array<[number, number, number]> = [
+    [0,             height * 0.18, 0x100c18],
+    [height * 0.18, height * 0.38, 0x141020],
+    [height * 0.38, height * 0.52, 0x18142a],
+    [height * 0.52, height * 0.65, 0x1c1830],
+  ]
+  for (const [y1, y2, color] of wallSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+  // Mortar lines
   const brickH = 28, brickW = 64
   for (let row = 0; row < Math.ceil(height * 0.65 / brickH); row++) {
     const offsetX = row % 2 === 0 ? 0 : brickW / 2
-    g.fillStyle(0x120e1a)
+    g.fillStyle(0x0c0918)
     for (let col = -1; col < Math.ceil(width / brickW) + 1; col++) {
-      const bx = col * brickW + offsetX
-      const by = row * brickH
+      const bx = col * brickW + offsetX, by = row * brickH
       g.fillRect(bx, by, brickW, 2)
       g.fillRect(bx, by, 2, brickH)
     }
   }
 
-  // Dark stone floor (bottom 35%)
-  g.fillStyle(0x0e0c12)
-  g.fillRect(0, height * 0.65, width, height * 0.35)
-  g.fillStyle(0x0a0810)
-  for (let x = 0; x < width; x += 80) g.fillRect(x, height * 0.65, 2, height * 0.35)
-  for (let y = height * 0.65; y < height; y += 60) g.fillRect(0, y, width, 2)
+  // Layer 2: Stone pillars — 3 each side
+  g.fillStyle(0x1a1228)
+  for (let i = 0; i < 3; i++) {
+    const lx = 64 + i * 160, rx = width - 64 - i * 160
+    g.fillRect(lx - 22, 0, 44, height * 0.65)
+    g.fillRect(rx - 22, 0, 44, height * 0.65)
+    g.fillStyle(0x221a36)
+    g.fillRect(lx - 28, height * 0.08, 56, 14)
+    g.fillRect(rx - 28, height * 0.08, 56, 14)
+    g.fillStyle(0x1a1228)
+  }
 
-  // Stained glass window (top center)
-  const winX = width / 2, winY = 60, winW = 120, winH = 140
-  g.fillStyle(0x330044)
+  // Layer 3: Stained glass window (top center) — 6 panels
+  const winX = width / 2, winY = 22, winW = 140, winH = 155
+  g.fillStyle(0x220033)
   g.fillRect(winX - winW / 2, winY, winW, winH)
   const panels = [
-    { dx: -50, dy: 10, w: 40, h: 50, color: 0x8800aa },
-    { dx: -8, dy: 10, w: 16, h: 80, color: 0xaa6600 },
-    { dx: 10, dy: 10, w: 40, h: 50, color: 0x006688 },
-    { dx: -50, dy: 65, w: 40, h: 50, color: 0x554400 },
-    { dx: 10, dy: 65, w: 40, h: 50, color: 0x004455 },
+    { dx: -62, dy: 8, w: 48, h: 60, color: 0x770099 },
+    { dx: -12, dy: 8, w: 24, h: 95, color: 0x996600 },
+    { dx: 14,  dy: 8, w: 48, h: 60, color: 0x005588 },
+    { dx: -62, dy: 72, w: 48, h: 67, color: 0x440066 },
+    { dx: 14,  dy: 72, w: 48, h: 67, color: 0x003344 },
+    { dx: -12, dy: 107, w: 24, h: 30, color: 0x884400 },
   ]
   for (const p of panels) {
     g.fillStyle(p.color)
     g.fillRect(winX + p.dx, winY + p.dy, p.w, p.h)
   }
   // Window frame
-  g.fillStyle(0x221a2a)
-  g.fillRect(winX - winW / 2 - 6, winY - 6, winW + 12, 6)
-  g.fillRect(winX - winW / 2 - 6, winY + winH, winW + 12, 6)
-  g.fillRect(winX - winW / 2 - 6, winY, 6, winH)
-  g.fillRect(winX + winW / 2, winY, 6, winH)
+  g.fillStyle(0x0e0c18)
+  g.fillRect(winX - winW / 2 - 8, winY - 8, winW + 16, 8)
+  g.fillRect(winX - winW / 2 - 8, winY + winH, winW + 16, 10)
+  g.fillRect(winX - winW / 2 - 8, winY, 8, winH + 10)
+  g.fillRect(winX + winW / 2, winY, 8, winH + 10)
 
-  // Purple tapestries
-  g.fillStyle(0x3a0a50)
-  g.fillRect(200, 10, 60, height * 0.55)
-  g.fillRect(width - 260, 10, 60, height * 0.55)
+  // Layer 4: Purple tapestries with gold trim and letter 'B' motif
+  g.fillStyle(0x2a0840)
+  g.fillRect(238, 8, 66, height * 0.55)
+  g.fillRect(width - 304, 8, 66, height * 0.55)
   g.fillStyle(0x886600)
-  g.fillRect(200, 10, 4, height * 0.55)
-  g.fillRect(256, 10, 4, height * 0.55)
-  g.fillRect(width - 260, 10, 4, height * 0.55)
-  g.fillRect(width - 204, 10, 4, height * 0.55)
-  g.fillRect(200, 10, 60, 4)
-  g.fillRect(width - 260, 10, 60, 4)
-
-  // Candelabra silhouettes
-  const candleXs = [360, width - 360]
-  for (const cx of candleXs) {
-    g.fillStyle(0x221a2a)
-    g.fillRect(cx - 3, height * 0.5, 6, height * 0.18)
-    g.fillRect(cx - 18, height * 0.5, 36, 5)
-    g.fillRect(cx - 18, height * 0.47, 5, 8)
-    g.fillRect(cx + 13, height * 0.47, 5, 8)
-    g.fillRect(cx - 2, height * 0.44, 4, 8)
+  g.fillRect(238, 8, 4, height * 0.55);  g.fillRect(300, 8, 4, height * 0.55)
+  g.fillRect(238, 8, 66, 4)
+  g.fillRect(width - 304, 8, 4, height * 0.55); g.fillRect(width - 242, 8, 4, height * 0.55)
+  g.fillRect(width - 304, 8, 66, 4)
+  // 'B' motif on tapestries
+  g.fillStyle(0xcc9900)
+  for (const [tx] of [[248], [width - 294]]) {
+    g.fillRect(tx, 50, 4, 32)
+    g.fillRect(tx, 50, 20, 3); g.fillRect(tx + 16, 50, 3, 14); g.fillRect(tx, 63, 20, 3)
+    g.fillRect(tx + 16, 64, 3, 18); g.fillRect(tx, 79, 20, 3)
   }
-  g.destroy()
 
-  // Candle flames (animated)
-  const candleFlamePositions = [
-    { x: 342, y: height * 0.44 },
-    { x: 358, y: height * 0.44 },
-    { x: 350, y: height * 0.41 },
-    { x: width - 342, y: height * 0.44 },
-    { x: width - 358, y: height * 0.44 },
-    { x: width - 350, y: height * 0.41 },
+  // Layer 5: Stone throne silhouette (center-back)
+  g.fillStyle(0x0a0814)
+  const tX = width / 2, tY = height * 0.65
+  g.fillRect(tX - 50, tY - 68, 100, 68)          // seat
+  g.fillRect(tX - 70, tY - 54, 20, 54)            // left arm
+  g.fillRect(tX + 50, tY - 54, 20, 54)            // right arm
+  g.fillRect(tX - 42, tY - 168, 84, 102)          // backrest
+  // Crown spikes
+  g.fillRect(tX - 42, tY - 188, 16, 22)
+  g.fillRect(tX - 20, tY - 198, 16, 32)
+  g.fillRect(tX + 4,  tY - 198, 16, 32)
+  g.fillRect(tX + 26, tY - 188, 16, 22)
+
+  // Layer 6: Stone floor — 4-band gradient
+  const floorSections: Array<[number, number, number]> = [
+    [height * 0.65, height * 0.74, 0x0e0c14],
+    [height * 0.74, height * 0.83, 0x0b0a10],
+    [height * 0.83, height * 0.92, 0x09080e],
+    [height * 0.92, height,        0x07060c],
   ]
-  for (let i = 0; i < candleFlamePositions.length; i++) {
-    const cf = candleFlamePositions[i]
+  for (const [y1, y2, color] of floorSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+  g.fillStyle(0x0a0812)
+  for (let x = 0; x < width; x += 80) g.fillRect(x, height * 0.65, 2, height * 0.35)
+  for (let y = height * 0.65; y < height; y += 60) g.fillRect(0, y, width, 2)
+
+  // Torch sconces on pillars
+  g.fillStyle(0x2a1a0a)
+  const torchXs = [86, 246, 406, width - 86, width - 246, width - 406]
+  for (const tx of torchXs) {
+    g.fillRect(tx - 3, height * 0.42, 6, 28)
+    g.fillRect(tx - 14, height * 0.42, 28, 6)
+    g.fillRect(tx - 10, height * 0.38, 20, 6)
+  }
+
+  // ── Torch flames (animated, one per sconce) ──────────────────────────────────
+  for (let i = 0; i < torchXs.length; i++) {
+    const tx = torchXs[i]
     const flame = scene.add.graphics()
-    flame.fillStyle(0xff8800, 0.95)
-    flame.fillRect(-2, -8, 4, 8)
-    flame.fillStyle(0xffdd00, 0.8)
-    flame.fillRect(-1, -10, 2, 5)
-    flame.x = cf.x; flame.y = cf.y
+    flame.fillStyle(0xff8800, 1); flame.fillRect(-3, -10, 6, 10)
+    flame.fillStyle(0xffdd00, 1); flame.fillRect(-2, -14, 4, 6)
+    flame.fillStyle(0xffffff, 1); flame.fillRect(-1, -16, 2, 3)
+    flame.setPosition(tx, height * 0.38).setAlpha(0.9)
     scene.tweens.add({
       targets: flame,
-      alpha: 0.4 + (i % 3) * 0.1,
-      scaleY: 0.75,
-      scaleX: 1.3,
-      duration: 80 + i * 20,
-      yoyo: true,
-      repeat: -1,
+      alpha: 0.45, scaleY: 0.74, scaleX: 1.38,
+      duration: 80 + i * 22,
+      yoyo: true, repeat: -1,
     })
   }
 
-  // Tapestry sway (invisible pivot rectangles — just for tweening)
-  const tapestryL = scene.add.rectangle(230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
-  const tapestryR = scene.add.rectangle(width - 230, height * 0.275 + 10, 60, height * 0.55, 0x3a0a50, 0.01)
-  scene.tweens.add({ targets: tapestryL, angle: 1.5, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
-  scene.tweens.add({ targets: tapestryR, angle: -1.5, duration: 3500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  // ── Candelabras (separate Graphics objects so they render correctly) ──────────
+  const candleXs = [width * 0.32, width * 0.68]
+  for (let ci = 0; ci < candleXs.length; ci++) {
+    const cx = candleXs[ci]
+    const stand = scene.add.graphics()
+    stand.fillStyle(0x221a2a, 1)
+    stand.fillRect(-3, 0, 6, 100)      // shaft
+    stand.fillRect(-20, 0, 40, 5)     // top plate
+    stand.fillRect(-18, height * 0.44 - 22, 4, 10)
+    stand.fillRect(14,  height * 0.44 - 22, 4, 10)
+    stand.fillRect(-2,  height * 0.44 - 12, 4, 10)
+    stand.setPosition(cx, height * 0.44).setAlpha(1)
+
+    const flameOffsets = [{ ox: -18, oy: -20 }, { ox: 0, oy: -32 }, { ox: 16, oy: -20 }]
+    for (let fi = 0; fi < flameOffsets.length; fi++) {
+      const fo = flameOffsets[fi]
+      const cf = scene.add.graphics()
+      cf.fillStyle(0xff8800, 1); cf.fillRect(-2, -8, 4, 8)
+      cf.fillStyle(0xffdd00, 1); cf.fillRect(-1, -11, 2, 4)
+      cf.setPosition(cx + fo.ox, height * 0.44 + fo.oy).setAlpha(0.9)
+      scene.tweens.add({
+        targets: cf,
+        alpha: 0.38, scaleY: 0.72, scaleX: 1.42,
+        duration: 90 + fi * 28 + ci * 14,
+        yoyo: true, repeat: -1,
+      })
+    }
+  }
+
+  // ── Floating corrupted-letter pool (8 letters, recycled) ─────────────────────
+  const typoLetters = ['T', 'Y', 'P', 'O', 'W', 'R', 'D', 'S']
+  const MAX_LETTERS = 8
+  const letterObjs: Phaser.GameObjects.Text[] = Array.from({ length: MAX_LETTERS }, (_, i) =>
+    scene.add.text(0, 0, typoLetters[i], {
+      fontSize: `${16 + (i % 3) * 6}px`,
+      color: i % 2 === 0 ? '#9944ff' : '#ffaa00',
+    }).setOrigin(0.5).setAlpha(0)
+  )
+  const launchLetter = (index: number): void => {
+    const lt = letterObjs[index]
+    const lx = 120 + Math.random() * (width - 240)
+    const ly = height * 0.55 + Math.random() * (height * 0.25)
+    lt.setPosition(lx, ly).setAlpha(0.42)
+    scene.tweens.add({
+      targets: lt,
+      y: ly - 75,
+      alpha: 0,
+      duration: 4000 + Math.random() * 2000,
+      ease: 'Sine.easeInOut',
+      onComplete: () => { scene.time.delayedCall(Math.random() * 3000 + 1000, () => launchLetter(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_LETTERS; i++) scene.time.delayedCall(i * 700, () => launchLetter(i))
+
+  // ── Window glow pulse ────────────────────────────────────────────────────────
+  const winGlow = scene.add.rectangle(winX, winY + winH / 2, winW + 24, winH + 24, 0x8800cc, 1)
+  winGlow.setAlpha(0.05)
+  scene.tweens.add({
+    targets: winGlow,
+    alpha: 0.13,
+    duration: 3200,
+    yoyo: true, repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // ── Tapestry sway — actual Graphics objects (not invisible proxies) ───────────
+  const tapL = scene.add.graphics()
+  tapL.fillStyle(0x2a0840, 1); tapL.fillRect(-33, 0, 66, height * 0.55)
+  tapL.fillStyle(0x886600, 1)
+  tapL.fillRect(-33, 0, 4, height * 0.55); tapL.fillRect(29, 0, 4, height * 0.55); tapL.fillRect(-33, 0, 66, 4)
+  tapL.setPosition(271, 8).setAlpha(0.85)
+  scene.tweens.add({ targets: tapL, angle: 1.8, duration: 3500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  const tapR = scene.add.graphics()
+  tapR.fillStyle(0x2a0840, 1); tapR.fillRect(-33, 0, 66, height * 0.55)
+  tapR.fillStyle(0x886600, 1)
+  tapR.fillRect(-33, 0, 4, height * 0.55); tapR.fillRect(29, 0, 4, height * 0.55); tapR.fillRect(-33, 0, 66, 4)
+  tapR.setPosition(width - 271, 8).setAlpha(0.85)
+  scene.tweens.add({ targets: tapR, angle: -2.0, duration: 4000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
 }
 export function drawEtherealVoidBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
@@ -870,194 +1047,395 @@ export function drawSteampunkWorkshopBg(scene: Phaser.Scene): void {
 }
 export function drawGraveyardBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  // Stormy sky (near-black purple)
-  g.fillStyle(0x0e0810)
-  g.fillRect(0, 0, width, height * 0.6)
-  g.fillStyle(0x110d14)
-  for (let x = 0; x < width; x += 160) {
-    const cy = 20 + ((x * 5) % 80)
-    g.fillRect(x, cy, 140, 30)
-    g.fillRect(x + 20, cy - 12, 100, 14)
+  // Layer 1: Stormy sky — 4-band gradient
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.15, 0x060308],
+    [height * 0.15, height * 0.30, 0x0a0612],
+    [height * 0.30, height * 0.45, 0x0e0918],
+    [height * 0.45, height * 0.60, 0x120c1e],
+  ]
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
 
-  // Dead gnarled trees
+  // Layer 2: Storm clouds — irregular blobs
+  g.fillStyle(0x0f0b1a)
+  for (let x = 0; x < width; x += 140) {
+    const cy = 18 + ((x * 7) % 50)
+    g.fillRect(x, cy, 120, 28)
+    g.fillRect(x + 15, cy - 10, 90, 14)
+    g.fillRect(x + 30, cy + 28, 60, 10)
+  }
+
+  // Layer 3: Distant ruined chapel silhouette (center)
+  g.fillStyle(0x070509)
+  const chapelX = width * 0.5, chapelBase = height * 0.58
+  g.fillRect(chapelX - 80, chapelBase - 90, 160, 90)
+  g.fillRect(chapelX - 90, chapelBase - 140, 38, 54)
+  g.fillRect(chapelX - 96, chapelBase - 148, 50, 12)
+  g.fillRect(chapelX - 88, chapelBase - 160, 22, 14)
+  g.fillRect(chapelX + 52, chapelBase - 130, 38, 44)
+  g.fillRect(chapelX + 46, chapelBase - 138, 50, 12)
+  // Arched window (negative space)
+  g.fillStyle(0x060308)
+  g.fillRect(chapelX - 12, chapelBase - 80, 24, 36)
+  g.fillRect(chapelX - 8, chapelBase - 88, 16, 10)
+
+  // Layer 4: Back tree layer — far, darkest, sine-varied
+  g.fillStyle(0x050307)
+  for (let x = 0; x < width; x += 60) {
+    if (x > width * 0.36 && x < width * 0.64) continue  // gap for chapel
+    const th = 100 + Math.sin(x * 0.09) * 30 + Math.sin(x * 0.19) * 15
+    g.fillRect(x - 10, height * 0.58 - th, 20, th)
+    g.fillRect(x - 26, height * 0.58 - th + 15, 52, 4)
+    g.fillRect(x - 18, height * 0.58 - th + 30, 36, 3)
+  }
+
+  // Layer 5: Mid tree layer — dead gnarled, closer
   g.fillStyle(0x070508)
   const treeDefs = [
-    { x: 80, h: 180 }, { x: 200, h: 140 }, { x: width - 80, h: 200 },
-    { x: width - 200, h: 150 }, { x: 440, h: 100 }, { x: width - 440, h: 110 },
+    { x: 90, h: 170 }, { x: 210, h: 140 }, { x: 330, h: 115 },
+    { x: width - 90, h: 180 }, { x: width - 210, h: 150 }, { x: width - 330, h: 120 },
   ]
   for (const td of treeDefs) {
     const baseY = height * 0.58
     g.fillRect(td.x - 8, baseY - td.h, 16, td.h)
-    g.fillRect(td.x - 40, baseY - td.h + 20, 80, 5)
-    g.fillRect(td.x - 28, baseY - td.h + 40, 56, 4)
-    g.fillRect(td.x + 10, baseY - td.h + 30, 36, 3)
-    g.fillRect(td.x - 44, baseY - td.h + 30, 26, 3)
-    g.fillRect(td.x - 48, baseY - td.h + 20, 10, 3)
-    g.fillRect(td.x + 38, baseY - td.h + 20, 10, 3)
-    g.fillRect(td.x - 52, baseY - td.h + 17, 6, 3)
-    g.fillRect(td.x + 46, baseY - td.h + 17, 6, 3)
+    g.fillRect(td.x - 40, baseY - td.h + 18, 80, 5)
+    g.fillRect(td.x - 28, baseY - td.h + 38, 56, 4)
+    g.fillRect(td.x + 10, baseY - td.h + 28, 36, 3)
+    g.fillRect(td.x - 44, baseY - td.h + 28, 28, 3)
+    g.fillRect(td.x - 52, baseY - td.h + 18, 12, 3)
+    g.fillRect(td.x + 42, baseY - td.h + 18, 12, 3)
   }
 
-  // Dead grass ground (lower 40%)
-  g.fillStyle(0x0c0c0c)
-  g.fillRect(0, height * 0.6, width, height * 0.4)
-  g.fillStyle(0x0f0f0f)
-  for (let x = 0; x < width; x += 30) {
-    g.fillRect(x, height * 0.6, 20, 4)
+  // Layer 6: Ground — 4-band gradient
+  const groundSections: Array<[number, number, number]> = [
+    [height * 0.58, height * 0.68, 0x0c0c0f],
+    [height * 0.68, height * 0.78, 0x09090c],
+    [height * 0.78, height * 0.88, 0x070709],
+    [height * 0.88, height,        0x050507],
+  ]
+  for (const [y1, y2, color] of groundSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+  // Dead grass tufts along treeline
+  g.fillStyle(0x0e0e0e)
+  for (let x = 0; x < width; x += 28) {
+    const bh = 10 + ((x * 3) % 12)
+    g.fillRect(x, height * 0.58, 20, bh)
   }
 
-  // Tombstones
+  // Layer 7: Tombstones — 8 varied
   const tombstones = [
-    { x: 140, y: height * 0.68, w: 36, h: 50 },
-    { x: 320, y: height * 0.7, w: 30, h: 44 },
-    { x: 550, y: height * 0.66, w: 40, h: 54 },
-    { x: 780, y: height * 0.69, w: 34, h: 48 },
-    { x: 990, y: height * 0.67, w: 38, h: 52 },
-    { x: 1150, y: height * 0.71, w: 28, h: 42 },
+    { x: 140, y: height * 0.70, w: 36, h: 52, cross: true },
+    { x: 260, y: height * 0.72, w: 30, h: 44, cross: false },
+    { x: 420, y: height * 0.68, w: 40, h: 56, cross: true },
+    { x: 600, y: height * 0.71, w: 28, h: 40, cross: false },
+    { x: 760, y: height * 0.70, w: 38, h: 54, cross: true },
+    { x: 900, y: height * 0.73, w: 32, h: 46, cross: false },
+    { x: 1050, y: height * 0.69, w: 40, h: 58, cross: true },
+    { x: 1170, y: height * 0.72, w: 30, h: 44, cross: false },
   ]
   for (const ts of tombstones) {
-    g.fillStyle(0x1a1a1a)
+    g.fillStyle(0x1a1a22)
     g.fillRect(ts.x - ts.w / 2, ts.y - ts.h, ts.w, ts.h)
-    g.fillRect(ts.x - ts.w / 2 + 4, ts.y - ts.h - 8, ts.w - 8, 10)
-    g.fillStyle(0x0d0d0d)
-    g.fillRect(ts.x - 2, ts.y - ts.h + 8, 4, 18)
-    g.fillRect(ts.x - 8, ts.y - ts.h + 12, 16, 4)
-    g.fillStyle(0x141414)
-    g.fillRect(ts.x - ts.w / 2 - 4, ts.y - 6, ts.w + 8, 6)
+    g.fillRect(ts.x - ts.w / 2 + 4, ts.y - ts.h - 10, ts.w - 8, 12)
+    g.fillRect(ts.x - ts.w / 2 + 8, ts.y - ts.h - 18, ts.w - 16, 10)
+    if (ts.cross) {
+      g.fillStyle(0x0d0d14)
+      g.fillRect(ts.x - 2, ts.y - ts.h + 8, 4, 22)
+      g.fillRect(ts.x - 9, ts.y - ts.h + 14, 18, 4)
+      g.fillStyle(0x1a1a22)
+    }
+    // Grave mound
+    g.fillStyle(0x141418)
+    g.fillRect(ts.x - ts.w / 2 - 6, ts.y - 8, ts.w + 12, 8)
+    g.fillStyle(0x1a1a22)
   }
-  g.destroy()
 
-  // Ground fog layer
-  const fog = scene.add.rectangle(width / 2, height * 0.66, width + 300, 70, 0x221a33, 0.2)
-  scene.tweens.add({
-    targets: fog,
-    x: width / 2 + 60,
-    duration: 6000,
-    yoyo: true,
-    repeat: -1,
-    ease: 'Sine.easeInOut',
+  // Iron fence (foreground)
+  g.fillStyle(0x101010)
+  for (let fx = 0; fx < width; fx += 22) {
+    g.fillRect(fx, height * 0.73, 3, 34)
+    g.fillRect(fx + 1, height * 0.73 - 4, 1, 5)  // spike tip
+    if (fx + 22 < width) {
+      g.fillRect(fx + 3, height * 0.73 + 10, 19, 2)
+      g.fillRect(fx + 3, height * 0.73 + 24, 19, 2)
+    }
+  }
+
+  // ── Ground fog layers × 3 ────────────────────────────────────────────────────
+  const fog1 = scene.add.rectangle(width / 2,       height * 0.73, width + 300, 48, 0x221a44, 1)
+  const fog2 = scene.add.rectangle(width / 2 + 30,  height * 0.78, width + 300, 34, 0x1a1233, 1)
+  const fog3 = scene.add.rectangle(width / 2 - 20,  height * 0.83, width * 0.85, 26, 0x140e28, 1)
+  fog1.setAlpha(0.22); fog2.setAlpha(0.18); fog3.setAlpha(0.14)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 60,  duration: 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 50,  duration: 5500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog3, x: width / 2 + 40,  duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // ── Ghostly orb pool (6 orbs, recycled) ─────────────────────────────────────
+  const MAX_ORBS = 6
+  const orbs: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_ORBS }, () => {
+    const orb = scene.add.graphics()
+    orb.fillStyle(0x8888ff, 1); orb.fillCircle(0, 0, 6)
+    orb.fillStyle(0xbbbbff, 1); orb.fillCircle(0, 0, 3)
+    orb.setAlpha(0)
+    return orb
   })
+  const launchOrb = (index: number): void => {
+    const orb = orbs[index]
+    const ox = 80 + Math.random() * (width - 160)
+    const oy = height * 0.68 + Math.random() * (height * 0.15)
+    orb.setPosition(ox, oy).setAlpha(0.55)
+    scene.tweens.add({
+      targets: orb,
+      y: oy - 90 - Math.random() * 60,
+      x: ox + (Math.random() - 0.5) * 60,
+      alpha: 0,
+      duration: 4000 + Math.random() * 2500,
+      ease: 'Sine.easeInOut',
+      onComplete: () => { scene.time.delayedCall(Math.random() * 3000 + 1000, () => launchOrb(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_ORBS; i++) scene.time.delayedCall(i * 800, () => launchOrb(i))
 
-  // Lightning flash (white overlay, triggered by timer)
-  const lightning = scene.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 0)
-  scene.time.addEvent({
-    delay: 5000,
-    loop: true,
-    callback: () => {
-      const flashDelay = Math.random() * 4000
-      scene.time.delayedCall(flashDelay, () => {
-        scene.tweens.add({
-          targets: lightning,
-          alpha: 0.18,
-          duration: 60,
-          yoyo: true,
-          repeat: 1,
-        })
+  // ── Bone fragment pool (10 shards, recycled) ─────────────────────────────────
+  const MAX_BONES = 10
+  const bones: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_BONES }, () => {
+    const bone = scene.add.graphics()
+    bone.fillStyle(0xccccbb, 1); bone.fillRect(-3, -1, 6, 2)
+    bone.setAlpha(0)
+    return bone
+  })
+  const launchBone = (index: number): void => {
+    const bone = bones[index]
+    const bx = 80 + Math.random() * (width - 160)
+    const by = height * 0.75 + Math.random() * (height * 0.12)
+    bone.setPosition(bx, by).setAlpha(0.5).setAngle(Math.random() * 360)
+    scene.tweens.add({
+      targets: bone,
+      y: by - 50 - Math.random() * 40,
+      alpha: 0,
+      angle: bone.angle + (Math.random() - 0.5) * 90,
+      duration: 2500 + Math.random() * 1500,
+      ease: 'Quad.easeOut',
+      onComplete: () => { scene.time.delayedCall(Math.random() * 2500 + 500, () => launchBone(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_BONES; i++) scene.time.delayedCall(i * 500, () => launchBone(i))
+
+  // ── Lightning — recursive double-flash ───────────────────────────────────────
+  const lightning = scene.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 1)
+  lightning.setAlpha(0)
+  const triggerLightning = (): void => {
+    scene.time.delayedCall(Math.random() * 4000, () => {
+      scene.tweens.add({
+        targets: lightning,
+        alpha: 0.20,
+        duration: 55,
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => {
+          if (Math.random() > 0.45) {
+            scene.time.delayedCall(100, () => {
+              scene.tweens.add({
+                targets: lightning,
+                alpha: 0.10,
+                duration: 40,
+                yoyo: true,
+                onComplete: () => { scene.time.delayedCall(4500 + Math.random() * 5500, triggerLightning) },
+              })
+            })
+          } else {
+            scene.time.delayedCall(4500 + Math.random() * 5500, triggerLightning)
+          }
+        },
       })
-    },
-  })
+    })
+  }
+  scene.time.delayedCall(2000, triggerLightning)
 }
 export function drawDarkForestBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  // Deep blue-black sky
-  g.fillStyle(0x050810)
-  g.fillRect(0, 0, width, height * 0.55)
-
-  // Background tree layer (farthest, darkest)
-  g.fillStyle(0x040608)
-  for (let x = 0; x < width; x += 70) {
-    const th = 140 + ((x * 3) % 80)
-    const tw = 40 + ((x * 7) % 20)
-    g.fillRect(x, height * 0.55 - th, tw, th)
-    g.fillRect(x - 10, height * 0.55 - th + 20, tw + 20, 20)
-    g.fillRect(x - 5, height * 0.55 - th + 40, tw + 10, 20)
+  // Layer 1: Deep blue-black sky — 4-band gradient with blood-moon tint
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.15, 0x04050a],
+    [height * 0.15, height * 0.30, 0x060810],
+    [height * 0.30, height * 0.45, 0x070914],
+    [height * 0.45, height * 0.56, 0x090b18],
+  ]
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
 
-  // Mid tree layer
-  g.fillStyle(0x060a0e)
-  for (let x = -20; x < width; x += 90) {
-    const th = 110 + ((x * 11) % 60)
-    const tw = 36 + ((x * 5) % 22)
-    g.fillRect(x, height * 0.58 - th, tw, th)
-    g.fillRect(x - 14, height * 0.58 - th + 10, tw + 28, 22)
-    g.fillRect(x - 8, height * 0.58 - th + 30, tw + 16, 18)
-  }
-
-  // Foreground tree layer (closest, tallest)
-  g.fillStyle(0x040507)
-  for (let x = -30; x < width + 30; x += 120) {
-    const _th = 200 + ((x * 7) % 100)
-    void _th
-    const tw = 50 + ((x * 3) % 30)
-    g.fillRect(x, 0, tw, height * 0.65)
-    g.fillRect(x - 20, height * 0.1, tw + 40, 30)
-    g.fillRect(x - 12, height * 0.2, tw + 24, 24)
-  }
-
-  // Dense undergrowth
-  g.fillStyle(0x040706)
-  g.fillRect(0, height * 0.58, width, height * 0.42)
-  g.fillStyle(0x060a08)
-  for (let x = 0; x < width; x += 50) {
-    const bh = 16 + ((x * 3) % 20)
-    g.fillRect(x, height * 0.58, 44, bh)
-  }
-
-  // Pale moon
-  g.fillStyle(0x8888aa)
-  g.fillCircle(width * 0.52, 60, 30)
-  g.fillStyle(0xaaaabb)
-  g.fillCircle(width * 0.52, 60, 22)
-  g.fillStyle(0xccccdd)
-  g.fillCircle(width * 0.52, 60, 14)
+  // Layer 2: Blood moon — red-tinged, 5 concentric layers
+  const moonX = width * 0.52, moonY = 60
+  g.fillStyle(0x440000); g.fillCircle(moonX, moonY, 38)
+  g.fillStyle(0x772200); g.fillCircle(moonX, moonY, 30)
+  g.fillStyle(0xaa4400); g.fillCircle(moonX, moonY, 22)
+  g.fillStyle(0xcc6622); g.fillCircle(moonX, moonY, 14)
   // Cloud occlusion
-  g.fillStyle(0x050810)
-  g.fillRect(width * 0.52 - 28, 44, 20, 10)
-  g.fillRect(width * 0.52 + 8, 38, 24, 12)
-  g.destroy()
+  g.fillStyle(0x04050a)
+  g.fillRect(moonX - 30, moonY - 16, 22, 12)
+  g.fillRect(moonX + 8,  moonY - 20, 26, 14)
 
-  // Moonlight shaft
-  const moonShaft = scene.add.rectangle(width * 0.52, height * 0.35, 60, height * 0.7, 0xffffff, 0.04)
+  // Layer 3: Far tree layer — sine-varied, darkest
+  g.fillStyle(0x040608)
+  for (let x = 0; x < width; x += 56) {
+    const th = 130 + Math.sin(x * 0.08) * 38 + Math.sin(x * 0.20) * 20
+    const tw = 34 + ((x * 7) % 16)
+    g.fillRect(x - tw / 2, height * 0.56 - th, tw, th)
+    g.fillRect(x - tw * 0.7, height * 0.56 - th + 20, tw * 1.4, 18)
+    g.fillRect(x - tw * 0.5, height * 0.56 - th + 40, tw, 14)
+  }
+
+  // Layer 4: Mid tree layer
+  g.fillStyle(0x060a0e)
+  for (let x = -20; x < width; x += 76) {
+    const th = 110 + Math.sin(x * 0.06) * 32 + Math.sin(x * 0.15) * 16
+    const tw = 36 + ((x * 5) % 20)
+    g.fillRect(x - tw / 2, height * 0.58 - th, tw, th)
+    g.fillRect(x - tw * 0.8, height * 0.58 - th + 12, tw * 1.6, 20)
+    g.fillRect(x - tw * 0.6, height * 0.58 - th + 32, tw * 1.2, 16)
+  }
+
+  // Layer 5: Foreground trunk columns — 4 each side (massive ogre-forest trunks)
+  g.fillStyle(0x030406)
+  for (let i = 0; i < 4; i++) {
+    g.fillRect(i * 20 - 6,           0, 22, height)   // left
+    g.fillRect(width - i * 20 - 16,  0, 22, height)   // right
+    if (i < 3) {
+      g.fillRect(i * 20 + 14,          height * 0.18 + i * 22, 60, 7)
+      g.fillRect(width - i * 20 - 74,  height * 0.22 + i * 18, 60, 7)
+    }
+  }
+
+  // Layer 6: Dense undergrowth — 4-band ground gradient
+  const groundSections: Array<[number, number, number]> = [
+    [height * 0.56, height * 0.66, 0x060908],
+    [height * 0.66, height * 0.76, 0x040706],
+    [height * 0.76, height * 0.88, 0x030505],
+    [height * 0.88, height,        0x020403],
+  ]
+  for (const [y1, y2, color] of groundSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+  // Undergrowth tufts
+  g.fillStyle(0x060a08)
+  for (let x = 0; x < width; x += 48) {
+    const bh = 16 + ((x * 3) % 22)
+    g.fillRect(x, height * 0.56, 42, bh)
+  }
+  // Exposed roots from ogre-trunk columns
+  g.lineStyle(3, 0x030604, 1)
+  const rootLines: Array<[number, number, number, number]> = [
+    [20,         height * 0.58, 70,          height * 0.74],
+    [36,         height * 0.60, 120,         height * 0.82],
+    [width - 58, height * 0.58, width - 18,  height * 0.76],
+    [width - 36, height * 0.60, width - 88,  height * 0.80],
+  ]
+  for (const [x1, y1, x2, y2] of rootLines) g.lineBetween(x1, y1, x2, y2)
+
+  // ── Blood moon light shaft ───────────────────────────────────────────────────
+  const moonShaft = scene.add.graphics()
+  moonShaft.fillStyle(0xaa3300, 1)
+  moonShaft.fillTriangle(moonX - 15, 0, moonX + 15, 0, moonX - 12, height)
+  moonShaft.fillTriangle(moonX + 15, 0, moonX + 38, height, moonX - 12, height)
+  moonShaft.setAlpha(0.06)
   scene.tweens.add({
     targets: moonShaft,
-    alpha: 0.07,
-    duration: 3000,
+    alpha: 0.11,
+    duration: 3500,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
 
-  // Firefly particles
-  let firefliesAlive = 0
+  // ── Ground fog layers × 3 ────────────────────────────────────────────────────
+  const fog1 = scene.add.rectangle(width / 2,       height * 0.60, width + 200, 36, 0x0a1408, 1)
+  const fog2 = scene.add.rectangle(width / 2 + 20,  height * 0.66, width + 200, 26, 0x080e06, 1)
+  const fog3 = scene.add.rectangle(width / 2 - 15,  height * 0.72, width * 0.9, 20, 0x060c05, 1)
+  fog1.setAlpha(0.28); fog2.setAlpha(0.22); fog3.setAlpha(0.16)
+  scene.tweens.add({ targets: fog1, x: width / 2 + 45, duration: 6500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog2, x: width / 2 - 35, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: fog3, x: width / 2 + 55, duration: 8500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // ── Firefly pool (10 fireflies, recycled — no destroy) ───────────────────────
   const MAX_FIREFLIES = 10
-  scene.time.addEvent({
-    delay: 600,
-    loop: true,
-    callback: () => {
-      if (firefliesAlive >= MAX_FIREFLIES) return
-      const fx = 100 + Math.random() * (width - 200)
-      const fy = height * 0.25 + Math.random() * (height * 0.4)
-      const ff = scene.add.graphics()
-      ff.fillStyle(0xffff88, 0.8)
-      ff.fillRect(-2, -2, 4, 4)
-      ff.x = fx; ff.y = fy
-      firefliesAlive++
-      scene.tweens.add({
-        targets: ff,
-        x: fx + (Math.random() - 0.5) * 100,
-        y: fy + (Math.random() - 0.5) * 60,
-        alpha: 0,
-        duration: 3000 + Math.random() * 2000,
-        ease: 'Sine.easeInOut',
-        onComplete: () => { ff.destroy(); firefliesAlive-- },
-      })
-    },
+  const fireflies: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_FIREFLIES }, () => {
+    const ff = scene.add.graphics()
+    ff.fillStyle(0xffff88, 1)
+    ff.fillRect(-2, -2, 4, 4)
+    ff.setAlpha(0)
+    return ff
   })
+  const launchFirefly = (index: number): void => {
+    const ff = fireflies[index]
+    const fx = 100 + Math.random() * (width - 200)
+    const fy = height * 0.25 + Math.random() * (height * 0.40)
+    ff.setPosition(fx, fy).setAlpha(0.75)
+    scene.tweens.add({
+      targets: ff,
+      x: fx + (Math.random() - 0.5) * 100,
+      y: fy + (Math.random() - 0.5) * 60,
+      alpha: 0,
+      duration: 3000 + Math.random() * 2000,
+      ease: 'Sine.easeInOut',
+      onComplete: () => { scene.time.delayedCall(Math.random() * 2000 + 600, () => launchFirefly(index)) },
+    })
+  }
+  for (let i = 0; i < MAX_FIREFLIES; i++) scene.time.delayedCall(i * 600, () => launchFirefly(i))
+
+  // ── Glowing eyes — 3 pairs in the darkness ───────────────────────────────────
+  type EyeConfig = { ex: number; ey: number; initDelay: number }
+  const eyeConfigs: EyeConfig[] = [
+    { ex: 48,           ey: height * 0.42, initDelay: 0 },
+    { ex: width - 52,   ey: height * 0.38, initDelay: 3000 },
+    { ex: width * 0.5,  ey: height * 0.30, initDelay: 6000 },
+  ]
+  for (const { ex, ey, initDelay } of eyeConfigs) {
+    const eyeGfx = scene.add.graphics()
+    eyeGfx.fillStyle(0xff4400, 1)
+    eyeGfx.fillEllipse(ex - 5, ey, 10, 7)
+    eyeGfx.fillEllipse(ex + 7, ey, 10, 7)
+    eyeGfx.fillStyle(0x220000, 1)
+    eyeGfx.fillEllipse(ex - 5, ey, 5, 4)
+    eyeGfx.fillEllipse(ex + 7, ey, 5, 4)
+    eyeGfx.setAlpha(0)
+
+    const scheduleBlink = (): void => {
+      scene.tweens.add({
+        targets: eyeGfx,
+        alpha: 0.9,
+        duration: 180,
+        ease: 'Sine.easeInOut',
+        onComplete: () => {
+          scene.time.delayedCall(2500 + Math.random() * 2000, () => {
+            scene.tweens.add({
+              targets: eyeGfx,
+              alpha: 0,
+              duration: 350,
+              ease: 'Sine.easeInOut',
+              onComplete: () => { scene.time.delayedCall(4000 + Math.random() * 5000, scheduleBlink) },
+            })
+          })
+        },
+      })
+    }
+    scene.time.delayedCall(initDelay, scheduleBlink)
+  }
 }
 export function drawDigitalVoidBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
@@ -1368,69 +1746,230 @@ function drawForestClearingBg(scene: Phaser.Scene): void {
 
 function drawMoonlitGladeBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
+
+  // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  g.fillStyle(0x05081a)
-  g.fillRect(0, 0, width, height * 0.6)
-
-  // Stars
-  g.fillStyle(0xccccdd)
-  const starPositions = [
-    [120, 40], [240, 80], [400, 30], [560, 60], [720, 25], [880, 70],
-    [1040, 45], [1180, 55], [180, 120], [340, 100], [660, 110], [820, 90],
-    [1100, 115], [500, 140], [760, 135], [980, 125], [300, 160], [700, 155],
+  // Layer 1: Deep night sky — 5-band gradient
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.12, 0x020308],
+    [height * 0.12, height * 0.25, 0x040612],
+    [height * 0.25, height * 0.38, 0x05081a],
+    [height * 0.38, height * 0.52, 0x060a20],
+    [height * 0.52, height * 0.60, 0x080c28],
   ]
-  for (const [sx, sy] of starPositions) {
-    g.fillRect(sx - 1, sy - 1, 2, 2)
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
 
-  // Large full moon
-  g.fillStyle(0x9999aa)
-  g.fillCircle(width * 0.72, 80, 48)
-  g.fillStyle(0xbbbbcc)
-  g.fillCircle(width * 0.72, 80, 38)
-  g.fillStyle(0xccccdd)
-  g.fillCircle(width * 0.72, 80, 28)
+  // Layer 2: Stars — bright 2×2 and faint 1×1 pixels
+  g.fillStyle(0xddddff)
+  const stars2x: Array<[number, number]> = [
+    [90, 28], [200, 52], [380, 22], [520, 48], [680, 18], [820, 60], [990, 36],
+    [1140, 50], [1210, 22], [160, 110], [320, 88], [600, 102], [780, 80],
+    [1060, 96], [460, 130], [730, 120], [950, 108], [290, 145], [670, 138], [860, 148],
+  ]
+  for (const [sx, sy] of stars2x) g.fillRect(sx - 1, sy - 1, 2, 2)
+  g.fillStyle(0xaaaacc)
+  const stars1x: Array<[number, number]> = [
+    [55, 35], [145, 70], [265, 45], [435, 82], [575, 25], [705, 75],
+    [850, 42], [1010, 62], [1155, 38], [1240, 68], [190, 135], [415, 158],
+    [545, 95], [640, 165], [775, 42], [1080, 140],
+  ]
+  for (const [sx, sy] of stars1x) g.fillRect(sx, sy, 1, 1)
+
+  // Layer 3: Full moon — 5 concentric layers + craters
+  const moonX = width * 0.72, moonY = 72
+  g.fillStyle(0x333355); g.fillCircle(moonX, moonY, 58)
+  g.fillStyle(0x5555aa); g.fillCircle(moonX, moonY, 50)
+  g.fillStyle(0x8888bb); g.fillCircle(moonX, moonY, 40)
+  g.fillStyle(0xbbbbcc); g.fillCircle(moonX, moonY, 30)
+  g.fillStyle(0xdddde8); g.fillCircle(moonX, moonY, 20)
   g.fillStyle(0xaaaabc)
-  g.fillCircle(width * 0.72 + 12, 68, 7)
-  g.fillCircle(width * 0.72 - 10, 88, 5)
+  g.fillCircle(moonX + 10, moonY - 8, 5)
+  g.fillCircle(moonX - 8,  moonY + 9, 4)
+  g.fillCircle(moonX + 3,  moonY + 14, 3)
 
-  // Silver-lit tree silhouettes
-  g.fillStyle(0x0a0f1e)
-  for (let x = 20; x < width; x += 80) {
-    const th = 160 + ((x * 5) % 80)
-    const tw = 32 + ((x * 3) % 18)
-    g.fillRect(x - tw / 2, height * 0.58 - th, tw, th)
-    g.fillRect(x - tw, height * 0.58 - th + 15, tw * 2, 22)
-    g.fillRect(x - tw * 0.7, height * 0.58 - th + 38, tw * 1.4, 18)
+  // Layer 4: Far tree layer — sine-varied dark silhouettes
+  g.fillStyle(0x060a1a)
+  for (let x = 0; x < width; x += 44) {
+    const th = 80 + Math.sin(x * 0.08) * 30 + Math.sin(x * 0.18) * 15
+    g.fillRect(x - 10, height * 0.59 - th, 20, th)
+    g.fillRect(x - 22, height * 0.59 - th + 16, 44, 5)
+    g.fillRect(x - 14, height * 0.59 - th + 32, 28, 4)
   }
 
-  // Silver ground
-  g.fillStyle(0x0e1020)
-  g.fillRect(0, height * 0.58, width, height * 0.42)
-  g.fillStyle(0x131525)
-  for (let x = 0; x < width; x += 50) g.fillRect(x, height * 0.58, 36, 5)
-  g.destroy()
+  // Layer 5: Mid tree layer — closer, slightly wider with branch forks
+  g.fillStyle(0x04060e)
+  for (let x = 14; x < width; x += 66) {
+    const th = 110 + Math.sin(x * 0.06) * 35 + Math.sin(x * 0.14) * 18
+    g.fillRect(x - 14, height * 0.59 - th, 28, th)
+    g.fillRect(x - 30, height * 0.59 - th + 20, 60, 5)
+    g.fillRect(x - 20, height * 0.59 - th + 40, 40, 4)
+    g.fillRect(x + 12, height * 0.59 - th + 30, 26, 3)
+  }
 
-  const moonbeam = scene.add.rectangle(width * 0.72, height * 0.78, 100, height * 0.44, 0xaaaadd, 0.05)
+  // Layer 6: Foreground trunk columns — 3 each side
+  g.fillStyle(0x030408)
+  for (let i = 0; i < 3; i++) {
+    g.fillRect(i * 18 - 4,           0, 16, height)  // left
+    g.fillRect(width - i * 18 - 12,  0, 16, height)  // right
+    if (i < 2) {
+      g.fillRect(i * 18 + 10,          height * 0.22 + i * 20, 42, 5)
+      g.fillRect(width - i * 18 - 52,  height * 0.28 + i * 16, 42, 5)
+    }
+  }
+
+  // Layer 7: Ground — 4-band silver-blue gradient
+  const groundSections: Array<[number, number, number]> = [
+    [height * 0.59, height * 0.68, 0x0c1022],
+    [height * 0.68, height * 0.78, 0x090d1a],
+    [height * 0.78, height * 0.88, 0x060a14],
+    [height * 0.88, height,        0x04070e],
+  ]
+  for (const [y1, y2, color] of groundSections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
+  }
+  // Silver-grass tufts along treeline
+  g.fillStyle(0x0e1428)
+  for (let x = 0; x < width; x += 32) {
+    const bh = 12 + ((x * 5) % 14)
+    g.fillRect(x, height * 0.59, 24, bh)
+  }
+
+  // Layer 8: Crystal formations — 5 clusters
+  const crystalClusters: Array<{ x: number; y: number }> = [
+    { x: 160, y: height * 0.74 },
+    { x: 400, y: height * 0.76 },
+    { x: 680, y: height * 0.73 },
+    { x: 900, y: height * 0.75 },
+    { x: 1120, y: height * 0.74 },
+  ]
+  for (const cc of crystalClusters) {
+    g.fillStyle(0x1a3388)
+    g.fillRect(cc.x - 4,  cc.y - 22, 8,  22)
+    g.fillRect(cc.x - 14, cc.y - 14, 6,  14)
+    g.fillRect(cc.x + 8,  cc.y - 18, 6,  18)
+    g.fillStyle(0x3366cc)
+    g.fillRect(cc.x - 2,  cc.y - 22, 4,  8)
+    g.fillRect(cc.x - 13, cc.y - 14, 3,  5)
+    g.fillRect(cc.x + 9,  cc.y - 18, 3,  6)
+  }
+
+  // ── Moonbeam shaft (animated alpha pulse) ───────────────────────────────────
+  const moonbeam = scene.add.graphics()
+  moonbeam.fillStyle(0xaaaadd, 1)
+  moonbeam.fillTriangle(moonX - 20, 0, moonX + 20, 0, moonX - 18, height)
+  moonbeam.fillTriangle(moonX + 20, 0, moonX + 42, height, moonX - 18, height)
+  moonbeam.setAlpha(0.05)
   scene.tweens.add({
     targets: moonbeam,
-    alpha: 0.1,
-    duration: 4000,
+    alpha: 0.10,
+    duration: 5000,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
 
-  const mist = scene.add.rectangle(width / 2, height * 0.65, width + 200, 50, 0x8888aa, 0.15)
+  // ── Moon halo rings (animated pulse) ────────────────────────────────────────
+  const moonHalo = scene.add.graphics()
+  moonHalo.lineStyle(2, 0x8888bb, 1); moonHalo.strokeCircle(moonX, moonY, 72)
+  moonHalo.lineStyle(1, 0x6666aa, 1); moonHalo.strokeCircle(moonX, moonY, 88)
+  moonHalo.lineStyle(1, 0x444499, 1); moonHalo.strokeCircle(moonX, moonY, 106)
+  moonHalo.setAlpha(0.12)
   scene.tweens.add({
-    targets: mist,
-    x: width / 2 + 50,
-    duration: 5500,
+    targets: moonHalo,
+    alpha: 0.22,
+    duration: 4500,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
+
+  // ── Mist layers × 3 — drift at different speeds ──────────────────────────────
+  const mist1 = scene.add.rectangle(width / 2,       height * 0.62, width + 200, 40, 0x8888bb, 1)
+  const mist2 = scene.add.rectangle(width / 2 + 20,  height * 0.68, width + 200, 28, 0x6666aa, 1)
+  const mist3 = scene.add.rectangle(width / 2 - 15,  height * 0.74, width * 0.85, 20, 0x555599, 1)
+  mist1.setAlpha(0.14); mist2.setAlpha(0.10); mist3.setAlpha(0.08)
+  scene.tweens.add({ targets: mist1, x: width / 2 + 50, duration: 6000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: mist2, x: width / 2 - 40, duration: 8000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  scene.tweens.add({ targets: mist3, x: width / 2 + 60, duration: 5500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
+  // ── Crystal glow pulses ──────────────────────────────────────────────────────
+  for (let ci = 0; ci < crystalClusters.length; ci++) {
+    const cc = crystalClusters[ci]
+    const cg = scene.add.rectangle(cc.x, cc.y - 12, 28, 28, 0x4488ff, 1)
+    cg.setAlpha(0.04)
+    scene.tweens.add({
+      targets: cg,
+      alpha: 0.14,
+      duration: 2500 + ci * 400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+  }
+
+  // ── Silver firefly pool (10 fireflies, recycled) ─────────────────────────────
+  const MAX_FIREFLIES = 10
+  const fireflies: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_FIREFLIES }, () => {
+    const ff = scene.add.graphics()
+    ff.fillStyle(0xaaccff, 1)
+    ff.fillCircle(0, 0, 2)
+    ff.setAlpha(0)
+    return ff
+  })
+  const launchFirefly = (index: number): void => {
+    const ff = fireflies[index]
+    const fx = 80 + Math.random() * (width - 160)
+    const fy = height * 0.28 + Math.random() * (height * 0.38)
+    ff.setPosition(fx, fy).setAlpha(0.72)
+    scene.tweens.add({
+      targets: ff,
+      x: fx + (Math.random() - 0.5) * 80,
+      y: fy + (Math.random() - 0.5) * 50,
+      alpha: 0,
+      duration: 3000 + Math.random() * 2000,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        scene.time.delayedCall(Math.random() * 2500 + 800, () => launchFirefly(index))
+      },
+    })
+  }
+  for (let i = 0; i < MAX_FIREFLIES; i++) {
+    scene.time.delayedCall(i * 500, () => launchFirefly(i))
+  }
+
+  // ── Floating 'N' rune pool (4 runes, recycled) ───────────────────────────────
+  const MAX_RUNES = 4
+  const runeSizes = [18, 22, 16, 20]
+  const runeObjs: Phaser.GameObjects.Text[] = Array.from({ length: MAX_RUNES }, (_, i) =>
+    scene.add.text(0, 0, 'N', {
+      fontSize: `${runeSizes[i]}px`,
+      color: i % 2 === 0 ? '#6688ff' : '#8844cc',
+    }).setOrigin(0.5).setAlpha(0)
+  )
+  const launchRune = (index: number): void => {
+    const rune = runeObjs[index]
+    const rx = 100 + Math.random() * (width - 200)
+    const ry = height * 0.50 + Math.random() * (height * 0.20)
+    rune.setPosition(rx, ry).setAlpha(0.30)
+    scene.tweens.add({
+      targets: rune,
+      y: ry - 60,
+      alpha: 0,
+      duration: 4500 + Math.random() * 2000,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        scene.time.delayedCall(Math.random() * 4000 + 2000, () => launchRune(index))
+      },
+    })
+  }
+  for (let i = 0; i < MAX_RUNES; i++) {
+    scene.time.delayedCall(i * 1200, () => launchRune(i))
+  }
 }
 
 function drawVolcanicArenaBg(scene: Phaser.Scene): void {
