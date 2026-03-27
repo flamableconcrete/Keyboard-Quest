@@ -531,7 +531,8 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
   private showTooltip(level: LevelConfig, pos: NodePosition) {
     this.hideTooltip()
     const label = level.isMiniBoss ? '⚔ MINI-BOSS: ' : level.isBoss ? '👑 BOSS: ' : ''
-    this.tooltipText = this.add.text(pos.x, pos.y - 35, `${label}${level.name}`, {
+    const letterLine = level.miniBossUnlocksLetter ? `\nUnlocks letter: ${level.miniBossUnlocksLetter.toUpperCase()}` : ''
+    this.tooltipText = this.add.text(pos.x, pos.y - 35, `${label}${level.name}${letterLine}`, {
       fontSize: '14px', color: '#ffffff', backgroundColor: '#000000',
       padding: { x: 6, y: 4 }
     }).setOrigin(0.5).setDepth(2000).setAlpha(0)
