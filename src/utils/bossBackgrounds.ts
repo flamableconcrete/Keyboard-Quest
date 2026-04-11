@@ -1267,7 +1267,7 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   // ── Static base — persistent Graphics object (do NOT destroy) ───────────────
   const g = scene.add.graphics()
 
-  // Layer 1: Deep blue-black sky — 4-band gradient with blood-moon tint
+  // Layer 1: Warm red-brown sky — 4-band gradient with blood-moon tint
   const skySections: Array<[number, number, number]> = [
     [0,             height * 0.15, 0x160806],
     [height * 0.15, height * 0.30, 0x220a08],
