@@ -2078,6 +2078,8 @@ function drawVolcanicCragBg(scene: Phaser.Scene): void {
   g.fillRect(620, height * 0.71, 14, 3)
   g.fillRect(900, height * 0.74, 11, 3)
 
+  g.destroy()
+
   // ── Animated elements ────────────────────────────────────────────────────────
 
   // 1) Distant fire column (behind volcano peak)
