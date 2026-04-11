@@ -1269,10 +1269,10 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
 
   // Layer 1: Deep blue-black sky — 4-band gradient with blood-moon tint
   const skySections: Array<[number, number, number]> = [
-    [0,             height * 0.15, 0x04050a],
-    [height * 0.15, height * 0.30, 0x060810],
-    [height * 0.30, height * 0.45, 0x070914],
-    [height * 0.45, height * 0.56, 0x090b18],
+    [0,             height * 0.15, 0x160806],
+    [height * 0.15, height * 0.30, 0x220a08],
+    [height * 0.30, height * 0.45, 0x2a1008],
+    [height * 0.45, height * 0.56, 0x200c06],
   ]
   for (const [y1, y2, color] of skySections) {
     g.fillStyle(color)
@@ -1281,17 +1281,17 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
 
   // Layer 2: Blood moon — red-tinged, 5 concentric layers
   const moonX = width * 0.52, moonY = 60
-  g.fillStyle(0x440000); g.fillCircle(moonX, moonY, 38)
-  g.fillStyle(0x772200); g.fillCircle(moonX, moonY, 30)
-  g.fillStyle(0xaa4400); g.fillCircle(moonX, moonY, 22)
-  g.fillStyle(0xcc6622); g.fillCircle(moonX, moonY, 14)
+  g.fillStyle(0x882200); g.fillCircle(moonX, moonY, 38)
+  g.fillStyle(0xaa2800); g.fillCircle(moonX, moonY, 30)
+  g.fillStyle(0xdd4400); g.fillCircle(moonX, moonY, 22)
+  g.fillStyle(0xff8844); g.fillCircle(moonX, moonY, 14)
   // Cloud occlusion
-  g.fillStyle(0x04050a)
+  g.fillStyle(0x1e0c0a)
   g.fillRect(moonX - 30, moonY - 16, 22, 12)
   g.fillRect(moonX + 8,  moonY - 20, 26, 14)
 
   // Layer 3: Far tree layer — sine-varied, darkest
-  g.fillStyle(0x040608)
+  g.fillStyle(0x160804)
   for (let x = 0; x < width; x += 56) {
     const th = 130 + Math.sin(x * 0.08) * 38 + Math.sin(x * 0.20) * 20
     const tw = 34 + ((x * 7) % 16)
@@ -1301,7 +1301,7 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   }
 
   // Layer 4: Mid tree layer
-  g.fillStyle(0x060a0e)
+  g.fillStyle(0x1a0a04)
   for (let x = -20; x < width; x += 76) {
     const th = 110 + Math.sin(x * 0.06) * 32 + Math.sin(x * 0.15) * 16
     const tw = 36 + ((x * 5) % 20)
@@ -1311,7 +1311,7 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   }
 
   // Layer 5: Foreground trunk columns — 4 each side (massive ogre-forest trunks)
-  g.fillStyle(0x030406)
+  g.fillStyle(0x0c0402)
   for (let i = 0; i < 4; i++) {
     g.fillRect(i * 20 - 6,           0, 22, height)   // left
     g.fillRect(width - i * 20 - 16,  0, 22, height)   // right
@@ -1323,23 +1323,23 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
 
   // Layer 6: Dense undergrowth — 4-band ground gradient
   const groundSections: Array<[number, number, number]> = [
-    [height * 0.56, height * 0.66, 0x060908],
-    [height * 0.66, height * 0.76, 0x040706],
-    [height * 0.76, height * 0.88, 0x030505],
-    [height * 0.88, height,        0x020403],
+    [height * 0.56, height * 0.66, 0x1c0a06],
+    [height * 0.66, height * 0.76, 0x160806],
+    [height * 0.76, height * 0.88, 0x100604],
+    [height * 0.88, height,        0x0c0402],
   ]
   for (const [y1, y2, color] of groundSections) {
     g.fillStyle(color)
     g.fillRect(0, y1, width, y2 - y1 + 1)
   }
   // Undergrowth tufts
-  g.fillStyle(0x060a08)
+  g.fillStyle(0x180a04)
   for (let x = 0; x < width; x += 48) {
     const bh = 16 + ((x * 3) % 22)
     g.fillRect(x, height * 0.56, 42, bh)
   }
   // Exposed roots from ogre-trunk columns
-  g.lineStyle(3, 0x030604, 1)
+  g.lineStyle(3, 0x0e0602, 1)
   const rootLines: Array<[number, number, number, number]> = [
     [20,         height * 0.58, 70,          height * 0.74],
     [36,         height * 0.60, 120,         height * 0.82],
@@ -1350,13 +1350,13 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
 
   // ── Blood moon light shaft ───────────────────────────────────────────────────
   const moonShaft = scene.add.graphics()
-  moonShaft.fillStyle(0xaa3300, 1)
+  moonShaft.fillStyle(0xcc3300, 1)
   moonShaft.fillTriangle(moonX - 15, 0, moonX + 15, 0, moonX - 12, height)
   moonShaft.fillTriangle(moonX + 15, 0, moonX + 38, height, moonX - 12, height)
-  moonShaft.setAlpha(0.06)
+  moonShaft.setAlpha(0.10)
   scene.tweens.add({
     targets: moonShaft,
-    alpha: 0.11,
+    alpha: 0.18,
     duration: 3500,
     yoyo: true,
     repeat: -1,
@@ -1364,10 +1364,10 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   })
 
   // ── Ground fog layers × 3 ────────────────────────────────────────────────────
-  const fog1 = scene.add.rectangle(width / 2,       height * 0.60, width + 200, 36, 0x0a1408, 1)
-  const fog2 = scene.add.rectangle(width / 2 + 20,  height * 0.66, width + 200, 26, 0x080e06, 1)
-  const fog3 = scene.add.rectangle(width / 2 - 15,  height * 0.72, width * 0.9, 20, 0x060c05, 1)
-  fog1.setAlpha(0.28); fog2.setAlpha(0.22); fog3.setAlpha(0.16)
+  const fog1 = scene.add.rectangle(width / 2,       height * 0.60, width + 200, 36, 0x280c06, 1)
+  const fog2 = scene.add.rectangle(width / 2 + 20,  height * 0.66, width + 200, 26, 0x1e0804, 1)
+  const fog3 = scene.add.rectangle(width / 2 - 15,  height * 0.72, width * 0.9, 20, 0x180604, 1)
+  fog1.setAlpha(0.35); fog2.setAlpha(0.28); fog3.setAlpha(0.22)
   scene.tweens.add({ targets: fog1, x: width / 2 + 45, duration: 6500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: fog2, x: width / 2 - 35, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: fog3, x: width / 2 + 55, duration: 8500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
@@ -1376,7 +1376,7 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   const MAX_FIREFLIES = 10
   const fireflies: Phaser.GameObjects.Graphics[] = Array.from({ length: MAX_FIREFLIES }, () => {
     const ff = scene.add.graphics()
-    ff.fillStyle(0xffff88, 1)
+    ff.fillStyle(0xffcc44, 1)
     ff.fillRect(-2, -2, 4, 4)
     ff.setAlpha(0)
     return ff
@@ -1407,7 +1407,10 @@ export function drawDarkForestBg(scene: Phaser.Scene): void {
   ]
   for (const { ex, ey, initDelay } of eyeConfigs) {
     const eyeGfx = scene.add.graphics()
-    eyeGfx.fillStyle(0xff4400, 1)
+    eyeGfx.fillStyle(0x661100, 0.4)
+    eyeGfx.fillEllipse(ex - 5, ey, 16, 11)
+    eyeGfx.fillEllipse(ex + 7, ey, 16, 11)
+    eyeGfx.fillStyle(0xff3300, 1)
     eyeGfx.fillEllipse(ex - 5, ey, 10, 7)
     eyeGfx.fillEllipse(ex + 7, ey, 10, 7)
     eyeGfx.fillStyle(0x220000, 1)
