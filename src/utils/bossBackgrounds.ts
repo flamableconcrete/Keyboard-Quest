@@ -1972,70 +1972,177 @@ function drawMoonlitGladeBg(scene: Phaser.Scene): void {
   }
 }
 
-function drawVolcanicArenaBg(scene: Phaser.Scene): void {
+function drawVolcanicCragBg(scene: Phaser.Scene): void {
   const { width, height } = scene.scale
   const g = scene.add.graphics()
 
-  // Red-tinted rocky sky
-  g.fillStyle(0x1a0808)
-  g.fillRect(0, 0, width, height * 0.5)
-  g.fillStyle(0x220a0a)
-  for (let x = 0; x < width; x += 100) {
-    const cy = 30 + ((x * 7) % 50)
-    g.fillRect(x, cy, 88, 22)
-  }
-
-  // Jagged rock outcrops
-  g.fillStyle(0x0e0808)
-  const rocks = [
-    { x: 60, h: 120, w: 50 }, { x: 130, h: 80, w: 40 },
-    { x: width - 60, h: 130, w: 50 }, { x: width - 130, h: 90, w: 42 },
-    { x: 220, h: 60, w: 34 }, { x: width - 220, h: 70, w: 36 },
+  // Layer 1: Sky — 5-band deep-red gradient
+  const skySections: Array<[number, number, number]> = [
+    [0,             height * 0.12, 0x0d0202],
+    [height * 0.12, height * 0.25, 0x180404],
+    [height * 0.25, height * 0.40, 0x260606],
+    [height * 0.40, height * 0.52, 0x330808],
+    [height * 0.52, height * 0.58, 0x3d0a08],
   ]
-  for (const rk of rocks) {
-    const baseY = height * 0.5
-    g.fillRect(rk.x - rk.w / 2, baseY - rk.h, rk.w, rk.h)
-    g.fillRect(rk.x - rk.w / 4, baseY - rk.h - 16, rk.w / 2, 18)
-    g.fillRect(rk.x - rk.w / 8, baseY - rk.h - 28, rk.w / 4, 14)
+  for (const [y1, y2, color] of skySections) {
+    g.fillStyle(color)
+    g.fillRect(0, y1, width, y2 - y1 + 1)
   }
 
-  // Cracked stone floor
-  g.fillStyle(0x120808)
-  g.fillRect(0, height * 0.5, width, height * 0.5)
-  g.fillStyle(0x883300)
-  for (let x = 40; x < width; x += 160) {
-    g.fillRect(x, height * 0.5, 3, height * 0.5)
-    g.fillRect(x + 80, height * 0.6, 3, height * 0.4)
-    g.fillRect(x + 40, height * 0.55, width * 0.08, 2)
+  // Ash cloud bands
+  g.fillStyle(0x1a0404)
+  for (let x = 0; x < width; x += 180) {
+    const cy = 20 + ((x * 7) % 60)
+    g.fillRect(x, cy, 160, 18)
+    g.fillRect(x + 60, cy + 20, 100, 12)
   }
-  g.destroy()
 
-  const crackGlow = scene.add.rectangle(width / 2, height * 0.75, width, height * 0.5, 0xff4400, 0.06)
+  // Distant volcano silhouette
+  const volcX = width * 0.5, volcBaseY = height * 0.58
+  g.fillStyle(0x110202)
+  g.fillTriangle(
+    volcX - 90, volcBaseY,
+    volcX,      volcBaseY - 140,
+    volcX + 90, volcBaseY
+  )
+  g.fillRect(volcX - 110, volcBaseY - 20, 220, 20)
+
+  // Left obsidian spire clusters (4 spires, tallest first)
+  const leftSpires = [
+    { x: 40,  h: 200, w: 28 },
+    { x: 20,  h: 130, w: 18 },
+    { x: 75,  h: 150, w: 20 },
+    { x: 105, h: 120, w: 16 },
+  ]
+  for (const sp of leftSpires) {
+    const baseY = height * 0.70
+    g.fillStyle(0x0e0202)
+    g.fillTriangle(sp.x, baseY, sp.x - sp.w / 2, baseY, sp.x - sp.w / 4, baseY - sp.h)
+    g.fillStyle(0x882200)
+    g.fillRect(sp.x - 2, baseY - sp.h, 3, Math.floor(sp.h * 0.4))
+  }
+
+  // Right obsidian spire clusters (mirrored)
+  const rightSpires = [
+    { x: width - 40,  h: 190, w: 28 },
+    { x: width - 18,  h: 140, w: 18 },
+    { x: width - 78,  h: 145, w: 20 },
+    { x: width - 108, h: 115, w: 16 },
+  ]
+  for (const sp of rightSpires) {
+    const baseY = height * 0.70
+    g.fillStyle(0x0e0202)
+    g.fillTriangle(sp.x, baseY, sp.x + sp.w / 2, baseY, sp.x + sp.w / 4, baseY - sp.h)
+    g.fillStyle(0x882200)
+    g.fillRect(sp.x - 1, baseY - sp.h, 3, Math.floor(sp.h * 0.4))
+  }
+
+  // Lava floor base + rock texture
+  g.fillStyle(0x0e0202)
+  g.fillRect(0, height * 0.70, width, height * 0.30)
+  g.fillStyle(0x120303)
+  for (let x = 0; x < width; x += 80) {
+    g.fillRect(x,      height * 0.72, 70, 4)
+    g.fillRect(x + 35, height * 0.78, 50, 3)
+  }
+
+  // Primary lava cracks — bright vivid orange-red
+  g.fillStyle(0xff4400)
+  const primaryCracks: Array<[number, number, number, number]> = [
+    [80,   height * 0.72, 200, 3],
+    [350,  height * 0.75, 180, 3],
+    [620,  height * 0.71, 220, 3],
+    [900,  height * 0.74, 170, 3],
+    [1100, height * 0.78, 140, 3],
+  ]
+  for (const [x, y, w, h] of primaryCracks) g.fillRect(x, y, w, h)
+
+  // Secondary cracks — branching
+  g.fillStyle(0xff6600)
+  const secondaryCracks: Array<[number, number, number, number]> = [
+    [120,  height * 0.73, 80,  2],
+    [240,  height * 0.76, 60,  2],
+    [430,  height * 0.72, 90,  2],
+    [580,  height * 0.78, 70,  2],
+    [700,  height * 0.74, 100, 2],
+    [840,  height * 0.76, 65,  2],
+    [980,  height * 0.72, 80,  2],
+    [1050, height * 0.77, 55,  2],
+  ]
+  for (const [x, y, w, h] of secondaryCracks) g.fillRect(x, y, w, h)
+
+  // Bright hotspot tips at crack origins
+  g.fillStyle(0xffaa00)
+  g.fillRect(80,  height * 0.72, 12, 3)
+  g.fillRect(350, height * 0.75, 10, 3)
+  g.fillRect(620, height * 0.71, 14, 3)
+  g.fillRect(900, height * 0.74, 11, 3)
+
+  // ── Animated elements ────────────────────────────────────────────────────────
+
+  // 1) Distant fire column (behind volcano peak)
+  const fireCol = scene.add.rectangle(volcX, height * 0.44, 10, 60, 0xff4400, 0.4)
   scene.tweens.add({
-    targets: crackGlow,
-    alpha: 0.12,
-    duration: 1400,
+    targets: fireCol,
+    alpha: 0.75,
+    scaleY: 1.3,
+    duration: 1800,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
 
+  // 2) Ground lava-bloom glow
+  const groundBloom = scene.add.rectangle(width / 2, height * 0.82, width, height * 0.35, 0xff4400, 0.14)
+  scene.tweens.add({
+    targets: groundBloom,
+    alpha: 0.24,
+    duration: 1600,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // 3) Crack-light pulse
+  const crackLight = scene.add.rectangle(width / 2, height * 0.73, width * 0.7, 4, 0xff6600, 0.20)
+  scene.tweens.add({
+    targets: crackLight,
+    alpha: 0.45,
+    duration: 900,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // 4) Full-width heat haze
+  const haze = scene.add.rectangle(width / 2, height * 0.50, width, height * 0.30, 0xff3300, 0.04)
+  scene.tweens.add({
+    targets: haze,
+    alpha: 0.08,
+    duration: 6000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  // Ember particle system (up to 16 embers)
   let embersAlive = 0
-  const MAX_EMBERS = 12
+  const MAX_EMBERS = 16
   scene.time.addEvent({
-    delay: 350,
+    delay: 300,
     loop: true,
     callback: () => {
       if (embersAlive >= MAX_EMBERS) return
       const ex = 50 + Math.random() * (width - 100)
-      const ember = scene.add.rectangle(ex, height * 0.9, 3, 3, 0xff6600, 0.8)
+      const color = Math.random() < 0.5 ? 0xff6600 : 0xffaa00
+      const ember = scene.add.rectangle(ex, height * 0.88, 3, 3, color, 0.9)
       embersAlive++
       scene.tweens.add({
         targets: ember,
-        y: height * 0.3,
-        x: ex + (Math.random() - 0.5) * 60,
+        y: height * 0.25 + Math.random() * (height * 0.25),
+        x: ex + (Math.random() - 0.5) * 80,
         alpha: 0,
-        duration: 2000 + Math.random() * 1500,
+        duration: 1500 + Math.random() * 1000,
         ease: 'Quad.easeOut',
         onComplete: () => { ember.destroy(); embersAlive-- },
       })
@@ -2097,7 +2204,7 @@ function drawGenericArenaBg(scene: Phaser.Scene): void {
 const miniBossVariants: Record<string, (scene: Phaser.Scene) => void> = {
   knuckle_keeper_of_e: drawForestClearingBg,
   nessa_keeper_of_n: drawMoonlitGladeBg,
-  rend_the_red: drawVolcanicArenaBg,
+  rend_the_red: drawVolcanicCragBg,
   // Add future world mini-boss bossIds here
 }
 
