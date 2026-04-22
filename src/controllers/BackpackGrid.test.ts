@@ -102,6 +102,21 @@ describe('BackpackGrid', () => {
       const next = grid.place('coin', 1, 0, 1, 1)
       expect(next.getPlacements()).toHaveLength(2)
     })
+
+    it('throws when placing at negative coordinates', () => {
+      const grid = new BackpackGrid([])
+      expect(() => grid.place('item', -1, 0, 1, 1)).toThrow()
+    })
+
+    it('throws when placing out of bounds', () => {
+      const grid = new BackpackGrid([])
+      expect(() => grid.place('item', 3, 0, 2, 1)).toThrow()
+    })
+
+    it('throws when placing on occupied space', () => {
+      const grid = new BackpackGrid([{ itemId: 'sword', x: 0, y: 0, w: 2, h: 2 }])
+      expect(() => grid.place('shield', 0, 0, 1, 1)).toThrow()
+    })
   })
 
   describe('remove', () => {

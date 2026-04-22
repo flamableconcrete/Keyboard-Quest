@@ -2,11 +2,11 @@ export const GRID_COLS = 4
 export const GRID_ROWS = 10
 
 export interface GridPlacement {
-  itemId: string
-  x: number
-  y: number
-  w: number
-  h: number
+  readonly itemId: string
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
 }
 
 export class BackpackGrid {
@@ -31,11 +31,12 @@ export class BackpackGrid {
 
     for (const p of this._placements) {
       if (p.itemId === excludeItemId) continue
+      // Four conditions for no overlap (AABB test):
       const noOverlap =
-        x + w <= p.x ||
-        x >= p.x + p.w ||
-        y + h <= p.y ||
-        y >= p.y + p.h
+        x + w <= p.x ||   // new item is fully left of existing
+        x >= p.x + p.w || // new item is fully right of existing
+        y + h <= p.y ||   // new item is fully above existing
+        y >= p.y + p.h    // new item is fully below existing
       if (!noOverlap) return false
     }
     return true
@@ -54,6 +55,9 @@ export class BackpackGrid {
   }
 
   place(itemId: string, x: number, y: number, w: number, h: number): BackpackGrid {
+    if (!this.canPlace(x, y, w, h)) {
+      throw new Error(`BackpackGrid.place: cannot place '${itemId}' at (${x},${y}) w=${w} h=${h}`)
+    }
     return new BackpackGrid([...this._placements, { itemId, x, y, w, h }])
   }
 
