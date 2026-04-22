@@ -40,6 +40,12 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected hud!: LevelHUD
   protected avatarSprite: Phaser.GameObjects.Image | null = null
   private _preCreateCalled = false
+  protected consumableBonuses = {
+    extraTime: 0,
+    ignoreFirstWrong: false,
+    goldDouble: false,
+    extraPower: 0,
+  }
 
   // Override in BaseBossScene to use a longer delay
   protected readonly endDelayMs: number = LEVEL_END_DELAY_MS
@@ -108,6 +114,20 @@ export abstract class BaseLevelScene extends Phaser.Scene {
 
     const profile = loadProfile(this.profileSlot)
 
+    // Apply consumable bonuses from selectedConsumables
+    const selected = profile?.selectedConsumables ?? []
+    this.consumableBonuses = {
+      extraTime: selected.includes('swift_tonic') ? 20 : 0,
+      ignoreFirstWrong: selected.includes('iron_will'),
+      goldDouble: selected.includes('gold_fever'),
+      extraPower: selected.includes('word_of_power') ? 2 : 0,
+    }
+
+    // swift_tonic: extend time limit for this level (only if timed)
+    if (this.consumableBonuses.extraTime > 0 && this.level.timeLimit !== null) {
+      this.level = { ...this.level, timeLimit: this.level.timeLimit + this.consumableBonuses.extraTime }
+    }
+
     // Avatar
     generateAllCompanionTextures(this)
     const avatarKey =
@@ -134,6 +154,21 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     // HUD owns the engine and hands
     this.hud = hud!
     this.engine = hud!.engine
+
+    // iron_will: intercept the first wrong key press and forgive it
+    if (this.consumableBonuses.ignoreFirstWrong && this.engine) {
+      let forgiven = false
+      this.engine.wrongKeyOverride = () => {
+        if (!forgiven) {
+          forgiven = true
+          // Do not call config.onWrongKey — the key press is forgiven
+          return
+        }
+        // Subsequent wrong keys: restore normal behavior
+        this.engine.wrongKeyOverride = null
+        this.onWrongKey()
+      }
+    }
 
     // Spell caster (uses this.engine, works in both HUD and legacy paths)
     if (profile && profile.spells.length > 0) {

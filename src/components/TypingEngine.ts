@@ -32,6 +32,9 @@ export class TypingEngine {
   sessionStartTime = 0
   private _onCompleteOverride?: (word: string, elapsed: number) => void
 
+  /** If set, called instead of config.onWrongKey. Used by iron_will consumable. */
+  wrongKeyOverride?: (() => void) | null
+
   constructor(config: TypingEngineConfig) {
     this.config = config
     this.scene = config.scene
@@ -125,7 +128,11 @@ export class TypingEngine {
         this.scene.events.emit('word_completed_attack')
       }
     } else {
-      this.config.onWrongKey()
+      if (this.wrongKeyOverride) {
+        this.wrongKeyOverride()
+      } else {
+        this.config.onWrongKey()
+      }
       // Flash current char red
       const idx = this.typedSoFar.length
       if (this.charTexts[idx]) {
