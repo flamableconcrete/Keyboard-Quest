@@ -58,6 +58,9 @@ export interface ProfileData {
   savedOutfits?: AvatarConfig[]
   debugUnlockedLevelIds?: string[]
   shopCapacityUpgraded?: boolean
+  backpackPlacements: { itemId: string; x: number; y: number }[]
+  selectedConsumables: string[]
+  previewShopItemIds: string[]
 }
 
 export type LevelType =
@@ -130,10 +133,12 @@ export interface SiegeLevelConfig extends WaveLevelConfig {
 export interface ItemData {
   id: string
   name: string
-  slot: 'weapon' | 'armor' | 'accessory' | 'trophy'
+  slot: 'weapon' | 'armor' | 'accessory' | 'trophy' | 'consumable'
   rarity: 'common' | 'uncommon' | 'rare' | 'epic'
   description: string
   goldCost: number
+  worldUnlock: 1 | 2 | 3 | 4 | 5
+  gridSize: { w: number; h: number }
   effect: {
     hp?: number
     power?: number
@@ -142,6 +147,10 @@ export interface ItemData {
     defeatAdditionalEnemiesChance?: number
     absorbAttacksChance?: number
     bonusGoldChance?: number
+    // consumable-specific effects
+    extraTime?: number          // swift_tonic: seconds added to time limit
+    ignoreFirstWrong?: boolean  // iron_will: first wrong key press forgiven
+    goldDouble?: boolean        // gold_fever: double gold earned this run
   }
 }
 
