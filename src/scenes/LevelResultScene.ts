@@ -4,8 +4,9 @@ import { ProfileData, LevelConfig } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { calcXpReward, calcCharacterLevel, calcCompanionLevel } from '../utils/scoring'
-import { rotateShopItems } from '../utils/shop'
+import { rotateShopItems, refreshPreviewItems } from '../utils/shop'
 import { MapNavigationController } from '../controllers/MapNavigationController'
+import { InventoryController } from '../controllers/InventoryController'
 
 interface ResultData {
   level: LevelConfig
@@ -61,9 +62,10 @@ export class LevelResultScene extends Phaser.Scene {
       }
     }
 
-    // Award gold — 2 gold per enemy (word) defeated
-    // Calculate gold based on bonus chance
-    let baseGold = level.wordCount * 2
+    // Award gold — scaled by world number on a logarithmic curve
+    const GOLD_PER_WORD: Record<number, number> = { 1: 3, 2: 8, 3: 20, 4: 45, 5: 90 }
+    const goldRate = GOLD_PER_WORD[level.world] ?? 3
+    let baseGold = level.wordCount * goldRate
     const pProfile = loadProfile(this.resultData.profileSlot)
     const accessoryItem = pProfile?.equipment?.accessory ? getItem(pProfile.equipment.accessory) : null
     const goldChance = accessoryItem?.effect?.bonusGoldChance || 0
@@ -72,8 +74,19 @@ export class LevelResultScene extends Phaser.Scene {
     if (Math.random() < goldChance) {
       baseGold *= 2
     }
-    const goldEarned = Math.floor(baseGold * (1 + goldMultiplier)) + (this.resultData.extraGold || 0)
+    const rawGold = Math.floor(baseGold * (1 + goldMultiplier)) + (this.resultData.extraGold || 0)
+    const goldFever = (this.profile.selectedConsumables ?? []).includes('gold_fever')
+    const goldEarned = goldFever ? rawGold * 2 : rawGold
     this.profile.gold = (this.profile.gold ?? 0) + goldEarned
+
+    // Remove consumed items from backpack and clear selectedConsumables
+    if (this.profile.selectedConsumables?.length) {
+      const invCtrl = new InventoryController(this.profile)
+      for (const consumableId of this.profile.selectedConsumables) {
+        invCtrl.removeFromBackpack(consumableId)
+      }
+      this.profile.selectedConsumables = []
+    }
 
     // Save level result (only improve, never overwrite with worse total score)
     const prev = this.profile.levelResults[level.id]
@@ -89,8 +102,11 @@ export class LevelResultScene extends Phaser.Scene {
     }
 
     // Award items/spells/titles
-    if (level.rewards.item && !this.profile.ownedItemIds.includes(level.rewards.item)) {
-      this.profile.ownedItemIds.push(level.rewards.item)
+    if (level.rewards.item) {
+      const invCtrl = new InventoryController(this.profile)
+      if (!invCtrl.ownedItemIds.includes(level.rewards.item)) {
+        invCtrl.addToBackpack(level.rewards.item)
+      }
     }
     if (level.rewards.title) {
       if (!this.profile.titles.includes(level.rewards.title)) {
@@ -117,7 +133,9 @@ export class LevelResultScene extends Phaser.Scene {
       if (!this.profile.currentShopItemIds) {
         this.profile.currentShopItemIds = []
       }
-      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [], level.world)
+      const ownedIds = new InventoryController(this.profile).ownedItemIds
+      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, ownedIds, level.world)
+      this.profile.previewShopItemIds = refreshPreviewItems(ownedIds, this.profile.currentWorld ?? 1)
     }
 
     saveProfile(this.resultData.profileSlot, this.profile)
@@ -155,7 +173,7 @@ export class LevelResultScene extends Phaser.Scene {
       fontSize: '28px', color: '#aaffaa'
     }).setOrigin(0.5)
 
-    this.add.text(width / 2, 415, `+${goldEarned} Gold`, {
+    this.add.text(width / 2, 415, `+${goldEarned} Gold${goldFever ? ' (x2!)' : ''}`, {
       fontSize: '24px', color: '#ffd700'
     }).setOrigin(0.5)
 
