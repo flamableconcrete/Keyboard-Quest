@@ -65,8 +65,8 @@ export function loadProfile(slot: number): ProfileData | null {
       data.currentShopItemIds = rotateShopItems(data.currentShopItemIds, data.ownedItemIds || [], 0)
       data.shopCapacityUpgraded = true
     }
-    // Migrate ownedItemIds → backpackPlacements for old saves
-    if (!data.backpackPlacements || data.backpackPlacements.length === 0) {
+    // Migrate ownedItemIds → backpackPlacements for old saves (runs only once: when field is absent)
+    if (data.backpackPlacements === undefined) {
       if (data.ownedItemIds && data.ownedItemIds.length > 0) {
         data.backpackPlacements = InventoryController.migrateFromOwnedItemIds(data.ownedItemIds)
       } else {
