@@ -11,6 +11,14 @@ import { ProfileData } from '../types'
 const mockProfile = {
   equipment: { weapon: null, armor: null, accessory: null, trophy: null },
   ownedItemIds: ['rusty_quill', 'leather_tunic', 'focus_ring'],
+  backpackPlacements: [
+    { itemId: 'rusty_quill', x: 0, y: 0 },   // weapon 1×2
+    { itemId: 'leather_tunic', x: 1, y: 0 }, // armor 2×2
+    { itemId: 'focus_ring', x: 3, y: 0 },    // accessory 1×1
+  ],
+  selectedConsumables: [],
+  previewShopItemIds: [],
+  gold: 0,
 } as unknown as ProfileData
 
 describe('InventoryController — equip/unequip', () => {
