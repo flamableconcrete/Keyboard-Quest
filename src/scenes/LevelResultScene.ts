@@ -117,7 +117,7 @@ export class LevelResultScene extends Phaser.Scene {
       if (!this.profile.currentShopItemIds) {
         this.profile.currentShopItemIds = []
       }
-      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [])
+      this.profile.currentShopItemIds = rotateShopItems(this.profile.currentShopItemIds, this.profile.ownedItemIds || [], level.world)
     }
 
     saveProfile(this.resultData.profileSlot, this.profile)
