@@ -61,6 +61,7 @@ export class ShopScene extends Phaser.Scene {
           const item = getItem(id)
           return item?.slot === cat && !ownedIds.includes(id)
         })
+        .slice(0, 3)
         .map(id => getItem(id)!)
         .filter(Boolean)
 
