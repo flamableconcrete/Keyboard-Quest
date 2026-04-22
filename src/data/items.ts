@@ -81,7 +81,7 @@ export const ITEMS: ItemData[] = [
   },
   {
     id: 'scholars_monocle',
-    name: 'Scholars Monocle',
+    name: "Scholar's Monocle",
     slot: 'accessory',
     rarity: 'uncommon',
     description: 'Better clarity for faster typing.',
