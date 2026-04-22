@@ -1,19 +1,22 @@
 import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
-import { ITEMS, getItemColor, getItem } from '../data/items'
+import { getItemColor, getItem } from '../data/items'
 import { generateAllItemTextures } from '../art/itemsArt'
+import { InventoryController } from '../controllers/InventoryController'
+import { getAvailableConsumables } from '../utils/shop'
 
 export class ShopScene extends Phaser.Scene {
   private profileSlot!: number
   private profile!: ProfileData
-
+  private inventoryController!: InventoryController
 
   constructor() { super('Shop') }
 
   init(data: { profileSlot: number }) {
     this.profileSlot = data.profileSlot
     this.profile = loadProfile(data.profileSlot)!
+    this.inventoryController = new InventoryController(this.profile)
   }
 
   create() {
@@ -35,52 +38,93 @@ export class ShopScene extends Phaser.Scene {
     const back = this.add.text(60, 40, '← BACK', {
       fontSize: mobile ? '22px' : '28px', color: '#ffffff', backgroundColor: '#4e4e6a', padding: { x: 20, y: 10 }
     }).setInteractive({ useHandCursor: true })
-
     back.on('pointerdown', () => {
       const target = this.registry.get('isMobile') ? 'MobileOverlandMap' : 'OverlandMap'
       this.scene.start(target, { profileSlot: this.profileSlot })
     })
 
-    const categories: ('weapon' | 'armor' | 'accessory')[] = ['weapon', 'armor', 'accessory']
-    const columnWidth = width / 3
+    const playerWorld = this.profile.currentWorld ?? 1
+    const ownedIds = this.inventoryController.ownedItemIds
 
+    // Columns: weapon | armor | accessory | preview+consumables
+    const categories: ('weapon' | 'armor' | 'accessory')[] = ['weapon', 'armor', 'accessory']
+    const columnWidth = width / 4
+
+    // Current-tier items (3 per category, world-gated)
     categories.forEach((cat, i) => {
       const cx = columnWidth * i + columnWidth / 2
       const title = cat === 'accessory' ? 'ACCESSORIES' : cat.toUpperCase() + 'S'
-      this.add.text(cx, 100, title, {
-        fontSize: '24px', color: '#ffffff', fontStyle: 'bold'
-      }).setOrigin(0.5)
+      this.add.text(cx, 85, title, { fontSize: '20px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5)
 
-      const catItems = ITEMS.filter(item =>
-        item.slot === cat &&
-        item.goldCost > 0 &&
-        this.profile.currentShopItemIds?.includes(item.id) &&
-        !this.profile.ownedItemIds.includes(item.id)
-      )
+      const catItems = (this.profile.currentShopItemIds ?? [])
+        .filter(id => {
+          const item = getItem(id)
+          return item?.slot === cat && !ownedIds.includes(id)
+        })
+        .map(id => getItem(id)!)
+        .filter(Boolean)
 
       catItems.forEach((item, j) => {
-        const cy = 160 + j * 100
-        this.renderItemCard(cx, cy, item)
+        this.renderItemCard(cx, 155 + j * 120, item)
       })
+    })
+
+    // Column 4: Preview items (next world tier) + consumables
+    const col4x = columnWidth * 3 + columnWidth / 2
+
+    this.add.text(col4x, 85, 'PREVIEW', {
+      fontSize: '18px', color: '#aaaaff', fontStyle: 'bold'
+    }).setOrigin(0.5)
+    if (playerWorld < 5) {
+      this.add.text(col4x, 105, `(World ${playerWorld + 1})`, {
+        fontSize: '13px', color: '#7777aa'
+      }).setOrigin(0.5)
+    }
+
+    const previewIds = (this.profile.previewShopItemIds ?? []).filter(id => !ownedIds.includes(id))
+    previewIds.forEach((id, j) => {
+      const item = getItem(id)
+      if (item) this.renderItemCard(col4x, 145 + j * 120, item, true)
+    })
+
+    // Consumables section (always stocked, below preview)
+    this.add.text(col4x, 390, 'CONSUMABLES', {
+      fontSize: '18px', color: '#ffaa44', fontStyle: 'bold'
+    }).setOrigin(0.5)
+
+    const consumableIds = getAvailableConsumables(ownedIds)
+    consumableIds.slice(0, 3).forEach((id, j) => {
+      const item = getItem(id)
+      if (item) this.renderItemCard(col4x, 440 + j * 100, item)
     })
   }
 
-  private renderItemCard(x: number, y: number, item: ItemData) {
-    const canAfford = (this.profile.gold ?? 0) >= item.goldCost
+  private renderItemCard(x: number, y: number, item: ItemData, isPreview = false) {
+    const gold = this.profile.gold ?? 0
+    const canAfford = gold >= item.goldCost
+    const backpackFull = !this.inventoryController.backpackGrid.findSpace(
+      item.gridSize.w, item.gridSize.h
+    )
 
-    const bgColor = canAfford ? 0x333366 : 0x2a2a2a
-    const bg = this.add.rectangle(x, y, 380, 90, bgColor)
-      .setStrokeStyle(2, 0x4e4e6a)
+    const canBuy = canAfford && !backpackFull
+    const bgColor = canBuy ? 0x333366 : 0x2a2a2a
+    const borderColor = isPreview ? 0x5555aa : 0x4e4e6a
+    const bg = this.add.rectangle(x, y, 290, 100, bgColor).setStrokeStyle(2, borderColor)
 
-    if (canAfford) {
+    if (canBuy) {
       bg.setInteractive({ useHandCursor: true })
       bg.on('pointerdown', () => {
         this.profile.gold -= item.goldCost
-        this.profile.ownedItemIds.push(item.id)
+        this.inventoryController.addToBackpack(item.id)
 
-        // Remove item from shop pool upon purchase
-        if (this.profile.currentShopItemIds) {
-          this.profile.currentShopItemIds = this.profile.currentShopItemIds.filter(id => id !== item.id)
+        // Remove from shop pool after purchase (gear only; consumables are unlimited)
+        if (item.slot !== 'consumable') {
+          if (this.profile.currentShopItemIds) {
+            this.profile.currentShopItemIds = this.profile.currentShopItemIds.filter(id => id !== item.id)
+          }
+          if (this.profile.previewShopItemIds) {
+            this.profile.previewShopItemIds = this.profile.previewShopItemIds.filter(id => id !== item.id)
+          }
         }
 
         saveProfile(this.profileSlot, this.profile)
@@ -89,47 +133,19 @@ export class ShopScene extends Phaser.Scene {
     }
 
     const itemColor = getItemColor(item.rarity)
-    
-    // Add pixel art
-    this.add.image(x - 145, y, item.id).setScale(1.5)
+    this.add.image(x - 120, y, item.id).setScale(1.5).setOrigin(0.5)
+    this.add.text(x - 95, y - 35, item.name, { fontSize: '15px', color: itemColor, fontStyle: 'bold' }).setOrigin(0, 0.5)
+    this.add.text(x - 95, y - 15, item.description, { fontSize: '10px', color: '#aaaaaa', wordWrap: { width: 210 } }).setOrigin(0, 0)
 
-    this.add.text(x - 110, y - 30, item.name, { fontSize: '18px', color: itemColor, fontStyle: 'bold' }).setOrigin(0, 0.5)
+    const statusText = backpackFull && canAfford ? 'Bag full!' : `${item.goldCost}g`
+    const statusColor = canBuy ? '#ffd700' : '#ff4444'
+    this.add.text(x + 130, y - 35, statusText, { fontSize: '14px', color: statusColor, fontStyle: 'bold' }).setOrigin(1, 0.5)
 
-    const equippedItemId = this.profile.equipment[item.slot]
-    const equippedItem = equippedItemId ? getItem(equippedItemId) : null
-
-    let effectStr = ''
-
-    if (item.effect.power) {
-      const cur = equippedItem?.effect?.power || 0
-      effectStr += cur === item.effect.power ? `+${item.effect.power} PWR ` : `PWR: ${cur} -> ${item.effect.power} `
-    }
-    if (item.effect.hp) {
-      const cur = equippedItem?.effect?.hp || 0
-      effectStr += cur === item.effect.hp ? `+${item.effect.hp} HP ` : `HP: ${cur} -> ${item.effect.hp} `
-    }
-    if (item.effect.defeatAdditionalEnemiesChance) {
-      const cur = equippedItem?.effect?.defeatAdditionalEnemiesChance || 0
-      effectStr += cur === item.effect.defeatAdditionalEnemiesChance ? `${item.effect.defeatAdditionalEnemiesChance * 100}% Cleave ` : `Cleave: ${cur * 100}% -> ${item.effect.defeatAdditionalEnemiesChance * 100}% `
-    }
-    if (item.effect.absorbAttacksChance) {
-      const cur = equippedItem?.effect?.absorbAttacksChance || 0
-      effectStr += cur === item.effect.absorbAttacksChance ? `${item.effect.absorbAttacksChance * 100}% Block ` : `Block: ${cur * 100}% -> ${item.effect.absorbAttacksChance * 100}% `
-    }
-    if (item.effect.bonusGoldChance) {
-      const cur = equippedItem?.effect?.bonusGoldChance || 0
-      effectStr += cur === item.effect.bonusGoldChance ? `${item.effect.bonusGoldChance * 100}% Bonus Gold ` : `Bonus Gold: ${cur * 100}% -> ${item.effect.bonusGoldChance * 100}% `
-    }
-    if (item.effect.goldMultiplier) {
-      const cur = equippedItem?.effect?.goldMultiplier || 0
-      effectStr += cur === item.effect.goldMultiplier ? `+${item.effect.goldMultiplier * 100}% Gold ` : `Gold: +${cur * 100}% -> +${item.effect.goldMultiplier * 100}% `
+    if (isPreview) {
+      this.add.text(x + 130, y - 15, `W${item.worldUnlock}`, { fontSize: '11px', color: '#7777cc' }).setOrigin(1, 0.5)
     }
 
-    this.add.text(x - 110, y - 5, effectStr.trim(), { fontSize: '12px', color: '#00ff00' }).setOrigin(0, 0.5)
-    this.add.text(x - 110, y + 15, item.description, { fontSize: '11px', color: '#aaaaaa', wordWrap: { width: 280 } }).setOrigin(0, 0)
-
-    const statusText = `${item.goldCost} Gold`
-    const statusColor = canAfford ? '#ffd700' : '#ff4444'
-    this.add.text(x + 180, y - 30, statusText, { fontSize: '16px', color: statusColor, fontStyle: 'bold' }).setOrigin(1, 0.5)
+    const gridLabel = `${item.gridSize.w}×${item.gridSize.h} cells`
+    this.add.text(x - 95, y + 30, gridLabel, { fontSize: '10px', color: '#666688' }).setOrigin(0, 0.5)
   }
 }
