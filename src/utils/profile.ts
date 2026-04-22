@@ -62,7 +62,7 @@ export function loadProfile(slot: number): ProfileData | null {
       data.currentShopItemIds = getInitialShopItems(data.ownedItemIds || [])
       data.shopCapacityUpgraded = true
     } else if (!data.shopCapacityUpgraded) {
-      data.currentShopItemIds = rotateShopItems(data.currentShopItemIds, data.ownedItemIds || [], 0)
+      data.currentShopItemIds = rotateShopItems(data.currentShopItemIds, data.ownedItemIds || [], data.currentWorld ?? 1)
       data.shopCapacityUpgraded = true
     }
     // Migrate ownedItemIds → backpackPlacements for old saves (runs only once: when field is absent)

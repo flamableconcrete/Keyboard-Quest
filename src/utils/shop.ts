@@ -16,7 +16,12 @@ function gearItems(slot: GearSlot, ownedIds: string[], maxWorld: number) {
 }
 
 function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => 0.5 - Math.random())
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
 /** Called on new profile creation. Initialises the shop with World 1 common items. */
@@ -57,6 +62,7 @@ export function rotateShopItems(
 ): string[] {
   const slots: GearSlot[] = ['weapon', 'armor', 'accessory']
   let items = currentShopItemIds.filter(id => !ownedItemIds.includes(id))
+  const preReplenishCount = items.length
 
   // Replenish any missing slots first
   for (const slot of slots) {
@@ -68,8 +74,8 @@ export function rotateShopItems(
     }
   }
 
-  // Replace 1-2 items randomly
-  const replaceIndices = shuffle([...items.keys()]).slice(0, itemsToReplaceCount)
+  // Replace 1-2 items randomly from pre-replenishment set only
+  const replaceIndices = shuffle([...Array(preReplenishCount).keys()]).slice(0, itemsToReplaceCount)
   for (const idx of replaceIndices) {
     const outgoing = ITEMS.find(i => i.id === items[idx])
     if (!outgoing || outgoing.slot === 'trophy' || outgoing.slot === 'consumable') continue
