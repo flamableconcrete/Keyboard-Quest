@@ -87,6 +87,9 @@ export class LevelIntroScene extends Phaser.Scene {
     if (this.level.type === 'GoblinWhacker') {
       generateGoblinWhackerTextures(this)
       enemyTexture = 'goblin'
+    } else if (this.level.bossId === 'grizzlefang') {
+      generateGoblinWhackerTextures(this)
+      enemyTexture = 'ogre'
     } else if (this.level.isBoss || this.level.isMiniBoss || this.level.type === 'BossBattle') {
       generateGenericBossTextures(this)
       enemyTexture = 'generic_boss'
@@ -164,7 +167,9 @@ export class LevelIntroScene extends Phaser.Scene {
 
     if (enemyTexture) {
       enemy = this.add.sprite(width + 200, height * 0.85, enemyTexture).setOrigin(0.5, 1).setScale(3)
-      if (enemyTexture === 'generic_boss') {
+      if (enemyTexture === 'ogre') {
+        enemy.setScale(1.5)
+      } else if (enemyTexture === 'generic_boss') {
         enemy.setScale(2)
       } else if (enemyTexture === 'ss_skeleton') {
         enemy.setScale(2)

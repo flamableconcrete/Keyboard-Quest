@@ -5,6 +5,7 @@ import { LevelConfig } from '../../types'
 import { loadProfile } from '../../utils/profile'
 import { generateGoblinWhackerTextures } from '../../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../../art/genericBossArt'
+import { generateNessaTextures } from '../../art/nessaArt'
 import { BaseBossScene, BossHPState } from '../BaseBossScene'
 import { BOSS_ENGINE_FONT_SIZE, DEFAULT_PLAYER_HP, GOLD_PER_KILL } from '../../constants'
 import { LevelHUD } from '../../components/LevelHUD'
@@ -69,11 +70,15 @@ export class MiniBossTypical extends BaseBossScene {
     const isOgre = this.level.name.toLowerCase().includes('ogre') ||
                    this.level.bossId?.toLowerCase().includes('ogre') ||
                    this.level.storyBeat?.toLowerCase().includes('ogre');
+    const isNessa = this.level.bossId === 'nessa_keeper_of_n'
 
     const bossY = height / 2 - 50
     if (isOgre) {
       generateGoblinWhackerTextures(this)
       this.bossSprite = this.add.image(width * 0.75, bossY, 'ogre').setScale(3).setFlipX(true)
+    } else if (isNessa) {
+      generateNessaTextures(this)
+      this.bossSprite = this.add.image(width * 0.75, bossY, 'nessa_boss').setScale(3)
     } else {
       generateGenericBossTextures(this)
       this.bossSprite = this.add.image(width * 0.75, bossY, 'generic_boss').setScale(3).setFlipX(true)
