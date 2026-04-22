@@ -1,7 +1,8 @@
 // src/scenes/LevelIntroScene.ts
 import Phaser from 'phaser'
-import { LevelConfig, LevelType, ProfileData } from '../types'
-import { loadProfile } from '../utils/profile'
+import { LevelConfig, LevelType, ProfileData, ItemData } from '../types'
+import { getItem } from '../data/items'
+import { loadProfile, saveProfile } from '../utils/profile'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { generateGoblinWhackerTextures } from '../art/goblinWhackerArt'
 import { generateGenericBossTextures } from '../art/genericBossArt'
@@ -345,6 +346,87 @@ export class LevelIntroScene extends Phaser.Scene {
   }
 
   private enter() {
+    // Reload profile to get latest backpack state
+    this.profile = loadProfile(this.profileSlot)!
+
+    const consumables = (this.profile.backpackPlacements ?? [])
+      .map(p => getItem(p.itemId))
+      .filter(item => item?.slot === 'consumable')
+      .map(item => item!)
+
+    if (consumables.length === 0) {
+      this.startLevel()
+      return
+    }
+
+    this.showConsumableSelect(consumables)
+  }
+
+  private startLevel() {
     this.scene.start('Level', { level: this.level, profileSlot: this.profileSlot })
+  }
+
+  private showConsumableSelect(consumables: ItemData[]) {
+    const { width, height } = this.scale
+    const selected = new Set<string>()
+
+    // Dim overlay
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.75)
+
+    // Panel
+    const panelW = 580
+    const panelH = Math.min(400, 160 + consumables.length * 80)
+    const panelX = width / 2
+    const panelY = height / 2
+    this.add.rectangle(panelX, panelY, panelW, panelH, 0x1a1a2e).setStrokeStyle(3, 0x4e4e6a)
+
+    this.add.text(panelX, panelY - panelH / 2 + 30, 'Choose Consumables (0–2)', {
+      fontSize: '24px', color: '#ffd700', fontStyle: 'bold'
+    }).setOrigin(0.5)
+
+    this.add.text(panelX, panelY - panelH / 2 + 58, 'Selected items are consumed after the level.', {
+      fontSize: '14px', color: '#aaaaaa'
+    }).setOrigin(0.5)
+
+    const startY = panelY - panelH / 2 + 100
+
+    consumables.forEach((item, i) => {
+      const iy = startY + i * 80
+
+      const bg = this.add.rectangle(panelX, iy, 520, 68, 0x222244)
+        .setStrokeStyle(2, 0x4e4e6a)
+        .setInteractive({ useHandCursor: true })
+
+      const check = this.add.text(panelX - 240, iy, '☐', { fontSize: '22px', color: '#888888' }).setOrigin(0.5)
+      this.add.text(panelX - 205, iy - 14, item.name, { fontSize: '16px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5)
+      this.add.text(panelX - 205, iy + 10, item.description, { fontSize: '12px', color: '#aaaaaa', wordWrap: { width: 400 } }).setOrigin(0, 0.5)
+
+      bg.on('pointerdown', () => {
+        if (selected.has(item.id)) {
+          selected.delete(item.id)
+          check.setText('☐').setColor('#888888')
+          bg.setStrokeStyle(2, 0x4e4e6a)
+        } else if (selected.size < 2) {
+          selected.add(item.id)
+          check.setText('☑').setColor('#ffd700')
+          bg.setStrokeStyle(2, 0xffd700)
+        } else {
+          // Flash red — already at max
+          bg.setStrokeStyle(2, 0xff4444)
+          this.time.delayedCall(400, () => bg.setStrokeStyle(2, 0x4e4e6a))
+        }
+      })
+    })
+
+    // Begin button
+    const beginBtn = this.add.text(panelX, panelY + panelH / 2 - 30, '[ Begin Level ]', {
+      fontSize: '26px', color: '#ffffff', backgroundColor: '#2a2a5a', padding: { x: 20, y: 10 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    beginBtn.on('pointerdown', () => {
+      this.profile.selectedConsumables = [...selected]
+      saveProfile(this.profileSlot, this.profile)
+      this.startLevel()
+    })
   }
 }
