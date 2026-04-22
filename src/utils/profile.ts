@@ -1,6 +1,7 @@
 import { ProfileData } from '../types'
 import { createCompanion } from '../data/companions'
 import { getInitialShopItems, rotateShopItems } from './shop'
+import { InventoryController } from '../controllers/InventoryController'
 
 const HOME_ROW: string[] = ['a', 's', 'd', 'f', 'j', 'k', 'l']
 const KEY = (slot: number) => `kq_profile_${slot}`
@@ -32,6 +33,9 @@ export function createProfile(playerName: string, avatarChoice = 'knight', avata
     activePetId: 'dog',
     titles: [],
     ownedItemIds: [],
+    backpackPlacements: [],
+    selectedConsumables: [],
+    previewShopItemIds: [],
     worldMasteryRewards: [],
     bossWeaknessKnown: null,
     gameMode: 'regular' as const,
@@ -60,6 +64,20 @@ export function loadProfile(slot: number): ProfileData | null {
     } else if (!data.shopCapacityUpgraded) {
       data.currentShopItemIds = rotateShopItems(data.currentShopItemIds, data.ownedItemIds || [], 0)
       data.shopCapacityUpgraded = true
+    }
+    // Migrate ownedItemIds → backpackPlacements for old saves
+    if (!data.backpackPlacements || data.backpackPlacements.length === 0) {
+      if (data.ownedItemIds && data.ownedItemIds.length > 0) {
+        data.backpackPlacements = InventoryController.migrateFromOwnedItemIds(data.ownedItemIds)
+      } else {
+        data.backpackPlacements = []
+      }
+    }
+    if (!data.selectedConsumables) {
+      data.selectedConsumables = []
+    }
+    if (!data.previewShopItemIds) {
+      data.previewShopItemIds = []
     }
     return data
   } catch {
