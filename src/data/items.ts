@@ -1,7 +1,7 @@
 import { ItemData } from '../types'
 
 export const ITEMS: ItemData[] = [
-  // --- ORIGINAL ITEMS (For backwards compatibility) ---
+  // --- ORIGINAL STARTER ITEMS (goldCost: 0, given as rewards) ---
   {
     id: 'rusty_quill',
     name: 'Rusty Quill',
@@ -9,6 +9,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'common',
     description: 'A worn writing quill. Still works.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 2 },
     effect: { power: 1 },
   },
   {
@@ -18,6 +20,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'common',
     description: 'Absorbs minor stains and spells.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 1 },
     effect: { hp: 1 },
   },
   {
@@ -27,6 +31,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'uncommon',
     description: 'Heavy but protective.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { hp: 2 },
   },
   {
@@ -36,6 +42,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'common',
     description: 'Sharpens the mind.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
     effect: { focusBonus: 5 },
   },
   {
@@ -45,6 +53,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'common',
     description: 'Increases gold earned.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
     effect: { goldMultiplier: 0.1 },
   },
   {
@@ -54,6 +64,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'uncommon',
     description: 'A sharp nib made of volcanic glass.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 2 },
     effect: { power: 3 },
   },
   {
@@ -63,6 +75,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'uncommon',
     description: 'Soft and surprisingly durable.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { hp: 3 },
   },
   {
@@ -72,6 +86,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'uncommon',
     description: 'Better clarity for faster typing.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
     effect: { focusBonus: 10 },
   },
 
@@ -82,7 +98,9 @@ export const ITEMS: ItemData[] = [
     slot: 'weapon',
     rarity: 'common',
     description: 'A basic blade. Sometimes cuts through two weak foes.',
-    goldCost: 50,
+    goldCost: 100,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 2 },
     effect: { power: 1, defeatAdditionalEnemiesChance: 0.1 },
   },
   {
@@ -91,7 +109,9 @@ export const ITEMS: ItemData[] = [
     slot: 'weapon',
     rarity: 'uncommon',
     description: 'Heavy and reliable. Good for crowd control.',
-    goldCost: 150,
+    goldCost: 450,
+    worldUnlock: 2,
+    gridSize: { w: 1, h: 3 },
     effect: { power: 2, defeatAdditionalEnemiesChance: 0.2 },
   },
   {
@@ -100,7 +120,9 @@ export const ITEMS: ItemData[] = [
     slot: 'weapon',
     rarity: 'rare',
     description: 'A finely crafted longsword. Cuts with precision.',
-    goldCost: 350,
+    goldCost: 1500,
+    worldUnlock: 3,
+    gridSize: { w: 1, h: 4 },
     effect: { power: 3, defeatAdditionalEnemiesChance: 0.35 },
   },
   {
@@ -109,7 +131,9 @@ export const ITEMS: ItemData[] = [
     slot: 'weapon',
     rarity: 'epic',
     description: 'Light as a feather, sharp as a dragon\'s tooth.',
-    goldCost: 800,
+    goldCost: 3500,
+    worldUnlock: 4,
+    gridSize: { w: 1, h: 3 },
     effect: { power: 5, defeatAdditionalEnemiesChance: 0.5 },
   },
   {
@@ -118,7 +142,9 @@ export const ITEMS: ItemData[] = [
     slot: 'weapon',
     rarity: 'epic',
     description: 'A legendary sword that cleaves through darkness.',
-    goldCost: 2000,
+    goldCost: 10000,
+    worldUnlock: 5,
+    gridSize: { w: 2, h: 4 },
     effect: { power: 8, defeatAdditionalEnemiesChance: 0.75 },
   },
 
@@ -129,7 +155,9 @@ export const ITEMS: ItemData[] = [
     slot: 'armor',
     rarity: 'common',
     description: 'Stiff leather that might deflect a glancing blow.',
-    goldCost: 40,
+    goldCost: 80,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { absorbAttacksChance: 0.1 },
   },
   {
@@ -138,7 +166,9 @@ export const ITEMS: ItemData[] = [
     slot: 'armor',
     rarity: 'uncommon',
     description: 'Interlocking iron rings protect against slashes.',
-    goldCost: 120,
+    goldCost: 400,
+    worldUnlock: 2,
+    gridSize: { w: 2, h: 3 },
     effect: { absorbAttacksChance: 0.2 },
   },
   {
@@ -147,7 +177,9 @@ export const ITEMS: ItemData[] = [
     slot: 'armor',
     rarity: 'rare',
     description: 'Solid steel plating. Slows you down but takes a beating.',
-    goldCost: 300,
+    goldCost: 1200,
+    worldUnlock: 3,
+    gridSize: { w: 2, h: 4 },
     effect: { absorbAttacksChance: 0.35 },
   },
   {
@@ -156,7 +188,9 @@ export const ITEMS: ItemData[] = [
     slot: 'armor',
     rarity: 'epic',
     description: 'Impenetrable scales from a fallen beast.',
-    goldCost: 750,
+    goldCost: 3000,
+    worldUnlock: 4,
+    gridSize: { w: 2, h: 3 },
     effect: { absorbAttacksChance: 0.5 },
   },
   {
@@ -165,7 +199,9 @@ export const ITEMS: ItemData[] = [
     slot: 'armor',
     rarity: 'epic',
     description: 'Blessed by the gods to ward off harm.',
-    goldCost: 1800,
+    goldCost: 8000,
+    worldUnlock: 5,
+    gridSize: { w: 2, h: 4 },
     effect: { absorbAttacksChance: 0.75 },
   },
 
@@ -176,7 +212,9 @@ export const ITEMS: ItemData[] = [
     slot: 'accessory',
     rarity: 'common',
     description: 'A coin that sometimes doubles your earnings.',
-    goldCost: 60,
+    goldCost: 90,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
     effect: { bonusGoldChance: 0.15 },
   },
   {
@@ -185,7 +223,9 @@ export const ITEMS: ItemData[] = [
     slot: 'accessory',
     rarity: 'uncommon',
     description: 'Increases gold earned from enemies.',
-    goldCost: 100,
+    goldCost: 420,
+    worldUnlock: 2,
+    gridSize: { w: 1, h: 1 },
     effect: { goldMultiplier: 0.15 },
   },
   {
@@ -194,7 +234,9 @@ export const ITEMS: ItemData[] = [
     slot: 'accessory',
     rarity: 'rare',
     description: 'Attracts wealth to its bearer.',
-    goldCost: 250,
+    goldCost: 1300,
+    worldUnlock: 3,
+    gridSize: { w: 1, h: 2 },
     effect: { bonusGoldChance: 0.3 },
   },
   {
@@ -203,7 +245,9 @@ export const ITEMS: ItemData[] = [
     slot: 'accessory',
     rarity: 'epic',
     description: 'Its soothing ring attracts gold.',
-    goldCost: 400,
+    goldCost: 3200,
+    worldUnlock: 4,
+    gridSize: { w: 1, h: 2 },
     effect: { goldMultiplier: 0.3 },
   },
   {
@@ -212,7 +256,9 @@ export const ITEMS: ItemData[] = [
     slot: 'accessory',
     rarity: 'epic',
     description: 'Turns fallen foes into pure gold.',
-    goldCost: 1000,
+    goldCost: 4000,
+    worldUnlock: 4,
+    gridSize: { w: 1, h: 1 },
     effect: { bonusGoldChance: 0.6 },
   },
 
@@ -224,6 +270,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'epic',
     description: 'Awarded for mastering World 1. Sharpens reflexes.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { focusBonus: 15 },
   },
   {
@@ -233,6 +281,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'epic',
     description: 'Awarded for mastering World 2. Channels arcane energy.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 2 },
     effect: { power: 4 },
   },
   {
@@ -242,6 +292,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'epic',
     description: 'Awarded for mastering World 3. Wraps you in shadow.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { absorbAttacksChance: 0.4 },
   },
   {
@@ -251,6 +303,8 @@ export const ITEMS: ItemData[] = [
     rarity: 'epic',
     description: 'Awarded for mastering World 4. Crown of the woodland.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 2, h: 2 },
     effect: { bonusGoldChance: 0.4 },
   },
   {
@@ -260,7 +314,55 @@ export const ITEMS: ItemData[] = [
     rarity: 'epic',
     description: 'Awarded for mastering World 5. The mightiest quill.',
     goldCost: 0,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 3 },
     effect: { power: 6, focusBonus: 10 },
+  },
+
+  // --- CONSUMABLES ---
+  {
+    id: 'swift_tonic',
+    name: 'Swift Tonic',
+    slot: 'consumable',
+    rarity: 'common',
+    description: 'Adds 20 seconds to the level time limit. No effect on untimed levels.',
+    goldCost: 80,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
+    effect: { extraTime: 20 },
+  },
+  {
+    id: 'iron_will',
+    name: 'Iron Will',
+    slot: 'consumable',
+    rarity: 'common',
+    description: 'Your first wrong key press this level is forgiven.',
+    goldCost: 100,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
+    effect: { ignoreFirstWrong: true },
+  },
+  {
+    id: 'gold_fever',
+    name: 'Gold Fever',
+    slot: 'consumable',
+    rarity: 'uncommon',
+    description: 'Doubles all gold earned from this level.',
+    goldCost: 120,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 2 },
+    effect: { goldDouble: true },
+  },
+  {
+    id: 'word_of_power',
+    name: 'Word of Power',
+    slot: 'consumable',
+    rarity: 'uncommon',
+    description: 'Grants +2 power for this level only.',
+    goldCost: 90,
+    worldUnlock: 1,
+    gridSize: { w: 1, h: 1 },
+    effect: { power: 2 },
   },
 ]
 
