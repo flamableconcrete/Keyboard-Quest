@@ -1,10 +1,10 @@
 // src/controllers/InventoryController.ts
 // Pure TypeScript — NO Phaser imports.
-import { ProfileData } from '../types'
+import { ProfileData, EquipmentData } from '../types'
 import { getItem } from '../data/items'
 import { BackpackGrid } from './BackpackGrid'
 
-type EquipmentSlot = 'weapon' | 'armor' | 'accessory' | 'trophy'
+type EquipmentSlot = keyof EquipmentData
 
 export interface EquipmentState {
   weapon: string | null
@@ -48,17 +48,21 @@ export class InventoryController {
     return [...new Set([...inBackpack, ...equipped])]
   }
 
+  /**
+   * Sets an equipment slot. Does NOT remove the item from the backpack —
+   * callers that drag from backpack must call removeFromBackpack first.
+   */
   equip(slot: EquipmentSlot, itemId: string): void {
     this._equipment = { ...this._equipment, [slot]: itemId }
   }
 
-  unequip(slot: EquipmentSlot): void {
+  unequip(slot: EquipmentSlot): boolean {
     const itemId = this._equipment[slot]
+    if (!itemId) return true
+    const added = this.addToBackpack(itemId)
+    if (!added) return false   // backpack full — leave item equipped
     this._equipment = { ...this._equipment, [slot]: null }
-    // Return item to backpack if there's space
-    if (itemId) {
-      this.addToBackpack(itemId)
-    }
+    return true
   }
 
   /** Returns backpack item IDs for a given equipment slot (for the item selection list). */
@@ -75,6 +79,7 @@ export class InventoryController {
   addToBackpack(itemId: string): boolean {
     const item = getItem(itemId)
     if (!item) return false
+    if (this._grid.hasItem(itemId)) return true   // already in backpack
     const { w, h } = item.gridSize
     const pos = this._grid.findSpace(w, h)
     if (!pos) return false
@@ -112,6 +117,7 @@ export class InventoryController {
   sell(itemId: string): number {
     const item = getItem(itemId)
     if (!item || item.goldCost === 0) return 0
+    if (!this._grid.hasItem(itemId)) return 0
     const gold = Math.floor(item.goldCost * 0.75)
     this.removeFromBackpack(itemId)
     this.profile.gold = (this.profile.gold ?? 0) + gold
