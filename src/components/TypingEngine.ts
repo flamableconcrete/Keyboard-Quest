@@ -35,6 +35,11 @@ export class TypingEngine {
   /** If set, called instead of config.onWrongKey. Used by iron_will consumable. */
   wrongKeyOverride?: (() => void) | null
 
+  /** Fires the config-level wrong key callback. Used by consumable overrides. */
+  fireWrongKey(): void {
+    this.config.onWrongKey()
+  }
+
   constructor(config: TypingEngineConfig) {
     this.config = config
     this.scene = config.scene

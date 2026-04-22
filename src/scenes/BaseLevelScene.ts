@@ -157,16 +157,18 @@ export abstract class BaseLevelScene extends Phaser.Scene {
 
     // iron_will: intercept the first wrong key press and forgive it
     if (this.consumableBonuses.ignoreFirstWrong && this.engine) {
+      const engine = this.engine  // capture local ref to avoid stale closure if engine were reassigned
       let forgiven = false
-      this.engine.wrongKeyOverride = () => {
+      engine.wrongKeyOverride = () => {
         if (!forgiven) {
           forgiven = true
-          // Do not call config.onWrongKey — the key press is forgiven
+          // Undo the totalKeystrokes increment so the forgiven key doesn't count against accuracy
+          engine.totalKeystrokes--
           return
         }
-        // Subsequent wrong keys: restore normal behavior
-        this.engine.wrongKeyOverride = null
-        this.onWrongKey()
+        // Subsequent wrong keys: restore normal behavior via engine's own callback
+        engine.wrongKeyOverride = null
+        engine.fireWrongKey()
       }
     }
 
