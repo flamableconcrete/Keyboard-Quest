@@ -346,13 +346,16 @@ export class LevelIntroScene extends Phaser.Scene {
   }
 
   private enter() {
+    // Remove input listeners to prevent re-entry from dialogue input handlers
+    this.input.keyboard?.removeAllListeners('keydown-SPACE')
+    this.input.removeAllListeners('pointerdown')
+
     // Reload profile to get latest backpack state
     this.profile = loadProfile(this.profileSlot)!
 
     const consumables = (this.profile.backpackPlacements ?? [])
       .map(p => getItem(p.itemId))
-      .filter(item => item?.slot === 'consumable')
-      .map(item => item!)
+      .filter((item): item is ItemData => item?.slot === 'consumable')
 
     if (consumables.length === 0) {
       this.startLevel()
