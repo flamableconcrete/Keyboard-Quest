@@ -113,6 +113,7 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawActiveTab() {
+    this.backpackPanel?.destroy()
     this.container.removeAll(true)
 
     const { width, height } = this.scale
@@ -146,7 +147,7 @@ export class CharacterScene extends Phaser.Scene {
     this.drawEquipSlot(col1X, row2Y, 'accessory', 'ACCESS.')
     this.drawEquipSlot(col2X, row2Y, 'trophy', 'TROPHY')
 
-    // ── TOP-RIGHT: spells + sell zone ───────────────────────────────────
+    // ── TOP-RIGHT: spells ───────────────────────────────────
     const rightX = startX + 400
 
     this.container.add(

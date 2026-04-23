@@ -8,7 +8,7 @@ import { BackpackGrid, GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 import { GridPanel } from '../components/GridPanel'
 
 const MERCHANT_COLS = 10
-const MERCHANT_ROWS = 8
+const MERCHANT_ROWS = 4
 const CELL = 45
 
 export class ShopScene extends Phaser.Scene {
@@ -448,6 +448,9 @@ export class ShopScene extends Phaser.Scene {
     const sellPrice = Math.floor(item.goldCost * 0.75)
     const { width, height } = this.scale
 
+    const blocker = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+      .setDepth(199).setInteractive()
+
     const bg  = this.add.rectangle(width / 2, height / 2, 420, 160, 0x0a0a1f)
                     .setStrokeStyle(3, 0xffd700).setDepth(200)
     const msg = this.add.text(width / 2, height / 2 - 30,
@@ -465,7 +468,7 @@ export class ShopScene extends Phaser.Scene {
       backgroundColor: '#3a1a1a', padding: { x: 10, y: 6 },
     }).setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true })
 
-    const cleanup = () => { bg.destroy(); msg.destroy(); yesBtn.destroy(); noBtn.destroy() }
+    const cleanup = () => { blocker.destroy(); bg.destroy(); msg.destroy(); yesBtn.destroy(); noBtn.destroy() }
 
     yesBtn.on('pointerdown', () => {
       cleanup()
