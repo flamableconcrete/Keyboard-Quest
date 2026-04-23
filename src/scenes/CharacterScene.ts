@@ -15,12 +15,27 @@ export class CharacterScene extends Phaser.Scene {
   private container!: Phaser.GameObjects.Container
 
   private activeTab: 'inventory' | 'stats' | 'avatar' = 'inventory'
-  private activeSlotSelection: 'weapon' | 'armor' | 'accessory' | 'trophy' | null = null
   private inventoryController!: InventoryController
   private avatarConfig!: AvatarConfig
   private avatarPreviewImage!: Phaser.GameObjects.Image
   private avatarDirty = false
   private originalAvatarId: string | null = null
+
+  private readonly CELL_SIZE = 45
+  private gridOriginX = 0
+  private gridOriginY = 0
+
+  private dragging: {
+    itemId: string
+    ghost: Phaser.GameObjects.Rectangle
+    ghostLabel: Phaser.GameObjects.Text
+    w: number
+    h: number
+    originX: number
+    originY: number
+  } | null = null
+
+  private dragOverlay: Phaser.GameObjects.Graphics | null = null
 
   constructor() {
     super('Character')
@@ -78,9 +93,6 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawTabs(startX: number, startY: number) {
-    // Clear old tabs logic might be needed if we redraw tabs, but for now we'll just clear the whole scene if we re-render tabs, or we can just make tabs once and update visually.
-    // Actually, drawTabs is called once. We should keep references to the tab backgrounds if we want to change their color.
-    // Let's store them.
     this.children.getAll().filter(c => c.getData('isTab')).forEach(c => c.destroy())
 
     const tabs = [
@@ -98,7 +110,6 @@ export class CharacterScene extends Phaser.Scene {
         .on('pointerdown', () => {
           if (this.activeTab !== tab.id) {
             this.activeTab = tab.id
-            this.activeSlotSelection = null // reset slot selection on tab change
             this.drawTabs(startX, startY) // redraw tabs to update selection color
             this.drawActiveTab()
           }
@@ -129,36 +140,313 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawInventoryTab(startX: number, startY: number) {
-    this.addSectionTitle(this.container, startY, 'EQUIPMENT & ITEMS')
+    const S = this.CELL_SIZE
 
-    // Slots on left
-    const slotsX = startX + 100
-    // Avatar paper doll preview in center
-    const avatarX = startX + 350
-    const avatarY = startY + 150
+    // Grid origin: left of the content area
+    this.gridOriginX = startX + 20
+    this.gridOriginY = startY + 40
 
-    this.renderTabPreview()
-    this.avatarPreviewImage = this.add.image(avatarX, avatarY, this.avatarConfig.id).setScale(2)
-    this.container.add(this.avatarPreviewImage)
+    this.addSectionTitle(this.container, startY, 'BACKPACK')
 
-    // Weapon
-    this.drawPaperDollSlot(this.container, slotsX, avatarY - 90, 'weapon')
-
-    // Armor
-    this.drawPaperDollSlot(this.container, slotsX, avatarY, 'armor')
-
-    // Accessory
-    this.drawPaperDollSlot(this.container, slotsX, avatarY + 90, 'accessory')
-
-    // Trophy
-    this.drawPaperDollSlot(this.container, slotsX, avatarY + 180, 'trophy')
-
-    if (this.activeSlotSelection) {
-      this.drawItemSelectionList(startX + 640, startY + 50, this.activeSlotSelection)
+    // Draw grid cell backgrounds
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 4; col++) {
+        const cell = this.add.rectangle(
+          this.gridOriginX + col * S + S / 2,
+          this.gridOriginY + row * S + S / 2,
+          S - 2, S - 2,
+          0x111133
+        ).setStrokeStyle(1, 0x333366)
+        this.container.add(cell)
+      }
     }
 
-    this.addSectionTitle(this.container, startY + 380, 'OWNED SPELLS')
-    this.drawSpells(this.container, startX + 50, startY + 420)
+    // Draw overlay graphics (separate so drag can update it without clearing grid)
+    if (!this.dragOverlay) {
+      this.dragOverlay = this.add.graphics().setDepth(90)
+    }
+
+    // Draw items in backpack grid (skip currently dragging item)
+    for (const p of this.inventoryController.backpackGrid.getPlacements()) {
+      if (this.dragging?.itemId === p.itemId) continue
+      this.drawItemInGrid(p.itemId, p.x, p.y, p.w, p.h)
+    }
+
+    // Equipment slots (right of grid)
+    const equipX = this.gridOriginX + 4 * S + 60
+    this.addSectionTitle(this.container, startY, 'EQUIPPED')
+    const slots: Array<{ slot: 'weapon' | 'armor' | 'accessory' | 'trophy'; label: string; ey: number }> = [
+      { slot: 'weapon', label: 'WEAPON', ey: this.gridOriginY + 50 },
+      { slot: 'armor', label: 'ARMOR', ey: this.gridOriginY + 160 },
+      { slot: 'accessory', label: 'ACCESS.', ey: this.gridOriginY + 270 },
+      { slot: 'trophy', label: 'TROPHY', ey: this.gridOriginY + 380 },
+    ]
+
+    for (const { slot, label, ey } of slots) {
+      this.drawEquipSlot(equipX + 80, ey, slot, label)
+    }
+
+    // Sell zone
+    this.drawSellZone(equipX + 80, this.gridOriginY + 470)
+
+    // Spells section below grid
+    const spellsY = this.gridOriginY + 10 * S + 20
+    this.addSectionTitle(this.container, spellsY, 'OWNED SPELLS')
+    this.drawSpells(this.container, startX + 20, spellsY + 40)
+  }
+
+  private drawItemInGrid(itemId: string, col: number, row: number, w: number, h: number) {
+    const S = this.CELL_SIZE
+    const item = getItem(itemId)
+    if (!item) return
+
+    const px = this.gridOriginX + col * S
+    const py = this.gridOriginY + row * S
+    const itemColor = Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color
+
+    const bg = this.add.rectangle(
+      px + (w * S) / 2,
+      py + (h * S) / 2,
+      w * S - 4,
+      h * S - 4,
+      itemColor,
+      0.7
+    ).setInteractive({ useHandCursor: true }).setDepth(10)
+
+    const label = this.add.text(
+      px + 4,
+      py + 4,
+      item.name,
+      { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
+    ).setDepth(11)
+
+    this.container.add([bg, label])
+
+    bg.on('pointerdown', () => {
+      this.startDragFromGrid(itemId, col, row, w, h)
+    })
+  }
+
+  private drawEquipSlot(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory' | 'trophy', label: string) {
+    const itemId = this.profile.equipment[slot]
+    const item = itemId ? getItem(itemId) : null
+    const itemColor = item ? Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color : 0x222244
+
+    this.container.add(
+      this.add.text(x, y - 50, label, { fontSize: '11px', color: '#888888' }).setOrigin(0.5)
+    )
+
+    const box = this.add.rectangle(x, y, 150, 90, item ? itemColor : 0x111133, item ? 0.6 : 1)
+      .setStrokeStyle(2, item ? 0xffd700 : 0x333366)
+      .setDepth(5)
+    this.container.add(box)
+
+    if (item) {
+      this.container.add(
+        this.add.text(x, y - 15, item.name, { fontSize: '13px', color: '#ffffff', fontStyle: 'bold', wordWrap: { width: 140 } }).setOrigin(0.5).setDepth(6)
+      )
+      const effectStr = this.getEffectString(item.effect)
+      this.container.add(
+        this.add.text(x, y + 15, effectStr, { fontSize: '10px', color: '#00ff00', wordWrap: { width: 140 } }).setOrigin(0.5).setDepth(6)
+      )
+
+      // Unequip button
+      const unequipBtn = this.add.text(x + 65, y - 40, 'X', { fontSize: '13px', color: '#ff4444', fontStyle: 'bold' })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(7)
+      unequipBtn.on('pointerdown', () => {
+        this.inventoryController.unequip(slot)
+        this.profile.equipment = { ...this.inventoryController.equipment }
+        saveProfile(this.profileSlot, this.profile)
+        this.avatarDirty = true
+        this.drawActiveTab()
+      })
+      this.container.add(unequipBtn)
+    } else {
+      this.container.add(
+        this.add.text(x, y, 'EMPTY', { fontSize: '13px', color: '#444466' }).setOrigin(0.5).setDepth(6)
+      )
+    }
+
+    // Make box a drop zone: accept dragged items of the matching slot
+    box.setInteractive()
+    box.on('pointerup', () => {
+      if (!this.dragging) return
+      const dragItem = getItem(this.dragging.itemId)
+      if (dragItem?.slot === slot) {
+        this.dropOnEquipSlot(this.dragging.itemId, slot)
+      }
+    })
+  }
+
+  private drawSellZone(x: number, y: number) {
+    const zone = this.add.rectangle(x, y, 150, 60, 0x442211)
+      .setStrokeStyle(2, 0xaa6622)
+      .setDepth(5)
+      .setInteractive()
+    this.container.add(zone)
+    this.container.add(
+      this.add.text(x, y, 'SELL (75%)', { fontSize: '14px', color: '#ffaa44', fontStyle: 'bold' }).setOrigin(0.5).setDepth(6)
+    )
+
+    zone.on('pointerup', () => {
+      if (!this.dragging) return
+      this.dropOnSellZone(this.dragging.itemId)
+    })
+  }
+
+  private startDragFromGrid(itemId: string, col: number, row: number, w: number, h: number) {
+    if (this.dragging) return
+    const S = this.CELL_SIZE
+    const item = getItem(itemId)!
+    const itemColor = Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color
+
+    const ghost = this.add.rectangle(
+      this.gridOriginX + col * S + (w * S) / 2,
+      this.gridOriginY + row * S + (h * S) / 2,
+      w * S - 4, h * S - 4,
+      itemColor, 0.85
+    ).setDepth(100)
+
+    const ghostLabel = this.add.text(
+      this.gridOriginX + col * S + 4,
+      this.gridOriginY + row * S + 4,
+      item.name,
+      { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
+    ).setDepth(101)
+
+    this.dragging = { itemId, ghost, ghostLabel, w, h, originX: col, originY: row }
+
+    this.input.on('pointermove', this.onDragMove, this)
+    this.input.on('pointerup', this.onDragEnd, this)
+
+    // Redraw grid without this item (ghost replaces it)
+    this.drawActiveTab()
+  }
+
+  private onDragMove(pointer: Phaser.Input.Pointer) {
+    if (!this.dragging) return
+    const { ghost, ghostLabel, w, h } = this.dragging
+    const S = this.CELL_SIZE
+
+    ghost.setPosition(pointer.x, pointer.y)
+    ghostLabel.setPosition(pointer.x - (w * S) / 2 + 4, pointer.y - (h * S) / 2 + 4)
+
+    // Update overlay highlight
+    this.dragOverlay?.clear()
+    const col = Math.floor((pointer.x - this.gridOriginX) / S)
+    const row = Math.floor((pointer.y - this.gridOriginY) / S)
+
+    const onGrid = col >= 0 && col + w <= 4 && row >= 0 && row + h <= 10
+    if (onGrid && this.dragOverlay) {
+      const canDrop = this.inventoryController.backpackGrid.canPlace(col, row, w, h, this.dragging.itemId)
+      this.dragOverlay.fillStyle(canDrop ? 0x00ff00 : 0xff0000, 0.3)
+      this.dragOverlay.fillRect(
+        this.gridOriginX + col * S,
+        this.gridOriginY + row * S,
+        w * S, h * S
+      )
+    }
+  }
+
+  private onDragEnd(pointer: Phaser.Input.Pointer) {
+    if (!this.dragging) return
+    const { itemId, ghost, ghostLabel, w, h } = this.dragging
+
+    ghost.destroy()
+    ghostLabel.destroy()
+    this.dragOverlay?.clear()
+    this.input.off('pointermove', this.onDragMove, this)
+    this.input.off('pointerup', this.onDragEnd, this)
+    this.dragging = null
+
+    const S = this.CELL_SIZE
+    const col = Math.floor((pointer.x - this.gridOriginX) / S)
+    const row = Math.floor((pointer.y - this.gridOriginY) / S)
+
+    const onGrid = col >= 0 && col + w <= 4 && row >= 0 && row + h <= 10
+    if (onGrid) {
+      const moved = this.inventoryController.moveInBackpack(itemId, col, row)
+      if (moved) {
+        saveProfile(this.profileSlot, this.profile)
+      }
+    }
+    // If not on grid (dropped on equip slot or sell zone), those handlers fire via pointerup on those zones.
+    // If nowhere valid, item stays at origin (grid redraws with it in place).
+
+    this.drawActiveTab()
+  }
+
+  private dropOnEquipSlot(itemId: string, slot: 'weapon' | 'armor' | 'accessory' | 'trophy') {
+    if (!this.dragging) return
+    this.dragging.ghost.destroy()
+    this.dragging.ghostLabel.destroy()
+    this.dragOverlay?.clear()
+    this.input.off('pointermove', this.onDragMove, this)
+    this.input.off('pointerup', this.onDragEnd, this)
+    this.dragging = null
+
+    // Unequip whatever is there (returns to backpack)
+    const current = this.profile.equipment[slot]
+    if (current && current !== itemId) {
+      this.inventoryController.unequip(slot)
+    }
+
+    // Remove from backpack, equip
+    this.inventoryController.removeFromBackpack(itemId)
+    this.inventoryController.equip(slot, itemId)
+    this.profile.equipment = { ...this.inventoryController.equipment }
+    saveProfile(this.profileSlot, this.profile)
+    this.avatarDirty = true
+    this.drawActiveTab()
+  }
+
+  private dropOnSellZone(itemId: string) {
+    if (!this.dragging) return
+    this.dragging.ghost.destroy()
+    this.dragging.ghostLabel.destroy()
+    this.dragOverlay?.clear()
+    this.input.off('pointermove', this.onDragMove, this)
+    this.input.off('pointerup', this.onDragEnd, this)
+    this.dragging = null
+
+    const item = getItem(itemId)
+    if (!item || item.goldCost === 0) {
+      this.drawActiveTab()
+      return
+    }
+
+    const goldBack = Math.floor(item.goldCost * 0.75)
+
+    // Confirmation popup
+    const { width, height } = this.scale
+    const popupBg = this.add.rectangle(width / 2, height / 2, 400, 180, 0x1a1a2e)
+      .setStrokeStyle(3, 0xffd700).setDepth(200)
+    const popupText = this.add.text(width / 2, height / 2 - 40,
+      `Sell ${item.name}\nfor ${goldBack}g?`,
+      { fontSize: '20px', color: '#ffffff', align: 'center' }
+    ).setOrigin(0.5).setDepth(201)
+
+    const yesBtn = this.add.text(width / 2 - 70, height / 2 + 30, '[ Yes ]', {
+      fontSize: '22px', color: '#44ff44', backgroundColor: '#1a3a1a', padding: { x: 10, y: 6 }
+    }).setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true })
+
+    const noBtn = this.add.text(width / 2 + 70, height / 2 + 30, '[ No ]', {
+      fontSize: '22px', color: '#ff4444', backgroundColor: '#3a1a1a', padding: { x: 10, y: 6 }
+    }).setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true })
+
+    const cleanup = () => { popupBg.destroy(); popupText.destroy(); yesBtn.destroy(); noBtn.destroy() }
+
+    yesBtn.on('pointerdown', () => {
+      cleanup()
+      this.inventoryController.sell(itemId)  // mutates profile.gold directly
+      saveProfile(this.profileSlot, this.profile)
+      this.drawActiveTab()
+    })
+
+    noBtn.on('pointerdown', () => {
+      cleanup()
+      this.drawActiveTab()
+    })
   }
 
   private drawStatsTab(startX: number, startY: number) {
@@ -403,131 +691,6 @@ export class CharacterScene extends Phaser.Scene {
     )
   }
 
-  private drawPaperDollSlot(
-    container: Phaser.GameObjects.Container,
-    x: number,
-    y: number,
-    slot: keyof ProfileData['equipment']
-  ) {
-    const itemId = this.profile.equipment[slot]
-    const item = itemId ? getItem(itemId) : null
-
-    const isSelected = this.activeSlotSelection === slot
-    const boxColor = isSelected ? 0x2a2a4a : 0x16213e
-    const boxStroke = isSelected ? 0x8888aa : 0x4e4e6a
-    const box = this.add.rectangle(x, y, 160, 80, boxColor).setStrokeStyle(2, boxStroke)
-
-    box.setInteractive({ useHandCursor: true })
-    box.on('pointerdown', () => {
-      this.activeSlotSelection = isSelected ? null : slot
-      this.drawActiveTab()
-    })
-    container.add(box)
-
-    if (item) {
-      const unequipBtn = this.add.text(x + 65, y - 25, 'X', {
-        fontSize: '14px',
-        color: '#ff4444',
-        fontStyle: 'bold'
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-
-      unequipBtn.on('pointerdown', () => {
-        this.inventoryController.unequip(slot)
-        this.profile.equipment = { ...this.inventoryController.equipment }
-        saveProfile(this.profileSlot, this.profile)
-        this.avatarDirty = true
-        this.drawActiveTab()
-      })
-      container.add(unequipBtn)
-    }
-
-    container.add(
-      this.add
-        .text(x, y - 25, slot.toUpperCase(), { fontSize: '12px', color: '#888888' })
-        .setOrigin(0.5)
-    )
-
-    const itemName = item ? item.name : 'EMPTY'
-    const itemColor = item ? getItemColor(item.rarity) : '#444444'
-
-    const textOffsetX = item ? 15 : 0;
-
-    container.add(
-      this.add
-        .text(x + textOffsetX, y, itemName, { fontSize: '14px', color: itemColor, fontStyle: 'bold' })
-        .setOrigin(0.5)
-    )
-
-    if (item) {
-      container.add(this.add.image(x - 45, y + 5, item.id).setScale(0.8))
-
-      const effectText = this.getEffectString(item.effect)
-      container.add(
-        this.add
-          .text(x + textOffsetX, y + 20, effectText, { fontSize: '11px', color: '#00ff00' })
-          .setOrigin(0.5)
-      )
-    }
-  }
-
-  private drawItemSelectionList(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory' | 'trophy') {
-    this.container.add(
-      this.add.text(x, y, `Select ${slot.toUpperCase()}`, {
-        fontSize: '20px',
-        color: '#ffd700',
-        fontStyle: 'bold'
-      }).setOrigin(0.5)
-    )
-
-    const ownedItems = this.inventoryController.getItemsBySlot(slot)
-      .map((id) => getItem(id))
-      .filter((item): item is ItemData => !!item)
-      .sort((a, b) => {
-        if (a.goldCost !== b.goldCost) return a.goldCost - b.goldCost;
-        const ap = a.effect.power || a.effect.hp || a.effect.focusBonus || a.effect.goldMultiplier || 0;
-        const bp = b.effect.power || b.effect.hp || b.effect.focusBonus || b.effect.goldMultiplier || 0;
-        return ap - bp;
-      })
-
-    if (ownedItems.length === 0) {
-      this.container.add(
-        this.add.text(x, y + 40, 'No items available.', { fontSize: '14px', color: '#888888' }).setOrigin(0.5)
-      )
-      return
-    }
-
-    ownedItems.forEach((item, i) => {
-      const itemY = y + 50 + i * 60
-      const isEquipped = this.profile.equipment[slot] === item.id
-
-      const bg = this.add.rectangle(x, itemY, 280, 50, isEquipped ? 0x2a2a4a : 0x16213e)
-        .setStrokeStyle(1, isEquipped ? 0x44aa44 : 0x4e4e6a)
-
-      bg.setInteractive({ useHandCursor: true })
-      bg.on('pointerdown', () => {
-        if (!isEquipped) {
-          this.inventoryController.equip(slot, item.id)
-          this.profile.equipment = { ...this.inventoryController.equipment }
-          saveProfile(this.profileSlot, this.profile)
-          this.avatarDirty = true
-          this.drawActiveTab()
-        }
-      })
-      this.container.add(bg)
-
-      this.container.add(this.add.image(x - 110, itemY, item.id).setScale(0.8))
-
-      this.container.add(
-        this.add.text(x + 10, itemY - 10, item.name, { fontSize: '16px', color: isEquipped ? '#44aa44' : '#ffffff' }).setOrigin(0.5)
-      )
-
-      const effectText = this.getEffectString(item.effect)
-      this.container.add(
-        this.add.text(x + 10, itemY + 10, effectText, { fontSize: '12px', color: '#00ff00' }).setOrigin(0.5)
-      )
-    })
-  }
-
   private drawStats(container: Phaser.GameObjects.Container, x: number, y: number) {
     const stats = [
       { name: 'Level', value: this.profile.characterLevel, key: null },
@@ -577,8 +740,6 @@ export class CharacterScene extends Phaser.Scene {
       )
     })
   }
-
-
 
   private allocatePoint(key: 'hpPoints' | 'powerPoints' | 'focusPoints') {
     if (this.profile.statPoints > 0) {
