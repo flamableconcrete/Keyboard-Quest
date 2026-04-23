@@ -6,6 +6,7 @@ import { generateAllItemTextures } from '../art/itemsArt'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { InventoryController } from '../controllers/InventoryController'
+import { GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 
 const MONO_FONT = 'monospace'
 
@@ -142,15 +143,46 @@ export class CharacterScene extends Phaser.Scene {
   private drawInventoryTab(startX: number, startY: number) {
     const S = this.CELL_SIZE
 
-    // Grid origin: left of the content area
+    // ── TOP-LEFT: 2×2 equipment slots ──────────────────────────────────
+    this.container.add(
+      this.add.text(startX + 20, startY, 'EQUIPPED', {
+        fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
+      })
+    )
+
+    const col1X = startX + 100
+    const col2X = startX + 265
+    const row1Y = startY + 70
+    const row2Y = startY + 180
+
+    this.drawEquipSlot(col1X, row1Y, 'weapon', 'WEAPON')
+    this.drawEquipSlot(col2X, row1Y, 'armor', 'ARMOR')
+    this.drawEquipSlot(col1X, row2Y, 'accessory', 'ACCESS.')
+    this.drawEquipSlot(col2X, row2Y, 'trophy', 'TROPHY')
+
+    // ── TOP-RIGHT: spells + sell zone ───────────────────────────────────
+    const rightX = startX + 400
+
+    this.container.add(
+      this.add.text(rightX, startY, 'OWNED SPELLS', {
+        fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
+      })
+    )
+    this.drawSpells(this.container, rightX, startY + 35)
+    this.drawSellZone(rightX + 75, startY + 160)
+
+    // ── BOTTOM: 10×4 backpack grid ──────────────────────────────────────
     this.gridOriginX = startX + 20
-    this.gridOriginY = startY + 40
+    this.gridOriginY = startY + 240
 
-    this.addSectionTitle(this.container, startY, 'BACKPACK')
+    this.container.add(
+      this.add.text(this.gridOriginX, this.gridOriginY - 25, 'BACKPACK', {
+        fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
+      })
+    )
 
-    // Draw grid cell backgrounds
-    for (let row = 0; row < 10; row++) {
-      for (let col = 0; col < 4; col++) {
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
         const cell = this.add.rectangle(
           this.gridOriginX + col * S + S / 2,
           this.gridOriginY + row * S + S / 2,
@@ -161,38 +193,14 @@ export class CharacterScene extends Phaser.Scene {
       }
     }
 
-    // Draw overlay graphics (separate so drag can update it without clearing grid)
     if (!this.dragOverlay) {
       this.dragOverlay = this.add.graphics().setDepth(90)
     }
 
-    // Draw items in backpack grid (skip currently dragging item)
     for (const p of this.inventoryController.backpackGrid.getPlacements()) {
       if (this.dragging?.itemId === p.itemId) continue
       this.drawItemInGrid(p.itemId, p.x, p.y, p.w, p.h)
     }
-
-    // Equipment slots (right of grid)
-    const equipX = this.gridOriginX + 4 * S + 60
-    this.addSectionTitle(this.container, startY, 'EQUIPPED')
-    const slots: Array<{ slot: 'weapon' | 'armor' | 'accessory' | 'trophy'; label: string; ey: number }> = [
-      { slot: 'weapon', label: 'WEAPON', ey: this.gridOriginY + 50 },
-      { slot: 'armor', label: 'ARMOR', ey: this.gridOriginY + 160 },
-      { slot: 'accessory', label: 'ACCESS.', ey: this.gridOriginY + 270 },
-      { slot: 'trophy', label: 'TROPHY', ey: this.gridOriginY + 380 },
-    ]
-
-    for (const { slot, label, ey } of slots) {
-      this.drawEquipSlot(equipX + 80, ey, slot, label)
-    }
-
-    // Sell zone
-    this.drawSellZone(equipX + 80, this.gridOriginY + 470)
-
-    // Spells section below grid
-    const spellsY = this.gridOriginY + 10 * S + 20
-    this.addSectionTitle(this.container, spellsY, 'OWNED SPELLS')
-    this.drawSpells(this.container, startX + 20, spellsY + 40)
   }
 
   private drawItemInGrid(itemId: string, col: number, row: number, w: number, h: number) {
@@ -336,7 +344,7 @@ export class CharacterScene extends Phaser.Scene {
     const col = Math.floor((pointer.x - this.gridOriginX) / S)
     const row = Math.floor((pointer.y - this.gridOriginY) / S)
 
-    const onGrid = col >= 0 && col + w <= 4 && row >= 0 && row + h <= 10
+    const onGrid = col >= 0 && col + w <= GRID_COLS && row >= 0 && row + h <= GRID_ROWS
     if (onGrid && this.dragOverlay) {
       const canDrop = this.inventoryController.backpackGrid.canPlace(col, row, w, h, this.dragging.itemId)
       this.dragOverlay.fillStyle(canDrop ? 0x00ff00 : 0xff0000, 0.3)
@@ -363,7 +371,7 @@ export class CharacterScene extends Phaser.Scene {
     const col = Math.floor((pointer.x - this.gridOriginX) / S)
     const row = Math.floor((pointer.y - this.gridOriginY) / S)
 
-    const onGrid = col >= 0 && col + w <= 4 && row >= 0 && row + h <= 10
+    const onGrid = col >= 0 && col + w <= GRID_COLS && row >= 0 && row + h <= GRID_ROWS
     if (onGrid) {
       const moved = this.inventoryController.moveInBackpack(itemId, col, row)
       if (moved) {
