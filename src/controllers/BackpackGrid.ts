@@ -1,5 +1,5 @@
-export const GRID_COLS = 4
-export const GRID_ROWS = 10
+export const GRID_COLS = 10
+export const GRID_ROWS = 4
 
 export interface GridPlacement {
   readonly itemId: string

@@ -3,9 +3,9 @@ import { BackpackGrid, GRID_COLS, GRID_ROWS } from './BackpackGrid'
 
 describe('BackpackGrid', () => {
   describe('constants', () => {
-    it('has 4 columns and 10 rows', () => {
-      expect(GRID_COLS).toBe(4)
-      expect(GRID_ROWS).toBe(10)
+    it('has 10 columns and 4 rows', () => {
+      expect(GRID_COLS).toBe(10)
+      expect(GRID_ROWS).toBe(4)
     })
   })
 
@@ -15,14 +15,14 @@ describe('BackpackGrid', () => {
       expect(grid.canPlace(0, 0, 1, 1)).toBe(true)
     })
 
-    it('allows placing a 2x3 item in empty grid at (1,2)', () => {
+    it('allows placing a 2x3 item in empty grid at (1,0)', () => {
       const grid = new BackpackGrid([])
-      expect(grid.canPlace(1, 2, 2, 3)).toBe(true)
+      expect(grid.canPlace(1, 0, 2, 3)).toBe(true)
     })
 
     it('rejects placement when item extends past right edge', () => {
       const grid = new BackpackGrid([])
-      expect(grid.canPlace(3, 0, 2, 1)).toBe(false)
+      expect(grid.canPlace(9, 0, 2, 1)).toBe(false)
     })
 
     it('rejects placement when item extends past bottom edge', () => {
@@ -72,14 +72,14 @@ describe('BackpackGrid', () => {
     })
 
     it('skips occupied cells scanning left-to-right, top-to-bottom', () => {
-      const placements = [{ itemId: 'blocker', x: 0, y: 0, w: 4, h: 1 }]
+      const placements = [{ itemId: 'blocker', x: 0, y: 0, w: 10, h: 1 }]
       const grid = new BackpackGrid(placements)
       expect(grid.findSpace(1, 1)).toEqual({ x: 0, y: 1 })
     })
 
     it('returns null for an item that is too wide for any row', () => {
       const grid = new BackpackGrid([])
-      expect(grid.findSpace(5, 1)).toBeNull()
+      expect(grid.findSpace(11, 1)).toBeNull()
     })
   })
 
@@ -110,7 +110,7 @@ describe('BackpackGrid', () => {
 
     it('throws when placing out of bounds', () => {
       const grid = new BackpackGrid([])
-      expect(() => grid.place('item', 3, 0, 2, 1)).toThrow()
+      expect(() => grid.place('item', 9, 0, 2, 1)).toThrow()
     })
 
     it('throws when placing on occupied space', () => {
@@ -177,8 +177,8 @@ describe('BackpackGrid', () => {
 
     it('wraps to next row when item does not fit in current row', () => {
       const result = BackpackGrid.autoArrange([
-        { itemId: 'wide', w: 3, h: 1 },
-        { itemId: 'big', w: 3, h: 1 },
+        { itemId: 'wide', w: 6, h: 1 },
+        { itemId: 'big', w: 6, h: 1 },
       ])
       expect(result[0]).toMatchObject({ itemId: 'wide', x: 0, y: 0 })
       expect(result[1]).toMatchObject({ itemId: 'big', x: 0, y: 1 })
@@ -187,7 +187,7 @@ describe('BackpackGrid', () => {
     it('skips items that cannot fit anywhere and returns what it can place', () => {
       const result = BackpackGrid.autoArrange([
         { itemId: 'normal', w: 1, h: 1 },
-        { itemId: 'too_wide', w: 5, h: 1 },
+        { itemId: 'too_wide', w: 11, h: 1 },
       ])
       expect(result.find(p => p.itemId === 'normal')).toBeDefined()
       expect(result.find(p => p.itemId === 'too_wide')).toBeUndefined()
