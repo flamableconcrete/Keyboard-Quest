@@ -68,7 +68,14 @@ export class GridPanel {
 
   // ─── Public API ────────────────────────────────────────────────────────────
 
-  /** Register callback fired when the user clicks (or click-selects) an item. */
+  /**
+   * Register callback fired when the user clicks (or click-selects) an item.
+   *
+   * **Note (clickToSelect + draggable mode):** The callback fires twice per drag
+   * gesture. First on pointerdown with the item selected (caller shows detail
+   * card). Then on drag-start with `_selectedItemId` already cleared to null
+   * (caller should hide the detail card). This dual-fire is intentional.
+   */
   onItemClick(cb: (itemId: string) => void): this {
     this._onItemClickCb = cb
     return this
@@ -100,9 +107,13 @@ export class GridPanel {
     this.overlay.clear()
     this.scene.input.off('pointermove', this._boundDragMove)
     this.scene.input.off('pointerup',   this._boundDragEnd)
-    this._dragging      = null
-    this._pendingDrag   = null
-    this._pointerDownAt = null
+    this._dragging = null
+    if (this._pendingDrag) {
+      this.scene.input.off('pointermove', this._checkDragThreshold, this)
+      this.scene.input.off('pointerup',   this._clearPendingDrag,   this)
+      this._pendingDrag   = null
+      this._pointerDownAt = null
+    }
     this._redraw()
   }
 
@@ -144,6 +155,12 @@ export class GridPanel {
       this.scene.input.off('pointermove', this._boundDragMove)
       this.scene.input.off('pointerup',   this._boundDragEnd)
       this._dragging = null
+    }
+    if (this._pendingDrag) {
+      this.scene.input.off('pointermove', this._checkDragThreshold, this)
+      this.scene.input.off('pointerup',   this._clearPendingDrag,   this)
+      this._pendingDrag   = null
+      this._pointerDownAt = null
     }
   }
 
@@ -324,7 +341,12 @@ export class GridPanel {
     const row    = Math.floor((pointer.y - this.originY) / S)
     const onGrid = col >= 0 && col + w <= this.cols && row >= 0 && row + h <= this.rows
 
-    if (onGrid) this._onItemDropCb?.(itemId, col, row)
+    if (onGrid) {
+      const canDrop = this._options.grid
+        ? this._options.grid.canPlace(col, row, w, h, itemId)
+        : true
+      if (canDrop) this._onItemDropCb?.(itemId, col, row)
+    }
 
     // If the pointer landed off-grid, external drop zones (equipment slots)
     // handle the drop via their own pointerup listeners. Always redraw to
