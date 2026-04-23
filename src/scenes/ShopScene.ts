@@ -77,7 +77,7 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(1, 0.5)
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    // Left panel: 14px left padding + 10*45 grid + 14px right padding = 448px
+    // Left panel: 14px left padding + 10*45 grid + 14px right padding = 478px
     const leftPad       = 14
     const merchantW     = MERCHANT_COLS * CELL          // 450
     const leftPanelEdge = leftPad + merchantW + leftPad // 478
@@ -104,8 +104,10 @@ export class ShopScene extends Phaser.Scene {
       .onItemClick(itemId => {
         this.selectedShopItemId = this.selectedShopItemId === itemId ? null : itemId
         // Deselect backpack
-        this.selectedBackpackItemId = null
-        this.backpackPanel.setSelected(null)
+        if (this.selectedBackpackItemId !== null) {
+          this.selectedBackpackItemId = null
+          this.backpackPanel.setSelected(null)
+        }
         this._refreshShopCard()
         this._refreshInventoryCard()
       })
@@ -139,8 +141,10 @@ export class ShopScene extends Phaser.Scene {
       .onItemClick(itemId => {
         this.selectedBackpackItemId = this.selectedBackpackItemId === itemId ? null : itemId
         // Deselect merchant
-        this.selectedShopItemId = null
-        this.merchantPanel.setSelected(null)
+        if (this.selectedShopItemId !== null) {
+          this.selectedShopItemId = null
+          this.merchantPanel.setSelected(null)
+        }
         this._refreshInventoryCard()
         this._refreshShopCard()
       })
