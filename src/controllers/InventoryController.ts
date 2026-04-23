@@ -47,8 +47,8 @@ export class InventoryController {
       const newPlacements = BackpackGrid.autoArrange(items)
       this._grid = new BackpackGrid(
         newPlacements.map(np => {
-          const item = getItem(np.itemId)!
-          return { itemId: np.itemId, x: np.x, y: np.y, w: item.gridSize.w, h: item.gridSize.h }
+          const item = getItem(np.itemId)
+          return { itemId: np.itemId, x: np.x, y: np.y, w: item?.gridSize?.w ?? 1, h: item?.gridSize?.h ?? 1 }
         })
       )
       this._syncBackpackPlacements()
