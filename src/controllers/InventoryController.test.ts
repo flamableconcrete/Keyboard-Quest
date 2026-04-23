@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest'
 import { InventoryController } from './InventoryController'
 import { ProfileData } from '../types'
+import { GRID_COLS, GRID_ROWS } from './BackpackGrid'
 
 // Real item IDs from src/data/items.ts:
 //   weapons:    rusty_quill, ink_blotter, obsidian_nib
@@ -61,5 +62,32 @@ describe('InventoryController — filtering', () => {
     const armor = ctrl.getItemsBySlot('armor')
     expect(armor).toContain('leather_tunic')
     expect(armor).not.toContain('rusty_quill')
+  })
+})
+
+describe('InventoryController — grid migration', () => {
+  it('re-arranges items whose saved positions are out-of-bounds for the new grid', () => {
+    // rusty_quill is w:1 h:2. At y:8, row 8+2=10 exceeds GRID_ROWS=4.
+    const outdatedProfile = {
+      equipment: { weapon: null, armor: null, accessory: null, trophy: null },
+      ownedItemIds: ['rusty_quill'],
+      backpackPlacements: [{ itemId: 'rusty_quill', x: 0, y: 8 }],
+      selectedConsumables: [],
+      previewShopItemIds: [],
+      gold: 0,
+    } as unknown as ProfileData
+
+    const ctrl = new InventoryController(outdatedProfile)
+    const placements = ctrl.backpackGrid.getPlacements()
+
+    // Item must be re-placed within bounds
+    expect(placements).toHaveLength(1)
+    const p = placements[0]
+    expect(p.itemId).toBe('rusty_quill')
+    expect(p.y + p.h).toBeLessThanOrEqual(GRID_ROWS)
+    expect(p.x + p.w).toBeLessThanOrEqual(GRID_COLS)
+
+    // Migration must be written back to the profile
+    expect(outdatedProfile.backpackPlacements![0].y).toBeLessThan(GRID_ROWS)
   })
 })

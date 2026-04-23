@@ -2,7 +2,7 @@
 // Pure TypeScript — NO Phaser imports.
 import { ProfileData, EquipmentData } from '../types'
 import { getItem } from '../data/items'
-import { BackpackGrid } from './BackpackGrid'
+import { BackpackGrid, GRID_ROWS } from './BackpackGrid'
 
 type EquipmentSlot = keyof EquipmentData
 
@@ -32,6 +32,29 @@ export class InventoryController {
         return { itemId: p.itemId, x: p.x, y: p.y, w: item?.gridSize?.w ?? 1, h: item?.gridSize?.h ?? 1 }
       })
     )
+
+    // Migrate save data whose positions are out-of-bounds for the current grid.
+    const needsMigration = storedPlacements.some(p => {
+      const item = getItem(p.itemId)
+      const h = item?.gridSize?.h ?? 1
+      return p.y + h > GRID_ROWS
+    })
+    if (needsMigration) {
+      const items = storedPlacements
+        .map(p => {
+          const item = getItem(p.itemId)
+          return item ? { itemId: p.itemId, w: item.gridSize.w, h: item.gridSize.h } : null
+        })
+        .filter((x): x is { itemId: string; w: number; h: number } => x !== null)
+      const newPlacements = BackpackGrid.autoArrange(items)
+      this._grid = new BackpackGrid(
+        newPlacements.map(np => {
+          const item = getItem(np.itemId)!
+          return { itemId: np.itemId, x: np.x, y: np.y, w: item.gridSize.w, h: item.gridSize.h }
+        })
+      )
+      this._syncBackpackPlacements()
+    }
   }
 
   get equipment(): Readonly<EquipmentState> { return this._equipment }
