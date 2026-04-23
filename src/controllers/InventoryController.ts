@@ -40,12 +40,10 @@ export class InventoryController {
       return p.y + h > GRID_ROWS
     })
     if (needsMigration) {
-      const items = storedPlacements
-        .map(p => {
-          const item = getItem(p.itemId)
-          return item ? { itemId: p.itemId, w: item.gridSize.w, h: item.gridSize.h } : null
-        })
-        .filter((x): x is { itemId: string; w: number; h: number } => x !== null)
+      const items = storedPlacements.map(p => {
+        const item = getItem(p.itemId)
+        return { itemId: p.itemId, w: item?.gridSize?.w ?? 1, h: item?.gridSize?.h ?? 1 }
+      })
       const newPlacements = BackpackGrid.autoArrange(items)
       this._grid = new BackpackGrid(
         newPlacements.map(np => {
