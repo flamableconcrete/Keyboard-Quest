@@ -137,7 +137,7 @@ export class InventoryController {
    */
   sell(itemId: string): number {
     const item = getItem(itemId)
-    if (!item || item.goldCost === 0) return 0
+    if (!item) return 0
     if (!this._grid.hasItem(itemId)) return 0
     const gold = Math.floor(item.goldCost * 0.75)
     this.removeFromBackpack(itemId)

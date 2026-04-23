@@ -91,3 +91,26 @@ describe('InventoryController — grid migration', () => {
     expect(outdatedProfile.backpackPlacements![0].y).toBeLessThan(GRID_ROWS)
   })
 })
+
+describe('InventoryController — sell', () => {
+  it('sell returns 75% of goldCost and removes item from backpack', () => {
+    // rusty_quill goldCost is now 100g → sell = Math.floor(100 * 0.75) = 75g
+    const profile = {
+      ...mockProfile,
+      gold: 0,
+    } as unknown as ProfileData
+    const ctrl = new InventoryController(profile)
+
+    const goldEarned = ctrl.sell('rusty_quill')
+
+    expect(goldEarned).toBe(75)
+    expect(ctrl.backpackGrid.hasItem('rusty_quill')).toBe(false)
+    expect(profile.gold).toBe(75)
+  })
+
+  it('sell returns 0 if item is not in backpack', () => {
+    const ctrl = new InventoryController(mockProfile)
+    // iron_broadsword is not in the mock backpack
+    expect(ctrl.sell('iron_broadsword')).toBe(0)
+  })
+})
