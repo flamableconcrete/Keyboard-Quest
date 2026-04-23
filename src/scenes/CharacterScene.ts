@@ -7,6 +7,7 @@ import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSO
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { InventoryController } from '../controllers/InventoryController'
 import { GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
+import { GridPanel } from '../components/GridPanel'
 
 const MONO_FONT = 'monospace'
 
@@ -23,20 +24,7 @@ export class CharacterScene extends Phaser.Scene {
   private originalAvatarId: string | null = null
 
   private readonly CELL_SIZE = 45
-  private gridOriginX = 0
-  private gridOriginY = 0
-
-  private dragging: {
-    itemId: string
-    ghost: Phaser.GameObjects.Rectangle
-    ghostLabel: Phaser.GameObjects.Text
-    w: number
-    h: number
-    originX: number
-    originY: number
-  } | null = null
-
-  private dragOverlay: Phaser.GameObjects.Graphics | null = null
+  private backpackPanel: GridPanel | null = null
 
   constructor() {
     super('Character')
@@ -141,8 +129,6 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawInventoryTab(startX: number, startY: number) {
-    const S = this.CELL_SIZE
-
     // ── TOP-LEFT: 2×2 equipment slots ──────────────────────────────────
     this.container.add(
       this.add.text(startX + 20, startY, 'EQUIPPED', {
@@ -169,70 +155,31 @@ export class CharacterScene extends Phaser.Scene {
       })
     )
     this.drawSpells(this.container, rightX, startY + 35)
-    this.drawSellZone(rightX + 75, startY + 160)
 
-    // ── BOTTOM: 10×4 backpack grid ──────────────────────────────────────
-    this.gridOriginX = startX + 20
-    this.gridOriginY = startY + 240
+    // ── BOTTOM: 10×4 backpack grid via GridPanel ────────────────────────────
+    const gridOriginX = startX + 20
+    const gridOriginY = startY + 240
 
     this.container.add(
-      this.add.text(this.gridOriginX, this.gridOriginY - 25, 'BACKPACK', {
+      this.add.text(gridOriginX, gridOriginY - 25, 'BACKPACK', {
         fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
       })
     )
 
-    for (let row = 0; row < GRID_ROWS; row++) {
-      for (let col = 0; col < GRID_COLS; col++) {
-        const cell = this.add.rectangle(
-          this.gridOriginX + col * S + S / 2,
-          this.gridOriginY + row * S + S / 2,
-          S - 2, S - 2,
-          0x111133
-        ).setStrokeStyle(1, 0x333366)
-        this.container.add(cell)
-      }
-    }
-
-    if (!this.dragOverlay) {
-      this.dragOverlay = this.add.graphics().setDepth(90)
-    }
-
-    for (const p of this.inventoryController.backpackGrid.getPlacements()) {
-      if (this.dragging?.itemId === p.itemId) continue
-      this.drawItemInGrid(p.itemId, p.x, p.y, p.w, p.h)
-    }
-  }
-
-  private drawItemInGrid(itemId: string, col: number, row: number, w: number, h: number) {
-    const S = this.CELL_SIZE
-    const item = getItem(itemId)
-    if (!item) return
-
-    const px = this.gridOriginX + col * S
-    const py = this.gridOriginY + row * S
-    const itemColor = Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color
-
-    const bg = this.add.rectangle(
-      px + (w * S) / 2,
-      py + (h * S) / 2,
-      w * S - 4,
-      h * S - 4,
-      itemColor,
-      0.7
-    ).setInteractive({ useHandCursor: true }).setDepth(10)
-
-    const label = this.add.text(
-      px + 4,
-      py + 4,
-      item.name,
-      { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
-    ).setDepth(11)
-
-    this.container.add([bg, label])
-
-    bg.on('pointerdown', () => {
-      this.startDragFromGrid(itemId, col, row, w, h)
-    })
+    this.backpackPanel?.destroy()
+    this.backpackPanel = new GridPanel(
+      this, gridOriginX, gridOriginY, GRID_COLS, GRID_ROWS, this.CELL_SIZE
+    )
+    this.backpackPanel
+      .onItemDrop((itemId, col, row) => {
+        const moved = this.inventoryController.moveInBackpack(itemId, col, row)
+        if (moved) saveProfile(this.profileSlot, this.profile)
+        this.drawActiveTab()
+      })
+      .render(
+        this.inventoryController.backpackGrid.getPlacements(),
+        { draggable: true, grid: this.inventoryController.backpackGrid }
+      )
   }
 
   private drawEquipSlot(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory' | 'trophy', label: string) {
@@ -278,183 +225,30 @@ export class CharacterScene extends Phaser.Scene {
     // Make box a drop zone: accept dragged items of the matching slot
     box.setInteractive()
     box.on('pointerup', () => {
-      if (!this.dragging) return
-      const dragItem = getItem(this.dragging.itemId)
+      const draggingId = this.backpackPanel?.draggingItemId
+      if (!draggingId) return
+      const dragItem = getItem(draggingId)
       if (dragItem?.slot === slot) {
-        this.dropOnEquipSlot(this.dragging.itemId, slot)
+        this.dropOnEquipSlot(draggingId, slot)
       }
     })
-  }
-
-  private drawSellZone(x: number, y: number) {
-    const zone = this.add.rectangle(x, y, 150, 60, 0x442211)
-      .setStrokeStyle(2, 0xaa6622)
-      .setDepth(5)
-      .setInteractive()
-    this.container.add(zone)
-    this.container.add(
-      this.add.text(x, y, 'SELL (75%)', { fontSize: '14px', color: '#ffaa44', fontStyle: 'bold' }).setOrigin(0.5).setDepth(6)
-    )
-
-    zone.on('pointerup', () => {
-      if (!this.dragging) return
-      this.dropOnSellZone(this.dragging.itemId)
-    })
-  }
-
-  private startDragFromGrid(itemId: string, col: number, row: number, w: number, h: number) {
-    if (this.dragging) return
-    const S = this.CELL_SIZE
-    const item = getItem(itemId)!
-    const itemColor = Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color
-
-    const ghost = this.add.rectangle(
-      this.gridOriginX + col * S + (w * S) / 2,
-      this.gridOriginY + row * S + (h * S) / 2,
-      w * S - 4, h * S - 4,
-      itemColor, 0.85
-    ).setDepth(100)
-
-    const ghostLabel = this.add.text(
-      this.gridOriginX + col * S + 4,
-      this.gridOriginY + row * S + 4,
-      item.name,
-      { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
-    ).setDepth(101)
-
-    this.dragging = { itemId, ghost, ghostLabel, w, h, originX: col, originY: row }
-
-    this.input.on('pointermove', this.onDragMove, this)
-    this.input.on('pointerup', this.onDragEnd, this)
-
-    // Redraw grid without this item (ghost replaces it)
-    this.drawActiveTab()
-  }
-
-  private onDragMove(pointer: Phaser.Input.Pointer) {
-    if (!this.dragging) return
-    const { ghost, ghostLabel, w, h } = this.dragging
-    const S = this.CELL_SIZE
-
-    ghost.setPosition(pointer.x, pointer.y)
-    ghostLabel.setPosition(pointer.x - (w * S) / 2 + 4, pointer.y - (h * S) / 2 + 4)
-
-    // Update overlay highlight
-    this.dragOverlay?.clear()
-    const col = Math.floor((pointer.x - this.gridOriginX) / S)
-    const row = Math.floor((pointer.y - this.gridOriginY) / S)
-
-    const onGrid = col >= 0 && col + w <= GRID_COLS && row >= 0 && row + h <= GRID_ROWS
-    if (onGrid && this.dragOverlay) {
-      const canDrop = this.inventoryController.backpackGrid.canPlace(col, row, w, h, this.dragging.itemId)
-      this.dragOverlay.fillStyle(canDrop ? 0x00ff00 : 0xff0000, 0.3)
-      this.dragOverlay.fillRect(
-        this.gridOriginX + col * S,
-        this.gridOriginY + row * S,
-        w * S, h * S
-      )
-    }
-  }
-
-  private onDragEnd(pointer: Phaser.Input.Pointer) {
-    if (!this.dragging) return
-    const { itemId, ghost, ghostLabel, w, h } = this.dragging
-
-    ghost.destroy()
-    ghostLabel.destroy()
-    this.dragOverlay?.clear()
-    this.input.off('pointermove', this.onDragMove, this)
-    this.input.off('pointerup', this.onDragEnd, this)
-    this.dragging = null
-
-    const S = this.CELL_SIZE
-    const col = Math.floor((pointer.x - this.gridOriginX) / S)
-    const row = Math.floor((pointer.y - this.gridOriginY) / S)
-
-    const onGrid = col >= 0 && col + w <= GRID_COLS && row >= 0 && row + h <= GRID_ROWS
-    if (onGrid) {
-      const moved = this.inventoryController.moveInBackpack(itemId, col, row)
-      if (moved) {
-        saveProfile(this.profileSlot, this.profile)
-      }
-    }
-    // If not on grid (dropped on equip slot or sell zone), those handlers fire via pointerup on those zones.
-    // If nowhere valid, item stays at origin (grid redraws with it in place).
-
-    this.drawActiveTab()
   }
 
   private dropOnEquipSlot(itemId: string, slot: 'weapon' | 'armor' | 'accessory' | 'trophy') {
-    if (!this.dragging) return
-    this.dragging.ghost.destroy()
-    this.dragging.ghostLabel.destroy()
-    this.dragOverlay?.clear()
-    this.input.off('pointermove', this.onDragMove, this)
-    this.input.off('pointerup', this.onDragEnd, this)
-    this.dragging = null
+    this.backpackPanel?.cancelDrag()
 
-    // Unequip whatever is there (returns to backpack)
+    // Unequip whatever is currently there (returns it to backpack)
     const current = this.profile.equipment[slot]
     if (current && current !== itemId) {
       this.inventoryController.unequip(slot)
     }
 
-    // Remove from backpack, equip
     this.inventoryController.removeFromBackpack(itemId)
     this.inventoryController.equip(slot, itemId)
     this.profile.equipment = { ...this.inventoryController.equipment }
     saveProfile(this.profileSlot, this.profile)
     this.avatarDirty = true
     this.drawActiveTab()
-  }
-
-  private dropOnSellZone(itemId: string) {
-    if (!this.dragging) return
-    this.dragging.ghost.destroy()
-    this.dragging.ghostLabel.destroy()
-    this.dragOverlay?.clear()
-    this.input.off('pointermove', this.onDragMove, this)
-    this.input.off('pointerup', this.onDragEnd, this)
-    this.dragging = null
-
-    const item = getItem(itemId)
-    if (!item || item.goldCost === 0) {
-      this.drawActiveTab()
-      return
-    }
-
-    const goldBack = Math.floor(item.goldCost * 0.75)
-
-    // Confirmation popup
-    const { width, height } = this.scale
-    const popupBg = this.add.rectangle(width / 2, height / 2, 400, 180, 0x1a1a2e)
-      .setStrokeStyle(3, 0xffd700).setDepth(200)
-    const popupText = this.add.text(width / 2, height / 2 - 40,
-      `Sell ${item.name}\nfor ${goldBack}g?`,
-      { fontSize: '20px', color: '#ffffff', align: 'center' }
-    ).setOrigin(0.5).setDepth(201)
-
-    const yesBtn = this.add.text(width / 2 - 70, height / 2 + 30, '[ Yes ]', {
-      fontSize: '22px', color: '#44ff44', backgroundColor: '#1a3a1a', padding: { x: 10, y: 6 }
-    }).setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true })
-
-    const noBtn = this.add.text(width / 2 + 70, height / 2 + 30, '[ No ]', {
-      fontSize: '22px', color: '#ff4444', backgroundColor: '#3a1a1a', padding: { x: 10, y: 6 }
-    }).setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true })
-
-    const cleanup = () => { popupBg.destroy(); popupText.destroy(); yesBtn.destroy(); noBtn.destroy() }
-
-    yesBtn.on('pointerdown', () => {
-      cleanup()
-      this.inventoryController.sell(itemId)  // mutates profile.gold directly
-      saveProfile(this.profileSlot, this.profile)
-      this.drawActiveTab()
-    })
-
-    noBtn.on('pointerdown', () => {
-      cleanup()
-      this.drawActiveTab()
-    })
   }
 
   private drawStatsTab(startX: number, startY: number) {
