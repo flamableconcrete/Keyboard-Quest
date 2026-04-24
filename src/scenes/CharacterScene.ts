@@ -1,13 +1,14 @@
 import Phaser from 'phaser'
-import { ProfileData, ItemData } from '../types'
+import { ProfileData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
-import { getItem, getItemColor } from '../data/items'
+import { getItem } from '../data/items'
 import { generateAllItemTextures } from '../art/itemsArt'
 import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { InventoryController } from '../controllers/InventoryController'
 import { GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 import { GridPanel } from '../components/GridPanel'
+import { drawEquipSlotBox } from '../utils/equipSlot'
 
 const MONO_FONT = 'monospace'
 
@@ -130,24 +131,47 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   private drawInventoryTab(startX: number, startY: number) {
-    // ── TOP-LEFT: 2×2 equipment slots ──────────────────────────────────
+    // ── Paper doll ─────────────────────────────────────────────────────────
+    const paperDollCX = startX + 200
+    const paperDollCY = startY + 120
+
+    // Render avatar with current equipment
+    const pdKey = `pd_${this.profileSlot}`
+    AvatarRenderer.generateOne(this, { ...this.avatarConfig, id: pdKey }, this.profile.equipment)
     this.container.add(
-      this.add.text(startX + 20, startY, 'EQUIPPED', {
-        fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
-      })
+      this.add.image(paperDollCX, paperDollCY, pdKey).setScale(1.25).setDepth(5)
     )
 
-    const col1X = startX + 100
-    const col2X = startX + 265
-    const row1Y = startY + 70
-    const row2Y = startY + 180
+    // Equipment slots around the avatar
+    const slotConfigs = [
+      { slot: 'weapon',    x: paperDollCX - 100, y: paperDollCY - 60  },
+      { slot: 'armor',     x: paperDollCX + 40,  y: paperDollCY - 60  },
+      { slot: 'accessory', x: paperDollCX + 40,  y: paperDollCY - 124 },
+      { slot: 'trophy',    x: paperDollCX - 30,  y: paperDollCY + 65  },
+    ] as const
 
-    this.drawEquipSlot(col1X, row1Y, 'weapon', 'WEAPON')
-    this.drawEquipSlot(col2X, row1Y, 'armor', 'ARMOR')
-    this.drawEquipSlot(col1X, row2Y, 'accessory', 'ACCESS.')
-    this.drawEquipSlot(col2X, row2Y, 'trophy', 'TROPHY')
+    for (const { slot, x, y } of slotConfigs) {
+      const itemId = this.profile.equipment[slot]
+      const item = itemId ? (getItem(itemId) ?? null) : null
+      const objs = drawEquipSlotBox(this, x, y, slot, item, {
+        onUnequip: item ? () => {
+          this.inventoryController.unequip(slot)
+          this.profile.equipment = { ...this.inventoryController.equipment }
+          saveProfile(this.profileSlot, this.profile)
+          this.avatarDirty = true
+          this.drawActiveTab()
+        } : undefined,
+        onDrop: () => {
+          const draggingId = this.backpackPanel?.draggingItemId
+          if (!draggingId) return
+          const dragItem = getItem(draggingId)
+          if (dragItem?.slot === slot) this.dropOnEquipSlot(draggingId, slot)
+        },
+      })
+      objs.forEach(o => this.container.add(o))
+    }
 
-    // ── TOP-RIGHT: spells ───────────────────────────────────
+    // ── Spells (top-right) ─────────────────────────────────────────────────
     const rightX = startX + 400
 
     this.container.add(
@@ -157,7 +181,7 @@ export class CharacterScene extends Phaser.Scene {
     )
     this.drawSpells(this.container, rightX, startY + 35)
 
-    // ── BOTTOM: 10×4 backpack grid via GridPanel ────────────────────────────
+    // ── Backpack grid (bottom) ─────────────────────────────────────────────
     const gridOriginX = startX + 20
     const gridOriginY = startY + 300
 
@@ -181,58 +205,6 @@ export class CharacterScene extends Phaser.Scene {
         this.inventoryController.backpackGrid.getPlacements(),
         { draggable: true, grid: this.inventoryController.backpackGrid }
       )
-  }
-
-  private drawEquipSlot(x: number, y: number, slot: 'weapon' | 'armor' | 'accessory' | 'trophy', label: string) {
-    const itemId = this.profile.equipment[slot]
-    const item = itemId ? getItem(itemId) : null
-    const itemColor = item ? Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color : 0x222244
-
-    this.container.add(
-      this.add.text(x, y - 50, label, { fontSize: '11px', color: '#888888' }).setOrigin(0.5)
-    )
-
-    const box = this.add.rectangle(x, y, 150, 90, item ? itemColor : 0x111133, item ? 0.6 : 1)
-      .setStrokeStyle(2, item ? 0xffd700 : 0x333366)
-      .setDepth(5)
-    this.container.add(box)
-
-    if (item) {
-      this.container.add(
-        this.add.text(x, y - 15, item.name, { fontSize: '13px', color: '#ffffff', fontStyle: 'bold', wordWrap: { width: 140 } }).setOrigin(0.5).setDepth(6)
-      )
-      const effectStr = this.getEffectString(item.effect)
-      this.container.add(
-        this.add.text(x, y + 15, effectStr, { fontSize: '10px', color: '#00ff00', wordWrap: { width: 140 } }).setOrigin(0.5).setDepth(6)
-      )
-
-      // Unequip button
-      const unequipBtn = this.add.text(x + 65, y - 40, 'X', { fontSize: '13px', color: '#ff4444', fontStyle: 'bold' })
-        .setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(7)
-      unequipBtn.on('pointerdown', () => {
-        this.inventoryController.unequip(slot)
-        this.profile.equipment = { ...this.inventoryController.equipment }
-        saveProfile(this.profileSlot, this.profile)
-        this.avatarDirty = true
-        this.drawActiveTab()
-      })
-      this.container.add(unequipBtn)
-    } else {
-      this.container.add(
-        this.add.text(x, y, 'EMPTY', { fontSize: '13px', color: '#444466' }).setOrigin(0.5).setDepth(6)
-      )
-    }
-
-    // Make box a drop zone: accept dragged items of the matching slot
-    box.setInteractive()
-    box.on('pointerup', () => {
-      const draggingId = this.backpackPanel?.draggingItemId
-      if (!draggingId) return
-      const dragItem = getItem(draggingId)
-      if (dragItem?.slot === slot) {
-        this.dropOnEquipSlot(draggingId, slot)
-      }
-    })
   }
 
   private dropOnEquipSlot(itemId: string, slot: 'weapon' | 'armor' | 'accessory' | 'trophy') {
@@ -577,15 +549,4 @@ export class CharacterScene extends Phaser.Scene {
     }
   }
 
-  private getEffectString(effect: ItemData['effect']): string {
-    const parts: string[] = []
-    if (effect.hp) parts.push(`+${effect.hp} HP`)
-    if (effect.power) parts.push(`+${effect.power} PWR`)
-    if (effect.focusBonus) parts.push(`+${effect.focusBonus} FOCUS`)
-    if (effect.goldMultiplier) parts.push(`+${(effect.goldMultiplier * 100).toFixed(0)}% Gold`)
-    if (effect.defeatAdditionalEnemiesChance) parts.push(`${(effect.defeatAdditionalEnemiesChance * 100).toFixed(0)}% Double Kill`)
-    if (effect.absorbAttacksChance) parts.push(`${(effect.absorbAttacksChance * 100).toFixed(0)}% Block`)
-    if (effect.bonusGoldChance) parts.push(`${(effect.bonusGoldChance * 100).toFixed(0)}% Bonus Gold`)
-    return parts.join(', ')
-  }
 }
