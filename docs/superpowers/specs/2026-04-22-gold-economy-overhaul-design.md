@@ -36,12 +36,14 @@ worldUnlock: 1 | 2 | 3 | 4 | 5     // minimum world required to see this item in
 Add `'consumable'` as a new valid value for `slot`. Consumables have no equipment slot — they live in the backpack only.
 
 **Example grid sizes by item:**
+
 - Daggers, potions, coins, small accessories: `1×1` or `1×2`
 - Short swords: `1×2`, Broadswords: `1×3`, Longswords: `1×4`
 - Leather tunic: `2×2`, Chainmail: `2×3`, Plate armor: `2×4`
 - Large accessories/rings: `1×1`
 
 **worldUnlock mapping by rarity:**
+
 - Common → World 1
 - Uncommon → World 2
 - Rare → World 3
@@ -74,6 +76,7 @@ Gold earned per word is determined by the world the level belongs to (not the pl
 The decreasing multipliers produce the logarithmic curve. Early-world farming becomes negligible for affording mid/late-game items.
 
 **Calibration — completing a full world earns roughly enough to buy 2–3 items from that tier:**
+
 - World 1 (~8 levels × 15 words × 3g): ~360g → 2–3 common items ✓
 - World 2 (~8 levels × 20 words × 8g): ~1,280g → 2 uncommon items ✓
 - World 3 (~8 levels × 25 words × 20g): ~4,000g → 2 rare items ✓
@@ -120,6 +123,7 @@ All consumables have `worldUnlock: 1` (always available in shop).
 ### Grid structure
 
 The inventory tab in `CharacterScene` is replaced with:
+
 - A **4×10 drag-and-drop backpack grid** on one side
 - The existing **4 equipment slots** (weapon/armor/accessory/trophy) on the other
 
@@ -128,6 +132,7 @@ Equipment slots remain as-is. Dragging a backpack item onto the correct equipmen
 ### Placement data
 
 `InventoryController` owns all grid logic — no Phaser code:
+
 - Collision detection (does item fit at position x,y without overlapping?)
 - Space-available check (is there any valid position for this item?)
 - Move validation
@@ -166,6 +171,7 @@ On profile load, if `backpackPlacements` is absent (old save), `InventoryControl
 ### Rotation rules
 
 On boss/mini-boss defeat:
+
 - Current-tier items: 1–2 rotated out and replaced (existing behavior, adjusted for new count)
 - Next-tier preview: fully reshuffled (all 1–2 preview slots replaced with new random next-tier items)
 

@@ -159,7 +159,7 @@ export class CharacterScene extends Phaser.Scene {
 
     // ── BOTTOM: 10×4 backpack grid via GridPanel ────────────────────────────
     const gridOriginX = startX + 20
-    const gridOriginY = startY + 240
+    const gridOriginY = startY + 300
 
     this.container.add(
       this.add.text(gridOriginX, gridOriginY - 25, 'BACKPACK', {

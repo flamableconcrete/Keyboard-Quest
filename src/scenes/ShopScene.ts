@@ -8,7 +8,7 @@ import { BackpackGrid, GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 import { GridPanel } from '../components/GridPanel'
 
 const MERCHANT_COLS = 10
-const MERCHANT_ROWS = 4
+const MERCHANT_ROWS = 8
 const CELL = 45
 
 export class ShopScene extends Phaser.Scene {
@@ -77,21 +77,17 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(1, 0.5)
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    // Left panel: 14px left padding + 10*45 grid + 14px right padding = 478px
-    const leftPad       = 14
-    const merchantW     = MERCHANT_COLS * CELL          // 450
-    const leftPanelEdge = leftPad + merchantW + leftPad // 478
-    const dividerX      = leftPanelEdge
-    const rightPanelX   = dividerX + 6
-    const contentTop    = 52
+    // Divider at center; grids are centred within their respective halves.
+    const dividerX   = width / 2   // 640 on a 1280-wide canvas
+    const contentTop = 52
 
     // ── Merchant panel heading ─────────────────────────────────────────────
-    this.add.text(leftPad, contentTop + 4, "MERCHANT'S WARES", {
+    this.add.text(width / 4, contentTop + 4, "MERCHANT'S WARES", {
       fontSize: '12px', color: '#ffaa44', fontStyle: 'bold',
-    })
+    }).setOrigin(0.5, 0)
 
     // ── Merchant grid (10×8, click-only) ─────────────────────────────────
-    const merchantOriginX = leftPad
+    const merchantOriginX = width / 4 - MERCHANT_COLS * CELL / 2
     const merchantOriginY = contentTop + 22
 
     this.merchantPlacements = this._buildMerchantPlacements()
@@ -117,17 +113,17 @@ export class ShopScene extends Phaser.Scene {
     this.add.rectangle(dividerX + 2, height / 2 + 22, 3, height, 0x4e4e6a)
 
     // ── Inventory panel heading ───────────────────────────────────────────
-    this.add.text(rightPanelX, contentTop + 4, 'YOUR INVENTORY', {
+    this.add.text(width * 3 / 4, contentTop + 4, 'YOUR INVENTORY', {
       fontSize: '12px', color: '#ffaa44', fontStyle: 'bold',
-    })
+    }).setOrigin(0.5, 0)
 
     // ── Equipment slots ───────────────────────────────────────────────────
     const equipY = contentTop + 24
-    this._drawEquipSlots(rightPanelX, equipY)
+    this._drawEquipSlots(width * 3 / 4, equipY)
 
     // ── Backpack grid (10×4, draggable + click-to-select) ────────────────
-    const backpackOriginX = rightPanelX
-    const backpackOriginY = equipY + 68 + 16
+    const backpackOriginX = width * 3 / 4 - GRID_COLS * CELL / 2
+    const backpackOriginY = equipY + 80 + 44
 
     this.add.text(backpackOriginX, backpackOriginY - 16, 'BACKPACK', {
       fontSize: '10px', color: '#888888',
@@ -191,18 +187,20 @@ export class ShopScene extends Phaser.Scene {
 
   // ─── Equipment slots ──────────────────────────────────────────────────────
 
-  private _drawEquipSlots(x: number, y: number) {
+  private _drawEquipSlots(centerX: number, y: number) {
     const slotDefs: { slot: 'weapon' | 'armor' | 'accessory' | 'trophy'; label: string }[] = [
       { slot: 'weapon',    label: 'WEAPON'  },
       { slot: 'armor',     label: 'ARMOR'   },
       { slot: 'accessory', label: 'ACCESS.' },
       { slot: 'trophy',    label: 'TROPHY'  },
     ]
-    const slotSize = 66
+    const slotSize = 80
     const gap      = 6
+    const totalW   = slotDefs.length * (slotSize + gap) - gap
+    const startX   = centerX - totalW / 2
 
     slotDefs.forEach(({ slot, label }, i) => {
-      const sx     = x + i * (slotSize + gap)
+      const sx     = startX + i * (slotSize + gap)
       const itemId = this.profile.equipment[slot]
       const item   = itemId ? getItem(itemId) : null
       const color  = item
@@ -300,8 +298,8 @@ export class ShopScene extends Phaser.Scene {
     const item = this.selectedShopItemId ? getItem(this.selectedShopItemId) : null
     if (!item) return
 
-    const { height } = this.scale
-    const cardX = 14
+    const { width, height } = this.scale
+    const cardX = width / 4 - MERCHANT_COLS * CELL / 2
     const cardY = height - 172
     const cardW = MERCHANT_COLS * CELL    // 450
 
@@ -316,7 +314,7 @@ export class ShopScene extends Phaser.Scene {
     if (!item) return
 
     const { width, height } = this.scale
-    const dividerX = 14 + MERCHANT_COLS * CELL + 14
+    const dividerX = width / 2
     const cardX    = dividerX + 6
     const cardY    = height - 172
     const cardW    = width - cardX - 10
