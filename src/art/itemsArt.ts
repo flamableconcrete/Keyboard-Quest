@@ -1,14 +1,16 @@
 import Phaser from 'phaser'
 
+export const ITEM_TEXTURE_IDS = [
+  'rusty_quill', 'ink_blotter', 'iron_gauntlet', 'focus_ring', 'lucky_charm', 'obsidian_nib', 'padded_envelope', 'scholars_monocle',
+  'copper_shortsword', 'iron_broadsword', 'steel_longsword', 'mithril_blade', 'excalibur',
+  'leather_tunic', 'chainmail_shirt', 'steel_plate', 'dragon_scale_mail', 'aegis_armor',
+  'lucky_coin', 'hunters_charm', 'golden_idol', 'taming_bell', 'midas_ring',
+  'mastery_speed_boots', 'mastery_arcane_focus', 'mastery_shadow_cloak', 'mastery_forest_crown', 'mastery_quill_of_power',
+  'swift_tonic', 'iron_will', 'gold_fever', 'word_of_power',
+]
+
 export function generateAllItemTextures(scene: Phaser.Scene) {
-  const items = [
-    'rusty_quill', 'ink_blotter', 'iron_gauntlet', 'focus_ring', 'lucky_charm', 'obsidian_nib', 'padded_envelope', 'scholars_monocle',
-    'copper_shortsword', 'iron_broadsword', 'steel_longsword', 'mithril_blade', 'excalibur',
-    'leather_tunic', 'chainmail_shirt', 'steel_plate', 'dragon_scale_mail', 'aegis_armor',
-    'lucky_coin', 'hunters_charm', 'golden_idol', 'taming_bell', 'midas_ring',
-    'mastery_speed_boots', 'mastery_arcane_focus', 'mastery_shadow_cloak', 'mastery_forest_crown', 'mastery_quill_of_power'
-  ]
-  items.forEach(id => generateItemTexture(scene, id))
+  ITEM_TEXTURE_IDS.forEach(id => generateItemTexture(scene, id))
 }
 
 export function generateItemTexture(scene: Phaser.Scene, itemId: string) {
@@ -197,6 +199,47 @@ export function generateItemTexture(scene: Phaser.Scene, itemId: string) {
       g.fillStyle(0xaaddff); g.fillRect(10*s, 2*s, 1*s, 1*s)
       g.fillStyle(0xaaddff); g.fillRect(3*s, 6*s, 1*s, 1*s)
       g.fillStyle(0xaaddff); g.fillRect(11*s, 5*s, 1*s, 1*s)
+      break
+
+    // Consumables
+    case 'swift_tonic':
+      // Blue potion vial: round body, narrow neck, cork stopper
+      g.fillStyle(0x888888); g.fillRect(7*s, 2*s, 2*s, 2*s)   // cork
+      g.fillStyle(0xaaaaaa); g.fillRect(6*s, 4*s, 4*s, 2*s)   // neck
+      g.fillStyle(0x2244cc); g.fillRect(5*s, 6*s, 6*s, 7*s)   // body (dark blue)
+      g.fillStyle(0x4488ff); g.fillRect(5*s, 6*s, 6*s, 5*s)   // liquid fill
+      g.fillStyle(0x2244cc); g.fillRect(5*s, 11*s, 6*s, 2*s)  // bottom shade
+      g.fillStyle(0x88aaff); g.fillRect(6*s, 7*s, 1*s, 3*s)   // highlight
+      break
+    case 'iron_will':
+      // Shield badge with a gold lightning bolt
+      g.fillStyle(0x777777); g.fillRect(5*s, 3*s, 6*s, 9*s)   // shield body
+      g.fillStyle(0x555555); g.fillTriangle(5*s, 12*s, 11*s, 12*s, 8*s, 15*s) // shield point
+      g.fillStyle(0x999999); g.fillRect(5*s, 3*s, 6*s, 1*s)   // top highlight
+      g.fillStyle(0xffd700); g.fillRect(9*s, 5*s, 1*s, 3*s)   // bolt top-right
+      g.fillStyle(0xffd700); g.fillRect(7*s, 7*s, 3*s, 2*s)   // bolt cross
+      g.fillStyle(0xffd700); g.fillRect(7*s, 9*s, 1*s, 3*s)   // bolt bottom-left
+      break
+    case 'gold_fever':
+      // Rounded golden flask with glowing yellow liquid
+      g.fillStyle(0xaaaaaa); g.fillRect(7*s, 2*s, 2*s, 2*s)   // cork
+      g.fillStyle(0x888888); g.fillRect(6*s, 4*s, 4*s, 1*s)   // neck
+      g.fillStyle(0xffd700); g.fillRect(4*s, 5*s, 8*s, 8*s)   // round body outer
+      g.fillStyle(0xffaa00); g.fillRect(5*s, 6*s, 6*s, 6*s)   // body inner
+      g.fillStyle(0xffee44); g.fillRect(5*s, 6*s, 2*s, 3*s)   // highlight
+      g.fillStyle(0xffd700); g.fillRect(4*s, 13*s, 8*s, 1*s)  // base
+      break
+    case 'word_of_power':
+      // Open book with a glowing purple rune
+      g.fillStyle(0x8b4513); g.fillRect(3*s, 4*s, 10*s, 9*s)  // cover
+      g.fillStyle(0xf5deb3); g.fillRect(4*s, 5*s, 4*s, 7*s)   // left page
+      g.fillStyle(0xf0d8a0); g.fillRect(8*s, 5*s, 4*s, 7*s)   // right page
+      g.fillStyle(0x8b4513); g.fillRect(7*s, 4*s, 2*s, 9*s)   // spine
+      g.fillStyle(0xcc66ff); g.fillRect(5*s, 7*s, 2*s, 1*s)   // rune left-top
+      g.fillStyle(0xcc66ff); g.fillRect(5*s, 9*s, 2*s, 1*s)   // rune left-bottom
+      g.fillStyle(0xcc66ff); g.fillRect(5*s, 7*s, 1*s, 3*s)   // rune left-vert
+      g.fillStyle(0xaa44dd); g.fillRect(9*s, 7*s, 2*s, 3*s)   // rune right
+      g.fillStyle(0xaa44dd); g.fillRect(10*s, 8*s, 1*s, 1*s)  // rune center dot
       break
 
     default:
