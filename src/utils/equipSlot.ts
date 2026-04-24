@@ -70,7 +70,7 @@ export function drawEquipSlotBox(
     }
 
     if (options.onDrop) {
-      if (!bg.input) bg.setInteractive()
+      if (!bg.input) bg.setInteractive({ useHandCursor: true })
       bg.on('pointerup', options.onDrop)
     }
 

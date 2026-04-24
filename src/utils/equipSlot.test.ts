@@ -7,14 +7,20 @@ import { EQUIP_SLOT_SIZES, EQUIP_CELL } from './equipSlot'
 import { ITEMS } from '../data/items'
 
 describe('EQUIP_SLOT_SIZES', () => {
-  it('weapon slot fits Excalibur (2×4 — the largest weapon)', () => {
-    expect(EQUIP_SLOT_SIZES.weapon.w).toBe(2 * EQUIP_CELL)
-    expect(EQUIP_SLOT_SIZES.weapon.h).toBe(4 * EQUIP_CELL)
+  it('weapon slot fits every weapon item in the game', () => {
+    const items = ITEMS.filter(i => i.slot === 'weapon')
+    for (const item of items) {
+      expect(item.gridSize.w * EQUIP_CELL).toBeLessThanOrEqual(EQUIP_SLOT_SIZES.weapon.w)
+      expect(item.gridSize.h * EQUIP_CELL).toBeLessThanOrEqual(EQUIP_SLOT_SIZES.weapon.h)
+    }
   })
 
-  it('armor slot fits Aegis Armor (2×4 — the largest armor)', () => {
-    expect(EQUIP_SLOT_SIZES.armor.w).toBe(2 * EQUIP_CELL)
-    expect(EQUIP_SLOT_SIZES.armor.h).toBe(4 * EQUIP_CELL)
+  it('armor slot fits every armor item in the game', () => {
+    const items = ITEMS.filter(i => i.slot === 'armor')
+    for (const item of items) {
+      expect(item.gridSize.w * EQUIP_CELL).toBeLessThanOrEqual(EQUIP_SLOT_SIZES.armor.w)
+      expect(item.gridSize.h * EQUIP_CELL).toBeLessThanOrEqual(EQUIP_SLOT_SIZES.armor.h)
+    }
   })
 
   it('accessory slot fits every accessory item in the game', () => {
