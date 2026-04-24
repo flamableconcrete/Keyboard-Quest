@@ -6,6 +6,7 @@ interface DragState {
   itemId: string
   ghost: Phaser.GameObjects.Rectangle
   ghostLabel: Phaser.GameObjects.Text
+  ghostImage: Phaser.GameObjects.Image | null
   w: number
   h: number
   originCol: number
@@ -104,6 +105,7 @@ export class GridPanel {
     if (!this._dragging) return
     this._dragging.ghost.destroy()
     this._dragging.ghostLabel.destroy()
+    this._dragging.ghostImage?.destroy()
     this.overlay.clear()
     this.scene.input.off('pointermove', this._boundDragMove)
     this.scene.input.off('pointerup',   this._boundDragEnd)
@@ -302,7 +304,16 @@ export class GridPanel {
       { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
     ).setDepth(101)
 
-    this._dragging = { itemId, ghost, ghostLabel, w, h, originCol: col, originRow: row }
+    let ghostImage: Phaser.GameObjects.Image | null = null
+    if (this.scene.textures.exists(itemId)) {
+      ghostImage = this.scene.add.image(
+        this.originX + col * S + (w * S) / 2,
+        this.originY + row * S + (h * S) / 2,
+        itemId
+      ).setDisplaySize(w * S - 8, h * S - 8).setDepth(101)
+    }
+
+    this._dragging = { itemId, ghost, ghostLabel, ghostImage, w, h, originCol: col, originRow: row }
 
     this.scene.input.on('pointermove', this._boundDragMove)
     this.scene.input.on('pointerup',   this._boundDragEnd)
@@ -317,6 +328,7 @@ export class GridPanel {
 
     ghost.setPosition(pointer.x, pointer.y)
     ghostLabel.setPosition(pointer.x - (w * S) / 2 + 4, pointer.y - (h * S) / 2 + 4)
+    this._dragging.ghostImage?.setPosition(pointer.x, pointer.y)
 
     this.overlay.clear()
     const col    = Math.floor((pointer.x - this.originX) / S)
@@ -341,6 +353,7 @@ export class GridPanel {
 
     ghost.destroy()
     ghostLabel.destroy()
+    this._dragging.ghostImage?.destroy()
     this.overlay.clear()
     this.scene.input.off('pointermove', this._boundDragMove)
     this.scene.input.off('pointerup',   this._boundDragEnd)
