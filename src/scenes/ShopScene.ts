@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { ProfileData, ItemData } from '../types'
 import { getItemColor, getItem, ITEMS } from '../data/items'
+import { drawEquipSlotBox, EQUIP_SLOT_SIZES } from '../utils/equipSlot'
 import { generateAllItemTextures } from '../art/itemsArt'
 import { InventoryController } from '../controllers/InventoryController'
 import { BackpackGrid, GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
@@ -34,6 +35,7 @@ export class ShopScene extends Phaser.Scene {
     itemId: string
     slot:   'weapon' | 'armor' | 'accessory' | 'trophy'
     ghost:  Phaser.GameObjects.Rectangle
+    ghostImage: Phaser.GameObjects.Image | null
     label:  Phaser.GameObjects.Text
     w: number
     h: number
@@ -123,7 +125,7 @@ export class ShopScene extends Phaser.Scene {
 
     // ── Backpack grid (10×4, draggable + click-to-select) ────────────────
     const backpackOriginX = width * 3 / 4 - GRID_COLS * CELL / 2
-    const backpackOriginY = equipY + 80 + 44
+    const backpackOriginY = equipY + EQUIP_SLOT_SIZES.weapon.h + 16
 
     this.add.text(backpackOriginX, backpackOriginY - 16, 'BACKPACK', {
       fontSize: '10px', color: '#888888',
@@ -188,47 +190,30 @@ export class ShopScene extends Phaser.Scene {
   // ─── Equipment slots ──────────────────────────────────────────────────────
 
   private _drawEquipSlots(centerX: number, y: number) {
-    const slotDefs: { slot: 'weapon' | 'armor' | 'accessory' | 'trophy'; label: string }[] = [
-      { slot: 'weapon',    label: 'WEAPON'  },
-      { slot: 'armor',     label: 'ARMOR'   },
-      { slot: 'accessory', label: 'ACCESS.' },
-      { slot: 'trophy',    label: 'TROPHY'  },
+    const slotDefs = [
+      { slot: 'weapon'    as const },
+      { slot: 'armor'     as const },
+      { slot: 'accessory' as const },
+      { slot: 'trophy'    as const },
     ]
-    const slotSize = 80
-    const gap      = 6
-    const totalW   = slotDefs.length * (slotSize + gap) - gap
-    const startX   = centerX - totalW / 2
 
-    slotDefs.forEach(({ slot, label }, i) => {
-      const sx     = startX + i * (slotSize + gap)
+    const gap = 6
+    const totalW = slotDefs.reduce((sum, { slot }) => sum + EQUIP_SLOT_SIZES[slot].w + gap, -gap)
+    const maxH   = Math.max(...slotDefs.map(({ slot }) => EQUIP_SLOT_SIZES[slot].h))
+    let curX = centerX - totalW / 2
+
+    for (const { slot } of slotDefs) {
+      const { w, h } = EQUIP_SLOT_SIZES[slot]
+      const slotY  = y + maxH - h  // bottom-align shorter slots
       const itemId = this.profile.equipment[slot]
-      const item   = itemId ? getItem(itemId) : null
-      const color  = item
-        ? Phaser.Display.Color.HexStringToColor(getItemColor(item.rarity)).color
-        : 0x0e0e22
+      const item   = itemId ? (getItem(itemId) ?? null) : null
 
-      const box = this.add.rectangle(
-        sx + slotSize / 2, y + slotSize / 2,
-        slotSize, slotSize, color, item ? 0.5 : 1
-      ).setStrokeStyle(2, item ? 0xffd700 : 0x2a2a55)
+      drawEquipSlotBox(this, curX, slotY, slot, item, {
+        onDragStart: item ? () => this._startEquipDrag(item.id, slot, item) : undefined,
+      })
 
-      this.add.text(sx + slotSize / 2, y + 10, label, {
-        fontSize: '8px', color: '#555555',
-      }).setOrigin(0.5)
-
-      if (item) {
-        this.add.text(sx + slotSize / 2, y + slotSize / 2 + 8, item.name, {
-          fontSize: '8px', color: '#ffffff', wordWrap: { width: slotSize - 6 }, align: 'center',
-        }).setOrigin(0.5)
-
-        box.setInteractive({ useHandCursor: true })
-        box.on('pointerdown', () => this._startEquipDrag(itemId!, slot, item))
-      } else {
-        this.add.text(sx + slotSize / 2, y + slotSize / 2, 'EMPTY', {
-          fontSize: '9px', color: '#2a2a55',
-        }).setOrigin(0.5)
-      }
-    })
+      curX += w + gap
+    }
   }
 
   // ─── Equipment slot drag ──────────────────────────────────────────────────
@@ -251,7 +236,14 @@ export class ShopScene extends Phaser.Scene {
       { fontSize: '9px', color: '#ffffff', fontStyle: 'bold' }
     ).setDepth(101)
 
-    this.equipDrag = { itemId, slot, ghost, label, w, h }
+    let ghostImage: Phaser.GameObjects.Image | null = null
+    if (this.textures.exists(itemId)) {
+      ghostImage = this.add.image(ptr.x, ptr.y, itemId)
+        .setDisplaySize(w * S - 8, h * S - 8)
+        .setDepth(101)
+    }
+
+    this.equipDrag = { itemId, slot, ghost, ghostImage, label, w, h }
     this.input.on('pointermove', this._onEquipDragMove, this)
     this.input.on('pointerup',   this._onEquipDragEnd,  this)
   }
@@ -261,6 +253,7 @@ export class ShopScene extends Phaser.Scene {
     const { ghost, label, w, h } = this.equipDrag
     const S = CELL
     ghost.setPosition(pointer.x, pointer.y)
+    this.equipDrag.ghostImage?.setPosition(pointer.x, pointer.y)
     label.setPosition(pointer.x - (w * S) / 2 + 4, pointer.y - (h * S) / 2 + 4)
   }
 
@@ -270,6 +263,7 @@ export class ShopScene extends Phaser.Scene {
 
     ghost.destroy()
     label.destroy()
+    this.equipDrag.ghostImage?.destroy()
     this.input.off('pointermove', this._onEquipDragMove, this)
     this.input.off('pointerup',   this._onEquipDragEnd,  this)
     this.equipDrag = null
