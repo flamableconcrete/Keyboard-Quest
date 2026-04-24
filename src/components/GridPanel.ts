@@ -154,6 +154,7 @@ export class GridPanel {
     if (this._dragging) {
       this._dragging.ghost.destroy()
       this._dragging.ghostLabel.destroy()
+      this._dragging.ghostImage?.destroy()
       this.scene.input.off('pointermove', this._boundDragMove)
       this.scene.input.off('pointerup',   this._boundDragEnd)
       this._dragging = null
