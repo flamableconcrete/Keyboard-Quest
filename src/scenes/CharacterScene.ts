@@ -135,8 +135,9 @@ export class CharacterScene extends Phaser.Scene {
     const paperDollCX = startX + 200
     const paperDollCY = startY + 120
 
-    // Render avatar with current equipment
+    // Render avatar with current equipment (evict stale texture first)
     const pdKey = `pd_${this.profileSlot}`
+    if (this.textures.exists(pdKey)) this.textures.remove(pdKey)
     AvatarRenderer.generateOne(this, { ...this.avatarConfig, id: pdKey }, this.profile.equipment)
     this.container.add(
       this.add.image(paperDollCX, paperDollCY, pdKey).setScale(1.25).setDepth(5)
@@ -191,7 +192,6 @@ export class CharacterScene extends Phaser.Scene {
       })
     )
 
-    this.backpackPanel?.destroy()
     this.backpackPanel = new GridPanel(
       this, gridOriginX, gridOriginY, GRID_COLS, GRID_ROWS, this.CELL_SIZE
     )
