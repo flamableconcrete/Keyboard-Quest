@@ -201,29 +201,40 @@ export class GridPanel {
     const isSelected = this._selectedItemId === itemId
     const px = this.originX + col * S
     const py = this.originY + row * S
+    const cx = px + (w * S) / 2
+    const cy = py + (h * S) / 2
 
-    const bg = this.scene.add.rectangle(
-      px + (w * S) / 2,
-      py + (h * S) / 2,
-      w * S - 4,
-      h * S - 4,
-      itemColor, 0.7
-    ).setInteractive({ useHandCursor: true }).setDepth(10)
-
+    // Rarity-colored background
+    const bg = this.scene.add.rectangle(cx, cy, w * S - 4, h * S - 4, itemColor, 0.7)
+      .setInteractive({ useHandCursor: true }).setDepth(10)
     if (isSelected) bg.setStrokeStyle(2, 0xffd700)
+    this.objects.push(bg)
 
+    // Pixel art sprite (if texture exists)
+    if (this.scene.textures.exists(itemId)) {
+      const img = this.scene.add.image(cx, cy, itemId)
+        .setDisplaySize(w * S - 8, h * S - 8)
+        .setDepth(11)
+      this.objects.push(img)
+    }
+
+    // Name label backing (semi-transparent strip at top of item block)
+    const backing = this.scene.add.rectangle(
+      cx, py + 7, w * S - 4, 14, 0x000000, 0.55
+    ).setDepth(11)
+    this.objects.push(backing)
+
+    // Name label text
     const label = this.scene.add.text(
-      px + 4, py + 4,
+      px + 4, py + 2,
       item.name,
       { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
-    ).setDepth(11)
-
-    this.objects.push(bg, label)
+    ).setDepth(12)
+    this.objects.push(label)
 
     const { draggable, clickToSelect } = this._options
 
     if (draggable && clickToSelect) {
-      // Select on pointerdown; drag only after pointer moves > 8px
       bg.on('pointerdown', () => {
         const toggle = this._selectedItemId === itemId ? null : itemId
         this._selectedItemId = toggle
@@ -238,10 +249,8 @@ export class GridPanel {
         this.scene.input.once('pointerup',   this._clearPendingDrag,   this)
       })
     } else if (draggable) {
-      // Immediate drag on pointerdown (CharacterScene behaviour)
       bg.on('pointerdown', () => this._startDrag(itemId, col, row, w, h))
     } else {
-      // Click-only (merchant grid)
       bg.on('pointerdown', () => {
         this._selectedItemId = this._selectedItemId === itemId ? null : itemId
         this._onItemClickCb?.(itemId)
