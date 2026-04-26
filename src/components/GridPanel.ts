@@ -54,6 +54,8 @@ export class GridPanel {
   private _pointerDownAt: { x: number; y: number } | null = null
   private _pendingDrag: { itemId: string; col: number; row: number; w: number; h: number } | null = null
 
+  private _destroyed = false
+
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly originX: number,
@@ -148,6 +150,7 @@ export class GridPanel {
 
   /** Destroy all Phaser objects owned by this panel. */
   destroy(): void {
+    this._destroyed = true
     this.objects.forEach(o => o.destroy())
     this.objects = []
     this.overlay.destroy()
@@ -374,6 +377,6 @@ export class GridPanel {
     // If the pointer landed off-grid, external drop zones (equipment slots)
     // handle the drop via their own pointerup listeners. Always redraw to
     // restore the item's original position if no handler moved it.
-    this._redraw()
+    if (!this._destroyed) this._redraw()
   }
 }
