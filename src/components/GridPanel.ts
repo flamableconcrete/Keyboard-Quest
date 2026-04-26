@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { GridPlacement, BackpackGrid } from '../controllers/BackpackGrid'
 import { getItem, getItemColor } from '../data/items'
+import { ItemTooltipCard } from './ItemTooltipCard'
 
 interface DragState {
   itemId: string
@@ -31,6 +32,10 @@ export interface GridPanelRenderOptions {
    * Required when draggable is true to show the green/red drop indicator.
    */
   grid?: BackpackGrid
+  /** Tooltip card instance to show on item hover. Created by the scene. */
+  tooltip?: ItemTooltipCard
+  /** Returns the stack count for an itemId. Used to render a quantity badge. */
+  getQuantity?: (itemId: string) => number
 }
 
 export class GridPanel {
@@ -224,21 +229,26 @@ export class GridPanel {
       this.objects.push(img)
     }
 
-    // Name label backing (semi-transparent strip at top of item block)
-    const backing = this.scene.add.rectangle(
-      cx, py + 7, w * S - 4, 14, 0x000000, 0.55
-    ).setDepth(11)
-    this.objects.push(backing)
+    // Quantity badge (consumable stacks > 1)
+    const qty = this._options.getQuantity?.(itemId) ?? 1
+    if (qty > 1) {
+      const badgeText = this.scene.add.text(
+        px + w * S - 3,
+        py + h * S - 3,
+        `x${qty}`,
+        { fontSize: '9px', color: '#ffffff', fontStyle: 'bold', fontFamily: 'monospace',
+          backgroundColor: '#000000bb', padding: { x: 2, y: 1 } }
+      ).setOrigin(1, 1).setDepth(13)
+      this.objects.push(badgeText)
+    }
 
-    // Name label text
-    const label = this.scene.add.text(
-      px + 4, py + 2,
-      item.name,
-      { fontSize: '9px', color: '#ffffff', wordWrap: { width: w * S - 8 }, fontStyle: 'bold' }
-    ).setDepth(12)
-    this.objects.push(label)
-
-    const { draggable, clickToSelect } = this._options
+    // Tooltip hookup
+    const { draggable, clickToSelect, tooltip } = this._options
+    if (tooltip) {
+      bg.on('pointerover', (pointer: Phaser.Input.Pointer) => tooltip.show(item, pointer.x, pointer.y))
+      bg.on('pointermove', (pointer: Phaser.Input.Pointer) => tooltip.move(pointer.x, pointer.y))
+      bg.on('pointerout',  () => tooltip.hide())
+    }
 
     if (draggable && clickToSelect) {
       bg.on('pointerdown', () => {
