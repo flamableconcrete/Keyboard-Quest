@@ -7,6 +7,7 @@ import { generateAllItemTextures } from '../art/itemsArt'
 import { InventoryController } from '../controllers/InventoryController'
 import { BackpackGrid, GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 import { GridPanel } from '../components/GridPanel'
+import { ItemTooltipCard } from '../components/ItemTooltipCard'
 
 const MERCHANT_COLS = 10
 const MERCHANT_ROWS = 8
@@ -41,6 +42,9 @@ export class ShopScene extends Phaser.Scene {
     h: number
   } | null = null
 
+  // Tooltip card
+  private tooltip!: ItemTooltipCard
+
   constructor() { super('Shop') }
 
   init(data: { profileSlot: number }) {
@@ -51,6 +55,9 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     generateAllItemTextures(this)
+
+    this.tooltip = new ItemTooltipCard(this, { showGoldCost: true })
+    this.events.once('shutdown', () => this.tooltip.destroy())
 
     const { width, height } = this.scale
 
@@ -109,7 +116,7 @@ export class ShopScene extends Phaser.Scene {
         this._refreshShopCard()
         this._refreshInventoryCard()
       })
-      .render(this.merchantPlacements)
+      .render(this.merchantPlacements, { tooltip: this.tooltip })
 
     // ── Vertical divider ──────────────────────────────────────────────────
     this.add.rectangle(dividerX + 2, height / 2 + 22, 3, height, 0x4e4e6a)
@@ -151,12 +158,12 @@ export class ShopScene extends Phaser.Scene {
         if (moved) saveProfile(this.profileSlot, this.profile)
         this.backpackPanel.render(
           this.inventoryController.backpackGrid.getPlacements(),
-          { draggable: true, clickToSelect: true, grid: this.inventoryController.backpackGrid }
+          { draggable: true, clickToSelect: true, grid: this.inventoryController.backpackGrid, tooltip: this.tooltip, getQuantity: (id) => this.inventoryController.getQuantity(id) }
         )
       })
       .render(
         this.inventoryController.backpackGrid.getPlacements(),
-        { draggable: true, clickToSelect: true, grid: this.inventoryController.backpackGrid }
+        { draggable: true, clickToSelect: true, grid: this.inventoryController.backpackGrid, tooltip: this.tooltip, getQuantity: (id) => this.inventoryController.getQuantity(id) }
       )
 
     this._refreshShopCard()
@@ -209,6 +216,7 @@ export class ShopScene extends Phaser.Scene {
       const item   = itemId ? (getItem(itemId) ?? null) : null
 
       drawEquipSlotBox(this, curX, slotY, slot, item, {
+        tooltip: this.tooltip,
         onDragStart: item ? () => this._startEquipDrag(item.id, slot, item) : undefined,
       })
 
