@@ -9,6 +9,7 @@ import { InventoryController } from '../controllers/InventoryController'
 import { GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
 import { GridPanel } from '../components/GridPanel'
 import { drawEquipSlotBox } from '../utils/equipSlot'
+import { ItemTooltipCard } from '../components/ItemTooltipCard'
 
 const MONO_FONT = 'monospace'
 
@@ -26,6 +27,7 @@ export class CharacterScene extends Phaser.Scene {
 
   private readonly CELL_SIZE = 45
   private backpackPanel: GridPanel | null = null
+  private tooltip!: ItemTooltipCard
 
   constructor() {
     super('Character')
@@ -50,6 +52,9 @@ export class CharacterScene extends Phaser.Scene {
     const mobile = this.registry.get('isMobile')
 
     generateAllItemTextures(this)
+
+    this.tooltip = new ItemTooltipCard(this)
+    this.events.once('shutdown', () => this.tooltip.destroy())
 
     // Semi-transparent modal background
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
@@ -155,6 +160,7 @@ export class CharacterScene extends Phaser.Scene {
       const itemId = this.profile.equipment[slot]
       const item = itemId ? (getItem(itemId) ?? null) : null
       const objs = drawEquipSlotBox(this, x, y, slot, item, {
+        tooltip: this.tooltip,
         onUnequip: item ? () => {
           this.inventoryController.unequip(slot)
           this.profile.equipment = { ...this.inventoryController.equipment }
@@ -203,7 +209,12 @@ export class CharacterScene extends Phaser.Scene {
       })
       .render(
         this.inventoryController.backpackGrid.getPlacements(),
-        { draggable: true, grid: this.inventoryController.backpackGrid }
+        {
+          draggable: true,
+          grid: this.inventoryController.backpackGrid,
+          tooltip: this.tooltip,
+          getQuantity: (id) => this.inventoryController.getQuantity(id),
+        }
       )
   }
 
