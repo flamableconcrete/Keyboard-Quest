@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { ItemData } from '../types'
 import { getItemColor } from '../data/items'
+import { ItemTooltipCard } from '../components/ItemTooltipCard'
 
 export const EQUIP_CELL = 30
 
@@ -26,6 +27,7 @@ export function drawEquipSlotBox(
     onUnequip?: () => void
     onDrop?: () => void
     onDragStart?: () => void
+    tooltip?: ItemTooltipCard
   } = {}
 ): Phaser.GameObjects.GameObject[] {
   const out: Phaser.GameObjects.GameObject[] = []
@@ -56,14 +58,6 @@ export function drawEquipSlotBox(
         .setOrigin(0.5, 0).setDepth(7)
     )
 
-    // Item name (bottom)
-    out.push(
-      scene.add.text(cx, y + h - 4, item.name, {
-        fontSize: '8px', color: '#ffffff', fontStyle: 'bold',
-        wordWrap: { width: w - 4 }, align: 'center',
-      }).setOrigin(0.5, 1).setDepth(7)
-    )
-
     if (options.onDragStart) {
       bg.setInteractive({ useHandCursor: true })
       bg.on('pointerdown', options.onDragStart)
@@ -72,6 +66,15 @@ export function drawEquipSlotBox(
     if (options.onDrop) {
       if (!bg.input) bg.setInteractive({ useHandCursor: true })
       bg.on('pointerup', options.onDrop)
+    }
+
+    // Tooltip hookup
+    if (options.tooltip) {
+      if (!bg.input) bg.setInteractive({ useHandCursor: true })
+      const tooltip = options.tooltip
+      bg.on('pointerover', (pointer: Phaser.Input.Pointer) => tooltip.show(item, pointer.x, pointer.y))
+      bg.on('pointermove', (pointer: Phaser.Input.Pointer) => tooltip.move(pointer.x, pointer.y))
+      bg.on('pointerout', () => tooltip.hide())
     }
 
     if (options.onUnequip) {
