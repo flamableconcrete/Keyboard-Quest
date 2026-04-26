@@ -16,6 +16,7 @@ export interface EquipmentState {
 export class InventoryController {
   private _equipment: EquipmentState
   private _grid: BackpackGrid
+  private _quantities: Map<string, number> = new Map()
 
   constructor(private profile: ProfileData) {
     this._equipment = {
@@ -32,6 +33,11 @@ export class InventoryController {
         return { itemId: p.itemId, x: p.x, y: p.y, w: item?.gridSize?.w ?? 1, h: item?.gridSize?.h ?? 1 }
       })
     )
+
+    // Load consumable quantities from saved placements
+    storedPlacements.forEach(p => {
+      if (p.quantity && p.quantity > 1) this._quantities.set(p.itemId, p.quantity)
+    })
 
     // Migrate save data whose positions are out-of-bounds for the current grid.
     const needsMigration = storedPlacements.some(p => {
@@ -96,11 +102,22 @@ export class InventoryController {
   /**
    * Adds an item to the backpack at the first available position.
    * Returns false if the backpack is full.
+   * Consumables stack up to 99 in a single cell.
    */
   addToBackpack(itemId: string): boolean {
     const item = getItem(itemId)
     if (!item) return false
-    if (this._grid.hasItem(itemId)) return true   // already in backpack
+
+    // Consumable stacking: increment quantity instead of placing a new cell
+    if (item.slot === 'consumable' && this._grid.hasItem(itemId)) {
+      const qty = this._quantities.get(itemId) ?? 1
+      if (qty >= 99) return false
+      this._quantities.set(itemId, qty + 1)
+      this._syncBackpackPlacements()
+      return true
+    }
+
+    if (this._grid.hasItem(itemId)) return true  // already placed (non-consumable)
     const { w, h } = item.gridSize
     const pos = this._grid.findSpace(w, h)
     if (!pos) return false
@@ -111,10 +128,28 @@ export class InventoryController {
 
   /**
    * Removes an item from the backpack (e.g. when selling or consuming).
+   * Consumables decrement their stack quantity before fully removing.
    */
   removeFromBackpack(itemId: string): void {
+    const item = getItem(itemId)
+    if (item?.slot === 'consumable') {
+      const qty = this._quantities.get(itemId) ?? 1
+      if (qty > 1) {
+        this._quantities.set(itemId, qty - 1)
+        this._syncBackpackPlacements()
+        return
+      }
+      this._quantities.delete(itemId)
+    }
     this._grid = this._grid.remove(itemId)
     this._syncBackpackPlacements()
+  }
+
+  /**
+   * Returns the stack quantity for the given item (1 if not stacked).
+   */
+  getQuantity(itemId: string): number {
+    return this._quantities.get(itemId) ?? 1
   }
 
   /**
@@ -163,10 +198,9 @@ export class InventoryController {
   }
 
   private _syncBackpackPlacements(): void {
-    this.profile.backpackPlacements = this._grid.getPlacements().map(({ itemId, x, y }) => ({
-      itemId,
-      x,
-      y,
-    }))
+    this.profile.backpackPlacements = this._grid.getPlacements().map(({ itemId, x, y }) => {
+      const quantity = this._quantities.get(itemId)
+      return quantity && quantity > 1 ? { itemId, x, y, quantity } : { itemId, x, y }
+    })
   }
 }

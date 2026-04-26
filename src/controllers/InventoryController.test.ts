@@ -114,3 +114,72 @@ describe('InventoryController — sell', () => {
     expect(ctrl.sell('iron_broadsword')).toBe(0)
   })
 })
+
+describe('InventoryController — consumable stacking', () => {
+  const consumableProfile = () => ({
+    equipment: { weapon: null, armor: null, accessory: null, trophy: null },
+    ownedItemIds: [],
+    backpackPlacements: [{ itemId: 'swift_tonic', x: 0, y: 0 }],
+    selectedConsumables: [],
+    previewShopItemIds: [],
+    gold: 0,
+  } as unknown as ProfileData)
+
+  it('addToBackpack increments quantity for a consumable already in backpack', () => {
+    const profile = consumableProfile()
+    const ctrl = new InventoryController(profile)
+    const result = ctrl.addToBackpack('swift_tonic')
+    expect(result).toBe(true)
+    expect(ctrl.getQuantity('swift_tonic')).toBe(2)
+    expect(ctrl.backpackGrid.getPlacements()).toHaveLength(1)
+  })
+
+  it('addToBackpack returns false when consumable stack is at 99', () => {
+    const profile = {
+      ...consumableProfile(),
+      backpackPlacements: [{ itemId: 'swift_tonic', x: 0, y: 0, quantity: 99 }],
+    } as unknown as ProfileData
+    const ctrl = new InventoryController(profile)
+    const result = ctrl.addToBackpack('swift_tonic')
+    expect(result).toBe(false)
+    expect(ctrl.getQuantity('swift_tonic')).toBe(99)
+  })
+
+  it('removeFromBackpack decrements quantity for a consumable with quantity > 1', () => {
+    const profile = {
+      ...consumableProfile(),
+      backpackPlacements: [{ itemId: 'swift_tonic', x: 0, y: 0, quantity: 3 }],
+    } as unknown as ProfileData
+    const ctrl = new InventoryController(profile)
+    ctrl.removeFromBackpack('swift_tonic')
+    expect(ctrl.getQuantity('swift_tonic')).toBe(2)
+    expect(ctrl.backpackGrid.hasItem('swift_tonic')).toBe(true)
+  })
+
+  it('removeFromBackpack fully removes consumable when quantity reaches 0', () => {
+    const profile = consumableProfile()
+    const ctrl = new InventoryController(profile)
+    ctrl.removeFromBackpack('swift_tonic')
+    expect(ctrl.backpackGrid.hasItem('swift_tonic')).toBe(false)
+  })
+
+  it('getQuantity returns 1 for non-stacked items', () => {
+    const ctrl = new InventoryController(mockProfile)
+    expect(ctrl.getQuantity('rusty_quill')).toBe(1)
+  })
+
+  it('quantity persists to profile.backpackPlacements', () => {
+    const profile = consumableProfile()
+    const ctrl = new InventoryController(profile)
+    ctrl.addToBackpack('swift_tonic')
+    const p = profile.backpackPlacements.find(p => p.itemId === 'swift_tonic')
+    expect(p?.quantity).toBe(2)
+  })
+
+  it('non-consumable addToBackpack does not create duplicate placement', () => {
+    const ctrl = new InventoryController(mockProfile)
+    const result = ctrl.addToBackpack('rusty_quill')
+    expect(result).toBe(true)
+    expect(ctrl.backpackGrid.getPlacements().filter(p => p.itemId === 'rusty_quill')).toHaveLength(1)
+  })
+})

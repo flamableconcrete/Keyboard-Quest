@@ -58,7 +58,7 @@ export interface ProfileData {
   savedOutfits?: AvatarConfig[]
   debugUnlockedLevelIds?: string[]
   shopCapacityUpgraded?: boolean
-  backpackPlacements: { itemId: string; x: number; y: number }[]
+  backpackPlacements: { itemId: string; x: number; y: number; quantity?: number }[]
   selectedConsumables: string[]
   previewShopItemIds: string[]
 }
