@@ -309,10 +309,12 @@ export class AssetGalleryScene extends Phaser.Scene {
   }
 
   showModal(index: number) {
+    const entry = this.filteredList[index]
+    if (!entry) return
+
     this.closeModal()
 
     const { width, height } = this.scale
-    const entry = this.filteredList[index]
 
     this.dimRect = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
       .setDepth(99).setInteractive()
@@ -463,6 +465,7 @@ export class AssetGalleryScene extends Phaser.Scene {
   destroyActiveBgObjects() {
     for (const obj of this.activeBgObjects) obj.destroy()
     this.activeBgObjects = []
+    this.time.removeAllEvents()
   }
 
   private renderBossBg(key: string) {
@@ -482,10 +485,10 @@ export class AssetGalleryScene extends Phaser.Scene {
     const drawFn = drawFns[key]
     if (!drawFn) return
 
-    const countBefore = this.children.list.length
+    const before = new Set(this.children.list)
     drawFn(this)
-    for (let i = countBefore; i < this.children.list.length; i++) {
-      this.activeBgObjects.push(this.children.list[i] as Phaser.GameObjects.GameObject)
+    for (const obj of this.children.list) {
+      if (!before.has(obj)) this.activeBgObjects.push(obj as Phaser.GameObjects.GameObject)
     }
   }
 }
