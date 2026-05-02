@@ -41,6 +41,17 @@ export class MainMenuScene extends Phaser.Scene {
     playBtn.on('pointerout', () => playBtn.setColor('#ffffff'))
     playBtn.on('pointerdown', () => this.scene.start('ProfileSelect'))
 
+    // Gallery button
+    const galleryBtn = this.add.text(width / 2, height * 0.68, '[ GALLERY ]', {
+      fontSize: mobile ? '24px' : '22px',
+      color: '#aaaaff',
+      padding: mobile ? { x: 20, y: 12 } : undefined,
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    galleryBtn.on('pointerover', () => galleryBtn.setColor('#ffd700'))
+    galleryBtn.on('pointerout', () => galleryBtn.setColor('#aaaaff'))
+    galleryBtn.on('pointerdown', () => this.scene.start('AssetGallery'))
+
     // Keyboard-required notice at the bottom
     const noticeText = mobile
       ? 'Play levels on a computer — explore your adventure on the go!'

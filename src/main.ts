@@ -33,6 +33,7 @@ import { TrophyRoomScene } from './scenes/TrophyRoomScene'
 import { MobileLevelIntroScene } from './scenes/MobileLevelIntroScene'
 import { MobileOverlandMapScene } from './scenes/MobileOverlandMapScene'
 import { PauseScene } from './scenes/PauseScene'
+import { AssetGalleryScene } from './scenes/AssetGalleryScene'
 import { MiniBossTypical } from './scenes/boss-types/MiniBossTypical'
 import { GrizzlefangBoss } from './scenes/boss-types/GrizzlefangBoss'
 import { HydraBoss } from './scenes/boss-types/HydraBoss'
@@ -55,6 +56,7 @@ const utilityScenes = [
   TavernScene, StableScene, CutsceneScene, VictoryScene,
   SettingsScene, ShopScene, TrophyRoomScene,
   MobileLevelIntroScene, MobileOverlandMapScene, PauseScene,
+  AssetGalleryScene,
 ]
 
 const levelTypeScenes = [
