@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ENEMY_MANIFEST, BACKGROUND_MANIFEST, filterEntries } from './galleryManifest'
 
-const VALID_ENEMY_GROUPS = ['Monster', 'Boss', 'NPC', 'Object']
+const VALID_ENEMY_GROUPS = ['Monsters', 'Bosses', 'NPCs', 'Objects']
 const VALID_BG_GROUPS = ['Level BG', 'World Tileset', 'Boss BG']
 
 describe('ENEMY_MANIFEST', () => {

@@ -171,17 +171,22 @@ export class AssetGalleryScene extends Phaser.Scene {
 
   private buildEntries(id: CategoryId): DisplayEntry[] {
     switch (id) {
-      case 'items':
+      case 'items': {
+        const slotGroups: Record<string, string> = {
+          weapon: 'Weapons', armor: 'Armor', accessory: 'Accessories',
+          trophy: 'Trophies', consumable: 'Consumables',
+        }
         return ITEMS.map(item => ({
           key: item.id,
           name: item.name,
-          group: item.slot.charAt(0).toUpperCase() + item.slot.slice(1),
+          group: slotGroups[item.slot] ?? (item.slot.charAt(0).toUpperCase() + item.slot.slice(1)),
           data: item,
         }))
+      }
       case 'companions':
         return [
-          ...COMPANION_TEMPLATES.map(c => ({ key: c.id, name: c.name, group: 'Companion', data: c as CompanionTemplate })),
-          ...PET_TEMPLATES.map(p => ({ key: p.id, name: p.name, group: 'Pet', data: p as CompanionTemplate })),
+          ...COMPANION_TEMPLATES.map(c => ({ key: c.id, name: c.name, group: 'Companions', data: c as CompanionTemplate })),
+          ...PET_TEMPLATES.map(p => ({ key: p.id, name: p.name, group: 'Pets', data: p as CompanionTemplate })),
         ]
       case 'enemies':
         return ENEMY_MANIFEST.map(e => ({ key: e.key, name: e.name, group: e.group }))
@@ -197,9 +202,9 @@ export class AssetGalleryScene extends Phaser.Scene {
 
   private getFilters(id: CategoryId): string[] {
     switch (id) {
-      case 'items':       return ['All', 'Weapon', 'Armor', 'Accessory', 'Trophy', 'Consumable']
-      case 'companions':  return ['All', 'Companion', 'Pet']
-      case 'enemies':     return ['All', 'Monster', 'Boss', 'NPC', 'Object']
+      case 'items':       return ['All', 'Weapons', 'Armor', 'Accessories', 'Trophies', 'Consumables']
+      case 'companions':  return ['All', 'Companions', 'Pets']
+      case 'enemies':     return ['All', 'Monsters', 'Bosses', 'NPCs', 'Objects']
       case 'backgrounds': return ['All', 'Level BG', 'World Tileset', 'Boss BG']
       case 'spells':      return []
     }
@@ -238,8 +243,9 @@ export class AssetGalleryScene extends Phaser.Scene {
 
     this.filteredList = filterEntries(this.allEntries, this.activeFilter)
 
-    const cellW = 90
-    const cellH = 90
+    const isBackground = this.activeCategory === 'backgrounds'
+    const cellW = isBackground ? 140 : 90
+    const cellH = isBackground ? 78 : 90
     const cols = Math.floor((width - 20) / (cellW + 8))
     const padX = Math.floor((width - cols * (cellW + 8)) / 2)
 

@@ -1,21 +1,21 @@
 export type GalleryEntry = { key: string; name: string; group: string }
 
 export const ENEMY_MANIFEST: GalleryEntry[] = [
-  { key: 'goblin',            name: 'Goblin',               group: 'Monster' },
-  { key: 'ogre',              name: 'Ogre',                 group: 'Monster' },
-  { key: 'hero',              name: 'Hero',                 group: 'Monster' },
-  { key: 'ss_skeleton',       name: 'Skeleton',             group: 'Monster' },
-  { key: 'ss_skeleton_rising',name: 'Skeleton Rising',      group: 'Monster' },
-  { key: 'trap_idle',         name: 'Pressure Plate',       group: 'Object'  },
-  { key: 'trap_active',       name: 'Pressure Plate Active',group: 'Object'  },
-  { key: 'obstacle_pit',      name: 'Pit',                  group: 'Object'  },
-  { key: 'obstacle_spikes',   name: 'Spikes',               group: 'Object'  },
-  { key: 'obstacle_boulder',  name: 'Boulder',              group: 'Object'  },
-  { key: 'obstacle_door',     name: 'Door',                 group: 'Object'  },
-  { key: 'generic_boss',      name: 'Generic Boss',         group: 'Boss'    },
-  { key: 'nessa_boss',        name: 'Nessa',                group: 'Boss'    },
-  { key: 'cook_ladle',        name: 'Crazed Cook',          group: 'Boss'    },
-  { key: 'orc_customer',      name: 'Orc Customer',         group: 'NPC'     },
+  { key: 'goblin',            name: 'Goblin',               group: 'Monsters' },
+  { key: 'ogre',              name: 'Ogre',                 group: 'Monsters' },
+  { key: 'hero',              name: 'Hero',                 group: 'Monsters' },
+  { key: 'ss_skeleton',       name: 'Skeleton',             group: 'Monsters' },
+  { key: 'ss_skeleton_rising',name: 'Skeleton Rising',      group: 'Monsters' },
+  { key: 'trap_idle',         name: 'Pressure Plate',       group: 'Objects'  },
+  { key: 'trap_active',       name: 'Pressure Plate Active',group: 'Objects'  },
+  { key: 'obstacle_pit',      name: 'Pit',                  group: 'Objects'  },
+  { key: 'obstacle_spikes',   name: 'Spikes',               group: 'Objects'  },
+  { key: 'obstacle_boulder',  name: 'Boulder',              group: 'Objects'  },
+  { key: 'obstacle_door',     name: 'Door',                 group: 'Objects'  },
+  { key: 'generic_boss',      name: 'Generic Boss',         group: 'Bosses'   },
+  { key: 'nessa_boss',        name: 'Nessa',                group: 'Bosses'   },
+  { key: 'cook_ladle',        name: 'Crazed Cook',          group: 'Bosses'   },
+  { key: 'orc_customer',      name: 'Orc Customer',         group: 'NPCs'     },
 ]
 
 export const BACKGROUND_MANIFEST: GalleryEntry[] = [
