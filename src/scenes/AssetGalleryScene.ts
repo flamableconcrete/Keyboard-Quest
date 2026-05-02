@@ -1,5 +1,8 @@
 import Phaser from 'phaser'
-import { CompanionTemplate } from '../data/companions'
+import { CompanionTemplate, COMPANION_TEMPLATES, PET_TEMPLATES } from '../data/companions'
+import { ITEMS, getItemColor } from '../data/items'
+import { SPELLS } from '../data/spells'
+import { ENEMY_MANIFEST, BACKGROUND_MANIFEST, filterEntries } from '../art/galleryManifest'
 import { generateAllItemTextures } from '../art/itemsArt'
 import { generateAllCompanionTextures } from '../art/companionsArt'
 import { generateGoblinWhackerTextures } from '../art/goblinWhackerArt'
@@ -128,7 +131,162 @@ export class AssetGalleryScene extends Phaser.Scene {
     this.activeFilter = 'All'
   }
 
-  showCategory(_id: CategoryId) {}
+  showCategory(id: CategoryId) {
+    this.activeCategory = id
+    this.activeFilter = 'All'
+    this.hubContainer.setVisible(false)
+    this.buildCategoryPage(id)
+    this.categoryContainer.setVisible(true)
+  }
+
+  private buildCategoryPage(id: CategoryId) {
+    const { width } = this.scale
+    this.categoryContainer.removeAll(true)
+
+    const headerBg   = this.add.rectangle(width / 2, 22, width, 44, 0x12122a)
+    const headerLine = this.add.rectangle(width / 2, 44, width, 2, 0x4e4e6a)
+
+    const labels: Record<CategoryId, string> = {
+      items: '⚔ ITEMS', companions: '🐾 COMPANIONS',
+      enemies: '🧌 ENEMIES', backgrounds: '🌄 BACKGROUNDS', spells: '✨ SPELLS',
+    }
+    const catLabel = this.add.text(width / 2, 22, labels[id], {
+      fontSize: '20px', color: '#ffd700', fontStyle: 'bold',
+    }).setOrigin(0.5)
+
+    const backBtn = this.add.text(20, 22, '← BACK', {
+      fontSize: '16px', color: '#ffffff', backgroundColor: '#4e4e6a',
+      padding: { x: 10, y: 5 },
+    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+    backBtn.on('pointerover', () => backBtn.setColor('#ffd700'))
+    backBtn.on('pointerout',  () => backBtn.setColor('#ffffff'))
+    backBtn.on('pointerdown', () => this.showHub())
+
+    this.categoryContainer.add([headerBg, headerLine, catLabel, backBtn])
+
+    this.allEntries = this.buildEntries(id)
+    this.buildFilterTabs(id)
+    this.buildGrid()
+  }
+
+  private buildEntries(id: CategoryId): DisplayEntry[] {
+    switch (id) {
+      case 'items':
+        return ITEMS.map(item => ({
+          key: item.id,
+          name: item.name,
+          group: item.slot.charAt(0).toUpperCase() + item.slot.slice(1),
+          data: item,
+        }))
+      case 'companions':
+        return [
+          ...COMPANION_TEMPLATES.map(c => ({ key: c.id, name: c.name, group: 'Companion', data: c as CompanionTemplate })),
+          ...PET_TEMPLATES.map(p => ({ key: p.id, name: p.name, group: 'Pet', data: p as CompanionTemplate })),
+        ]
+      case 'enemies':
+        return ENEMY_MANIFEST.map(e => ({ key: e.key, name: e.name, group: e.group }))
+      case 'backgrounds':
+        return BACKGROUND_MANIFEST.map(b => ({
+          key: b.key, name: b.name, group: b.group,
+          isBossBg: b.group === 'Boss BG',
+        }))
+      case 'spells':
+        return SPELLS.map(s => ({ key: s.id, name: s.name, group: 'Spell', data: s }))
+    }
+  }
+
+  private getFilters(id: CategoryId): string[] {
+    switch (id) {
+      case 'items':       return ['All', 'Weapon', 'Armor', 'Accessory', 'Trophy', 'Consumable']
+      case 'companions':  return ['All', 'Companion', 'Pet']
+      case 'enemies':     return ['All', 'Monster', 'Boss', 'NPC', 'Object']
+      case 'backgrounds': return ['All', 'Level BG', 'World Tileset', 'Boss BG']
+      case 'spells':      return []
+    }
+  }
+
+  private buildFilterTabs(id: CategoryId) {
+    const filters = this.getFilters(id)
+    if (!filters.length) return
+
+    let tabX = 14
+    const tabY = 66
+
+    for (const filter of filters) {
+      const isActive = filter === this.activeFilter
+      const tab = this.add.text(tabX, tabY, filter, {
+        fontSize: '13px',
+        color: isActive ? '#111111' : '#888888',
+        backgroundColor: isActive ? '#ffd700' : '#2a2a4a',
+        padding: { x: 8, y: 4 },
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+
+      tab.on('pointerdown', () => {
+        this.activeFilter = filter
+        this.buildCategoryPage(this.activeCategory!)
+      })
+
+      this.categoryContainer.add(tab)
+      tabX += tab.width + 6
+    }
+  }
+
+  private buildGrid() {
+    const { width } = this.scale
+    const hasFilters = this.getFilters(this.activeCategory!).length > 0
+    const gridTop = hasFilters ? 90 : 56
+
+    this.filteredList = filterEntries(this.allEntries, this.activeFilter)
+
+    const cellW = 90
+    const cellH = 90
+    const cols = Math.floor((width - 20) / (cellW + 8))
+    const padX = Math.floor((width - cols * (cellW + 8)) / 2)
+
+    for (let i = 0; i < this.filteredList.length; i++) {
+      const entry = this.filteredList[i]
+      const col = i % cols
+      const row = Math.floor(i / cols)
+      const cx = padX + col * (cellW + 8) + cellW / 2
+      const cy = gridTop + row * (cellH + 8) + cellH / 2
+
+      let borderColor = 0x444444
+      if ((entry.data as ItemData)?.rarity) {
+        borderColor = parseInt(getItemColor((entry.data as ItemData).rarity).replace('#', ''), 16)
+      }
+
+      const cellBg = this.add.rectangle(cx, cy, cellW, cellH, 0x2a2a4a)
+        .setStrokeStyle(1, borderColor)
+        .setInteractive({ useHandCursor: true })
+      cellBg.on('pointerover', () => cellBg.setStrokeStyle(2, 0xffd700))
+      cellBg.on('pointerout',  () => cellBg.setStrokeStyle(1, borderColor))
+      cellBg.on('pointerdown', () => this.showModal(i))
+
+      const isSpell  = this.activeCategory === 'spells'
+      const isBossBg = !!entry.isBossBg
+      const hasTexture = !isSpell && !isBossBg && this.textures.exists(entry.key)
+
+      if (hasTexture) {
+        const img = this.add.image(cx, cy - 10, entry.key)
+        const maxDim = cellW - 14
+        img.setScale(Math.min(maxDim / img.width, maxDim / img.height, 3))
+        this.categoryContainer.add(img)
+      } else {
+        const placeholder = this.add.text(cx, cy - 10, isSpell ? '✨' : '🌄', {
+          fontSize: '26px',
+        }).setOrigin(0.5)
+        this.categoryContainer.add(placeholder)
+      }
+
+      const nameLabel = this.add.text(cx, cy + cellH / 2 - 20, entry.name, {
+        fontSize: '8px', color: '#cccccc',
+        wordWrap: { width: cellW - 4 }, align: 'center',
+      }).setOrigin(0.5, 0)
+
+      this.categoryContainer.add([cellBg, nameLabel])
+    }
+  }
+
   showModal(_index: number) {}
   closeModal() {}
   destroyActiveBgObjects() {}
