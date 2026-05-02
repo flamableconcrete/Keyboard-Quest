@@ -13,6 +13,19 @@ import { generateGenericBossTextures } from '../art/genericBossArt'
 import { generateNessaTextures } from '../art/nessaArt'
 import { generateCrazedCookTextures } from '../art/crazedCookArt'
 import { ItemData, SpellData } from '../types'
+import {
+  drawSlimeCaveBg,
+  drawSwampBg,
+  drawWebCavernBg,
+  drawCryptBg,
+  drawCastleThroneRoomBg,
+  drawEtherealVoidBg,
+  drawVolcanicLairBg,
+  drawSteampunkWorkshopBg,
+  drawGraveyardBg,
+  drawDarkForestBg,
+  drawDigitalVoidBg,
+} from '../utils/bossBackgrounds'
 
 type CategoryId = 'items' | 'companions' | 'enemies' | 'backgrounds' | 'spells'
 
@@ -295,7 +308,184 @@ export class AssetGalleryScene extends Phaser.Scene {
     }
   }
 
-  showModal(_index: number) {}
-  closeModal() {}
-  destroyActiveBgObjects() {}
+  showModal(index: number) {
+    this.closeModal()
+
+    const { width, height } = this.scale
+    const entry = this.filteredList[index]
+
+    this.dimRect = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
+      .setDepth(99).setInteractive()
+    this.dimRect.on('pointerdown', () => this.closeModal())
+
+    if (entry.isBossBg) this.renderBossBg(entry.key)
+
+    const modalW = 340
+    const modalH = 420
+
+    this.modalContainer = this.add.container(width / 2, height / 2).setDepth(100)
+
+    const cardBg = this.add.rectangle(0, 0, modalW, modalH, 0x12122a)
+      .setStrokeStyle(2, 0x4e4e6a)
+
+    const closeBtn = this.add.text(modalW / 2 - 14, -modalH / 2 + 14, '✕', {
+      fontSize: '18px', color: '#666666',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    closeBtn.on('pointerover', () => closeBtn.setColor('#ffffff'))
+    closeBtn.on('pointerout',  () => closeBtn.setColor('#666666'))
+    closeBtn.on('pointerdown', () => this.closeModal())
+
+    const contentObjects = this.buildModalContent(entry, modalW, modalH)
+
+    const prevIndex = (index - 1 + this.filteredList.length) % this.filteredList.length
+    const nextIndex = (index + 1) % this.filteredList.length
+    const arrowY = modalH / 2 - 24
+
+    const prevBtn = this.add.text(-modalW / 2 + 16, arrowY, '◀ prev', {
+      fontSize: '13px', color: '#aaaaff', backgroundColor: '#2a2a4a',
+      padding: { x: 8, y: 4 },
+    }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true })
+    prevBtn.on('pointerdown', () => this.showModal(prevIndex))
+
+    const counter = this.add.text(0, arrowY, `${index + 1} / ${this.filteredList.length}`, {
+      fontSize: '11px', color: '#555555',
+    }).setOrigin(0.5)
+
+    const nextBtn = this.add.text(modalW / 2 - 16, arrowY, 'next ▶', {
+      fontSize: '13px', color: '#aaaaff', backgroundColor: '#2a2a4a',
+      padding: { x: 8, y: 4 },
+    }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true })
+    nextBtn.on('pointerdown', () => this.showModal(nextIndex))
+
+    this.modalContainer.add([cardBg, closeBtn, ...contentObjects, prevBtn, counter, nextBtn])
+  }
+
+  private buildModalContent(entry: DisplayEntry, modalW: number, modalH: number): Phaser.GameObjects.GameObject[] {
+    const objects: Phaser.GameObjects.GameObject[] = []
+    const topY = -modalH / 2 + 24
+
+    const isSpell   = this.activeCategory === 'spells'
+    const isBossBg  = !!entry.isBossBg
+    const hasTexture = !isSpell && !isBossBg && this.textures.exists(entry.key)
+    const previewH  = 110
+
+    if (hasTexture) {
+      const img = this.add.image(0, topY + previewH / 2, entry.key)
+      img.setScale(Math.min((modalW - 40) / img.width, previewH / img.height, 5))
+      objects.push(img)
+    } else if (isSpell) {
+      objects.push(this.add.text(0, topY + previewH / 2, '✨', { fontSize: '52px' }).setOrigin(0.5))
+    } else {
+      objects.push(this.add.text(0, topY + previewH / 2, '(background rendered behind)', {
+        fontSize: '11px', color: '#555555', fontStyle: 'italic',
+      }).setOrigin(0.5))
+    }
+
+    let y = topY + previewH + 18
+
+    const itemData    = entry.data as ItemData | undefined
+    const nameColor   = itemData?.rarity ? getItemColor(itemData.rarity) : '#ffffff'
+    objects.push(this.add.text(0, y, entry.name, {
+      fontSize: '16px', color: nameColor, fontStyle: 'bold',
+    }).setOrigin(0.5))
+    y += 24
+
+    const metaParts = [entry.group]
+    if (itemData?.rarity)      metaParts.push(itemData.rarity)
+    if (itemData?.worldUnlock) metaParts.push(`World ${itemData.worldUnlock}`)
+    const companionData = entry.data as CompanionTemplate | undefined
+    if (companionData?.type && !itemData?.rarity) metaParts.push(companionData.type)
+
+    objects.push(this.add.text(0, y, metaParts.join(' · '), {
+      fontSize: '11px', color: '#888888',
+    }).setOrigin(0.5))
+    y += 20
+
+    const desc = itemData?.description
+      || (entry.data as CompanionTemplate)?.backstory
+      || (entry.data as SpellData)?.description
+      || ''
+    if (desc) {
+      const descText = this.add.text(0, y, desc, {
+        fontSize: '11px', color: '#aaaaaa',
+        wordWrap: { width: modalW - 48 }, align: 'center',
+      }).setOrigin(0.5, 0)
+      objects.push(descText)
+      y += descText.height + 14
+    }
+
+    if (itemData?.goldCost !== undefined) {
+      objects.push(this.add.text(0, y, `💰 ${itemData.goldCost}g`, {
+        fontSize: '12px', color: '#ffd700',
+      }).setOrigin(0.5))
+      y += 18
+
+      const fx = itemData.effect
+      const effectParts: string[] = []
+      if (fx?.power)          effectParts.push(`+${fx.power} power`)
+      if (fx?.hp)             effectParts.push(`+${fx.hp} HP`)
+      if (fx?.focusBonus)     effectParts.push(`+${fx.focusBonus} focus`)
+      if (fx?.goldMultiplier) effectParts.push(`×${fx.goldMultiplier} gold`)
+      if (fx?.extraTime)      effectParts.push(`+${fx.extraTime}s time`)
+      if (fx?.goldDouble)     effectParts.push('2× gold')
+      if (fx?.ignoreFirstWrong) effectParts.push('ignore 1st error')
+      if (effectParts.length) {
+        objects.push(this.add.text(0, y, effectParts.join('  '), {
+          fontSize: '11px', color: '#aaaaff',
+        }).setOrigin(0.5))
+        y += 18
+      }
+
+      if (itemData.gridSize) {
+        objects.push(this.add.text(0, y, `Grid: ${itemData.gridSize.w}×${itemData.gridSize.h}`, {
+          fontSize: '10px', color: '#666666',
+        }).setOrigin(0.5))
+        y += 14
+      }
+    }
+
+    objects.push(this.add.text(0, y + 4, entry.key, {
+      fontSize: '10px', color: '#444466',
+      backgroundColor: '#0f0f1e', padding: { x: 6, y: 3 },
+    }).setOrigin(0.5))
+
+    return objects
+  }
+
+  closeModal() {
+    this.modalContainer?.destroy(true)
+    this.modalContainer = null
+    this.dimRect?.destroy()
+    this.dimRect = null
+    this.destroyActiveBgObjects()
+  }
+
+  destroyActiveBgObjects() {
+    for (const obj of this.activeBgObjects) obj.destroy()
+    this.activeBgObjects = []
+  }
+
+  private renderBossBg(key: string) {
+    const drawFns: Record<string, (s: Phaser.Scene) => void> = {
+      bg_slime_cave:         drawSlimeCaveBg,
+      bg_swamp:              drawSwampBg,
+      bg_web_cavern:         drawWebCavernBg,
+      bg_crypt:              drawCryptBg,
+      bg_castle_throne_room: drawCastleThroneRoomBg,
+      bg_ethereal_void:      drawEtherealVoidBg,
+      bg_volcanic_lair:      drawVolcanicLairBg,
+      bg_steampunk_workshop: drawSteampunkWorkshopBg,
+      bg_graveyard:          drawGraveyardBg,
+      bg_dark_forest:        drawDarkForestBg,
+      bg_digital_void:       drawDigitalVoidBg,
+    }
+    const drawFn = drawFns[key]
+    if (!drawFn) return
+
+    const countBefore = this.children.list.length
+    drawFn(this)
+    for (let i = countBefore; i < this.children.list.length; i++) {
+      this.activeBgObjects.push(this.children.list[i] as Phaser.GameObjects.GameObject)
+    }
+  }
 }
