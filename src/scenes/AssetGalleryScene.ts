@@ -40,7 +40,7 @@ export class AssetGalleryScene extends Phaser.Scene {
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
 
-    // Generate all textures upfront — each generator guards against duplicates internally
+    // Dev tool: generate all asset textures synchronously upfront. Each generator guards against re-entry.
     generateGoblinWhackerTextures(this)     // 'goblin', 'ogre', 'hero', 'forest_bg', etc.
     generateSkeletonSwarmTextures(this)     // 'ss_skeleton', 'ss_sky', 'ss_ruins', etc.
     generateDungeonTrapTextures(this)       // 'dungeon_bg', 'trap_idle', etc.
