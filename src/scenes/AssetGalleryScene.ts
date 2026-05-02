@@ -166,7 +166,7 @@ export class AssetGalleryScene extends Phaser.Scene {
 
     this.allEntries = this.buildEntries(id)
     this.buildFilterTabs(id)
-    this.buildGrid()
+    this.buildGrid(id)
   }
 
   private buildEntries(id: CategoryId): DisplayEntry[] {
@@ -236,14 +236,14 @@ export class AssetGalleryScene extends Phaser.Scene {
     }
   }
 
-  private buildGrid() {
+  private buildGrid(id: CategoryId) {
     const { width } = this.scale
-    const hasFilters = this.getFilters(this.activeCategory!).length > 0
+    const hasFilters = this.getFilters(id).length > 0
     const gridTop = hasFilters ? 90 : 56
 
     this.filteredList = filterEntries(this.allEntries, this.activeFilter)
 
-    const isBackground = this.activeCategory === 'backgrounds'
+    const isBackground = id === 'backgrounds'
     const cellW = isBackground ? 140 : 90
     const cellH = isBackground ? 78 : 90
     const cols = Math.floor((width - 20) / (cellW + 8))
@@ -268,7 +268,9 @@ export class AssetGalleryScene extends Phaser.Scene {
       cellBg.on('pointerout',  () => cellBg.setStrokeStyle(1, borderColor))
       cellBg.on('pointerdown', () => this.showModal(i))
 
-      const isSpell  = this.activeCategory === 'spells'
+      this.categoryContainer.add(cellBg)
+
+      const isSpell  = id === 'spells'
       const isBossBg = !!entry.isBossBg
       const hasTexture = !isSpell && !isBossBg && this.textures.exists(entry.key)
 
@@ -289,7 +291,7 @@ export class AssetGalleryScene extends Phaser.Scene {
         wordWrap: { width: cellW - 4 }, align: 'center',
       }).setOrigin(0.5, 0)
 
-      this.categoryContainer.add([cellBg, nameLabel])
+      this.categoryContainer.add(nameLabel)
     }
   }
 
