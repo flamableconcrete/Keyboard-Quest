@@ -86,7 +86,7 @@ export class AssetGalleryScene extends Phaser.Scene {
     }).setOrigin(0.5)
 
     const tiles: { id: CategoryId; label: string; icon: string; count: string; sub: string }[] = [
-      { id: 'items',       label: 'ITEMS',       icon: '⚔',  count: '34 assets', sub: 'Weapons · Armor · Accessories · etc.' },
+      { id: 'items',       label: 'ITEMS',       icon: '⚔',  count: `${ITEMS.length} assets`, sub: 'Weapons · Armor · Accessories · etc.' },
       { id: 'companions',  label: 'COMPANIONS',  icon: '🐾', count: '9 assets',  sub: 'Heroes · Pets'                        },
       { id: 'enemies',     label: 'ENEMIES',     icon: '🧌', count: '15 assets', sub: 'Monsters · Bosses · NPCs'             },
       { id: 'backgrounds', label: 'BACKGROUNDS', icon: '🌄', count: '22 assets', sub: 'Level BGs · Tilesets · Boss BGs'      },
@@ -198,8 +198,8 @@ export class AssetGalleryScene extends Phaser.Scene {
       }
       case 'companions':
         return [
-          ...COMPANION_TEMPLATES.map(c => ({ key: c.id, name: c.name, group: 'Companions', data: c as CompanionTemplate })),
-          ...PET_TEMPLATES.map(p => ({ key: p.id, name: p.name, group: 'Pets', data: p as CompanionTemplate })),
+          ...COMPANION_TEMPLATES.map(c => ({ key: c.id, name: c.name, group: 'Companions', data: c })),
+          ...PET_TEMPLATES.map(p => ({ key: p.id, name: p.name, group: 'Pets', data: p })),
         ]
       case 'enemies':
         return ENEMY_MANIFEST.map(e => ({ key: e.key, name: e.name, group: e.group }))

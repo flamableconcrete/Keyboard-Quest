@@ -3,7 +3,7 @@ export type GalleryEntry = { key: string; name: string; group: string }
 export const ENEMY_MANIFEST: GalleryEntry[] = [
   { key: 'goblin',            name: 'Goblin',               group: 'Monsters' },
   { key: 'ogre',              name: 'Ogre',                 group: 'Monsters' },
-  { key: 'hero',              name: 'Hero',                 group: 'Monsters' },
+  { key: 'hero',              name: 'Hero',                 group: 'NPCs'     },
   { key: 'ss_skeleton',       name: 'Skeleton',             group: 'Monsters' },
   { key: 'ss_skeleton_rising',name: 'Skeleton Rising',      group: 'Monsters' },
   { key: 'trap_idle',         name: 'Pressure Plate',       group: 'Objects'  },
