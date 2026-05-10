@@ -123,8 +123,7 @@ export class ProfileSelectScene extends Phaser.Scene {
     // Star count
     let totalStars = 0
     if (profile.levelResults) {
-      for (const key of Object.keys(profile.levelResults)) {
-        const result = profile.levelResults[key]
+      for (const result of Object.values(profile.levelResults)) {
         if (result) {
           totalStars += (result.accuracyStars ?? 0) + (result.speedStars ?? 0)
         }

@@ -6,9 +6,11 @@ export function getInitialShopItems(ownedItemIds: string[]): string[] {
   const shopItems: string[] = []
   const categories: ('weapon' | 'armor' | 'accessory')[] = ['weapon', 'armor', 'accessory']
 
+  const ownedSet = new Set(ownedItemIds)
+
   for (const cat of categories) {
     const availableItems = ITEMS.filter(
-      (item) => item.slot === cat && item.goldCost > 0 && !ownedItemIds.includes(item.id)
+      (item) => item.slot === cat && item.goldCost > 0 && !ownedSet.has(item.id)
     )
 
     // Shuffle and pick
@@ -24,10 +26,11 @@ export function rotateShopItems(currentShopItemIds: string[], ownedItemIds: stri
   // We want to replace 1-2 items per restock by default
 
   const newShopItemIds = [...currentShopItemIds]
+  const ownedSet = new Set(ownedItemIds)
 
   // Filter out owned items first (if they somehow are still in the shop array)
   // This effectively removes any purchased items from the current shop state
-  const unownedCurrentShopItems = newShopItemIds.filter((id) => !ownedItemIds.includes(id))
+  const unownedCurrentShopItems = newShopItemIds.filter((id) => !ownedSet.has(id))
 
   // If we have fewer items than we should (due to purchases), we should replenish up to the limit per category
   const categories: ('weapon' | 'armor' | 'accessory')[] = ['weapon', 'armor', 'accessory']
@@ -40,8 +43,9 @@ export function rotateShopItems(currentShopItemIds: string[], ownedItemIds: stri
     // How many items are missing in this category?
     const missingCount = ITEMS_PER_CATEGORY - currentCatItems.length
     if (missingCount > 0) {
+      const unownedCurrentShopSet = new Set(unownedCurrentShopItems)
       const availableItems = ITEMS.filter(
-        (item) => item.slot === cat && item.goldCost > 0 && !ownedItemIds.includes(item.id) && !unownedCurrentShopItems.includes(item.id)
+        (item) => item.slot === cat && item.goldCost > 0 && !ownedSet.has(item.id) && !unownedCurrentShopSet.has(item.id)
       )
       const shuffled = availableItems.sort(() => 0.5 - Math.random())
       const selected = shuffled.slice(0, missingCount).map((item) => item.id)
@@ -59,8 +63,9 @@ export function rotateShopItems(currentShopItemIds: string[], ownedItemIds: stri
     const itemToReplace = ITEMS.find((i) => i.id === itemIdToReplace)
 
     if (itemToReplace) {
+      const unownedCurrentShopSet = new Set(unownedCurrentShopItems)
       const availableItems = ITEMS.filter(
-        (item) => item.slot === itemToReplace.slot && item.goldCost > 0 && !ownedItemIds.includes(item.id) && !unownedCurrentShopItems.includes(item.id)
+        (item) => item.slot === itemToReplace.slot && item.goldCost > 0 && !ownedSet.has(item.id) && !unownedCurrentShopSet.has(item.id)
       )
 
       if (availableItems.length > 0) {
