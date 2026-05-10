@@ -19,7 +19,6 @@ const PATH_CORNER = 4
 const ASH_STONE = 5
 const CRACKED_EARTH = 6
 const LAVA_1 = 10
-// const LAVA_2 = 11  // used only in animated tile frames
 
 // Decoration indices
 const OBSIDIAN_SPIRE = 20

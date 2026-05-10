@@ -18,7 +18,6 @@ const PATH_V = 3
 const PATH_CORNER = 4
 const FLOATING_STONE = 5
 const VOID_1 = 10
-// const VOID_2 = 11  // used only in animated tile frames
 
 // Decoration indices
 const CRYSTAL_PILLAR = 20
