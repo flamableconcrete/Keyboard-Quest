@@ -102,11 +102,14 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       })
     } else if (effect === 'word_blast') {
       // Defeat the nearest goblin (lowest x)
-      const nearest = this.goblinCtrl.activeGoblins.reduce<string | null>((minWord, g) => {
-        if (minWord === null) return g.word
-        const minG = this.goblinCtrl.activeGoblins.find(x => x.word === minWord)!
-        return g.x < minG.x ? g.word : minWord
-      }, null)
+      let nearestGoblin = null
+      for (const g of this.goblinCtrl.activeGoblins) {
+        if (!nearestGoblin || g.x < nearestGoblin.x) {
+          nearestGoblin = g
+        }
+      }
+      const nearest = nearestGoblin ? nearestGoblin.word : null
+
       if (nearest) {
         const events = this.goblinCtrl.removeGoblinByWord(nearest)
         for (const e of events) {
