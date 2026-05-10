@@ -102,11 +102,14 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       })
     } else if (effect === 'word_blast') {
       // Defeat the nearest goblin (lowest x)
-      const nearest = this.goblinCtrl.activeGoblins.reduce<string | null>((minWord, g) => {
-        if (minWord === null) return g.word
-        const minG = this.goblinCtrl.activeGoblins.find(x => x.word === minWord)!
-        return g.x < minG.x ? g.word : minWord
-      }, null)
+      let nearestGoblin = this.goblinCtrl.activeGoblins[0]
+      for (const g of this.goblinCtrl.activeGoblins) {
+        if (g.x < nearestGoblin.x) {
+          nearestGoblin = g
+        }
+      }
+      const nearest = nearestGoblin ? nearestGoblin.word : null
+
       if (nearest) {
         const events = this.goblinCtrl.removeGoblinByWord(nearest)
         for (const e of events) {
@@ -283,12 +286,18 @@ export class GoblinWhackerLevel extends BaseLevelScene {
       for (const e of events) {
         if (e.type === 'enemy_attacks') {
           // Find goblin to attack (active one, or closest)
-          const attackerWord = this.activeWord ??
-            this.goblinCtrl.activeGoblins.reduce<string | null>((minWord, g) => {
-              if (minWord === null) return g.word
-              const minG = this.goblinCtrl.activeGoblins.find(x => x.word === minWord)!
-              return g.x < minG.x ? g.word : minWord
-            }, null)
+          let attackerWord = this.activeWord
+          if (!attackerWord) {
+            let nearestGoblin = this.goblinCtrl.activeGoblins[0]
+            if (nearestGoblin) {
+              for (const g of this.goblinCtrl.activeGoblins) {
+                if (g.x < nearestGoblin.x) {
+                  nearestGoblin = g
+                }
+              }
+              attackerWord = nearestGoblin.word
+            }
+          }
 
           if (attackerWord) {
             const attackerSprites = this.goblinSprites.get(attackerWord)
