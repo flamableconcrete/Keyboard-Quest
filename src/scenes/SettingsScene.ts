@@ -279,7 +279,8 @@ export class SettingsScene extends Phaser.Scene {
       const debugIds = p.debugUnlockedLevelIds ?? []
       if (allUnlocked) {
         // Remove only debug-added entries, keep legitimately earned ones
-        p.unlockedLevelIds = p.unlockedLevelIds.filter(id => !debugIds.includes(id))
+        const debugIdsSet = new Set(debugIds)
+        p.unlockedLevelIds = p.unlockedLevelIds.filter(id => !debugIdsSet.has(id))
         for (const id of debugIds) {
           delete p.levelResults[id]
         }
