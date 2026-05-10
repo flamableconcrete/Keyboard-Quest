@@ -17,7 +17,6 @@ const PATH_H = 2 // horizontal dirt path
 const PATH_V = 3 // vertical dirt path
 const PATH_CORNER = 4 // dirt path corner
 const WATER = 10
-// const WATER_ALT = 11  // used only in animated tile frames
 
 // Decoration indices
 const TREE_TOP = 20

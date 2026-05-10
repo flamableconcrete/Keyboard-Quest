@@ -17,7 +17,6 @@ const PATH_H = 2
 const PATH_V = 3
 const PATH_CORNER = 4
 const MURKY_WATER = 10
-// const MURKY_WATER_ALT = 11  // used only in animated tile frames
 
 // Decoration indices
 const DEAD_TREE_TOP = 20

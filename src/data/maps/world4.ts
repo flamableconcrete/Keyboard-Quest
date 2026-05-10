@@ -19,7 +19,6 @@ const PATH_CORNER = 4
 const TANGLED_ROOTS = 5
 const OVERGROWN_STONE = 6
 const DEEP_MOSS = 10
-// const DEEP_MOSS_ALT = 11  // used only in animated tile frames
 
 // Decoration indices
 const MUSHROOM_RED = 20
