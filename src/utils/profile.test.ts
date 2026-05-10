@@ -53,6 +53,12 @@ describe('profile system', () => {
     expect(importProfile('not-json')).toBeNull()
   })
 
+  it('importProfile returns null if playerName is missing or invalid', () => {
+    expect(importProfile('{}')).toBeNull()
+    expect(importProfile('{"playerName": 123}')).toBeNull()
+    expect(importProfile('{"otherField": "value"}')).toBeNull()
+  })
+
   it('creates profile with gameMode regular by default', () => {
     const p = createProfile('Hero')
     expect(p.gameMode).toBe('regular')
