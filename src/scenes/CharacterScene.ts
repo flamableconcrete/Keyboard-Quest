@@ -3,7 +3,7 @@ import { ProfileData } from '../types'
 import { loadProfile, saveProfile } from '../utils/profile'
 import { getItem } from '../data/items'
 import { generateAllItemTextures } from '../art/itemsArt'
-import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig } from '../data/avatars'
+import { AvatarConfig, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, ACCESSORIES, SHIRT_COLORS, PANTS_COLORS, SHOE_COLORS, randomizeOneConfig, SKIN_TONE_NAMES, HAIR_COLOR_NAMES, EYE_COLOR_NAMES, SHIRT_COLOR_NAMES, PANTS_COLOR_NAMES, SHOE_COLOR_NAMES } from '../data/avatars'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { InventoryController } from '../controllers/InventoryController'
 import { GRID_COLS, GRID_ROWS } from '../controllers/BackpackGrid'
@@ -259,17 +259,18 @@ export class CharacterScene extends Phaser.Scene {
     const spacing = 42
 
     const toHex = (num: number) => '#' + num.toString(16).padStart(6, '0')
+    const named = (map: Record<number, string>) => (val: number) => map[val] ?? toHex(val)
 
     // Left column
-    this.createTabSelector(leftX, selectorY, 'Skin', SKIN_TONES, 'skinTone', toHex)
+    this.createTabSelector(leftX, selectorY, 'Skin', SKIN_TONES, 'skinTone', named(SKIN_TONE_NAMES))
     this.createTabSelector(leftX, selectorY + spacing, 'Hair Style', HAIR_STYLES, 'hairStyle', (v: string) => v)
-    this.createTabSelector(leftX, selectorY + spacing * 2, 'Hair Color', HAIR_COLORS, 'hairColor', toHex)
-    this.createTabSelector(leftX, selectorY + spacing * 3, 'Eyes', EYE_COLORS, 'eyeColor', toHex)
+    this.createTabSelector(leftX, selectorY + spacing * 2, 'Hair Color', HAIR_COLORS, 'hairColor', named(HAIR_COLOR_NAMES))
+    this.createTabSelector(leftX, selectorY + spacing * 3, 'Eyes', EYE_COLORS, 'eyeColor', named(EYE_COLOR_NAMES))
 
     // Right column
-    this.createTabSelector(rightX, selectorY, 'Shirt', SHIRT_COLORS, 'shirtColor', toHex)
-    this.createTabSelector(rightX, selectorY + spacing, 'Pants', PANTS_COLORS, 'pantsColor', toHex)
-    this.createTabSelector(rightX, selectorY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', toHex)
+    this.createTabSelector(rightX, selectorY, 'Shirt', SHIRT_COLORS, 'shirtColor', named(SHIRT_COLOR_NAMES))
+    this.createTabSelector(rightX, selectorY + spacing, 'Pants', PANTS_COLORS, 'pantsColor', named(PANTS_COLOR_NAMES))
+    this.createTabSelector(rightX, selectorY + spacing * 2, 'Shoes', SHOE_COLORS, 'shoeColor', named(SHOE_COLOR_NAMES))
     this.createTabSelector(rightX, selectorY + spacing * 3, 'Accessory', ACCESSORIES, 'accessory', (v: string) => v)
 
     // Saved Outfits row
@@ -424,10 +425,10 @@ export class CharacterScene extends Phaser.Scene {
 
     if (isColor) {
       colorSwatch = this.add.rectangle(x - 40, y + 5, 16, 16, this.avatarConfig[key] as number)
-      valText = this.add.text(x + 10, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+      valText = this.add.text(x + 8, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT, fixedWidth: 82, align: 'center' }).setOrigin(0.5)
       this.container.add(colorSwatch)
     } else {
-      valText = this.add.text(x, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+      valText = this.add.text(x, y + 5, formatVal(this.avatarConfig[key]), { fontSize: '13px', color: '#ffffff', fontFamily: MONO_FONT, fixedWidth: 115, align: 'center' }).setOrigin(0.5)
     }
     this.container.add(valText)
 

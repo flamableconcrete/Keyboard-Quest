@@ -293,9 +293,9 @@ export class AvatarCustomizerScene extends Phaser.Scene {
 
     if (isColor) {
       colorSwatch = this.add.rectangle(x - 50, y + 5, 20, 20, this.config[key] as number)
-      valText = this.add.text(x + 10, y + 5, formatVal(this.config[key]), { fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+      valText = this.add.text(x + 10, y + 5, formatVal(this.config[key]), { fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT, fixedWidth: 100, align: 'center' }).setOrigin(0.5)
     } else {
-      valText = this.add.text(x, y + 5, formatVal(this.config[key]), { fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT }).setOrigin(0.5)
+      valText = this.add.text(x, y + 5, formatVal(this.config[key]), { fontSize: '16px', color: '#ffffff', fontFamily: MONO_FONT, fixedWidth: 140, align: 'center' }).setOrigin(0.5)
     }
 
     const leftBtn = this.add.text(x - 80, y + 5, '<', { fontSize: '24px', color: '#ffd700', fontFamily: MONO_FONT })
