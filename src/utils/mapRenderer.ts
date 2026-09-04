@@ -8,6 +8,7 @@ import type {
   AtmosphereEmitter,
 } from '../data/maps/types'
 import { getOverworldPalette } from './overworldArtDirection'
+import { frameForElapsedTime } from './animatedTiles'
 
 const TILE_SIZE = 32
 
@@ -26,6 +27,10 @@ export class MapRenderer {
   private pathGraphics: Phaser.GameObjects.Graphics[] = []
   /** Light, bevel, and shadow overlays for the shallow 2.5D map treatment. */
   private depthObjects: Phaser.GameObjects.GameObject[] = []
+  /** Tile images that take part in a water/lava/void animation. */
+  private animatedTileImages: { image: Phaser.GameObjects.Image; frames: number[]; frameDuration: number }[] = []
+  /** Scene timers used by this renderer. */
+  private timerEvents: Phaser.Time.TimerEvent[] = []
   /** Particle emitters */
   private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = []
 
@@ -131,10 +136,23 @@ export class MapRenderer {
     }
   }
 
-  /** Stub for animated tile cycling (to be implemented when tilesets are ready). */
+  /** Animate water, lava, moss, and void tiles using their map-defined frames. */
   startAnimatedTiles(): void {
-    // TODO: implement animated tile cycling once tileset spritesheets are finalized.
-    // Will use this.mapData.animatedTiles to swap tile frames on a timer.
+    if (this.animatedTileImages.length === 0) return
+
+    const startTime = this.scene.time.now
+    const timer = this.scene.time.addEvent({
+      delay: 100,
+      loop: true,
+      callback: () => {
+        const elapsed = this.scene.time.now - startTime
+        for (const animated of this.animatedTileImages) {
+          const frame = frameForElapsedTime(animated.frames, animated.frameDuration, elapsed)
+          if (frame !== undefined) animated.image.setFrame(frame)
+        }
+      },
+    })
+    this.timerEvents.push(timer)
   }
 
   /** Clean up all created objects. */
@@ -164,6 +182,12 @@ export class MapRenderer {
     }
     this.depthObjects.length = 0
 
+    for (const timer of this.timerEvents) {
+      timer.destroy()
+    }
+    this.timerEvents.length = 0
+    this.animatedTileImages.length = 0
+
     for (const em of this.emitters) {
       em.destroy()
     }
@@ -192,6 +216,15 @@ export class MapRenderer {
         )
         img.setOrigin(0, 0)
         img.setDepth(depth)
+
+        const animation = this.mapData.animatedTiles.find(definition => definition.frames.includes(tileIndex))
+        if (animation) {
+          this.animatedTileImages.push({
+            image: img,
+            frames: animation.frames,
+            frameDuration: animation.frameDuration,
+          })
+        }
 
         this.tileImages.push(img)
       }
