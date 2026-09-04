@@ -23,6 +23,8 @@ export class MapRenderer {
   private tweens: Phaser.Tweens.Tween[] = []
   /** Path graphics objects */
   private pathGraphics: Phaser.GameObjects.Graphics[] = []
+  /** Light, bevel, and shadow overlays for the shallow 2.5D map treatment. */
+  private depthObjects: Phaser.GameObjects.GameObject[] = []
   /** Particle emitters */
   private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = []
 
@@ -40,6 +42,7 @@ export class MapRenderer {
   renderTileLayers(): void {
     this.renderGrid(this.mapData.ground, 0)
     this.renderGrid(this.mapData.detail, 1)
+    this.renderTileBevels()
   }
 
   /** Place decoration sprites with ambient animations. */
@@ -77,7 +80,9 @@ export class MapRenderer {
       const color = isCompleted ? 0xaa8844 : 0x665533
       const alpha = isCompleted ? 1 : 0.6
 
-      gfx.lineStyle(6, color, alpha)
+      // A shadowed under-stroke plus a fine highlight makes each route read
+      // like a raised ribbon instead of a flat painted line.
+      gfx.lineStyle(11, 0x21180f, alpha * 0.42)
 
       const fx = ox + from.x, fy = from.y
       const tx = ox + to.x,   ty = to.y
@@ -95,11 +100,19 @@ export class MapRenderer {
           gfx.lineTo(points[p].x, points[p].y)
         }
         gfx.strokePath()
+        gfx.lineStyle(6, color, alpha)
+        gfx.strokePath()
+        gfx.lineStyle(1.5, 0xffe7a3, alpha * 0.55)
+        gfx.strokePath()
         compositePath.quadraticBezierTo(tx, ty, ox + segment.cx, segment.cy)
       } else {
         gfx.beginPath()
         gfx.moveTo(fx, fy)
         gfx.lineTo(tx, ty)
+        gfx.strokePath()
+        gfx.lineStyle(6, color, alpha)
+        gfx.strokePath()
+        gfx.lineStyle(1.5, 0xffe7a3, alpha * 0.55)
         gfx.strokePath()
         compositePath.lineTo(tx, ty)
       }
@@ -144,6 +157,11 @@ export class MapRenderer {
     }
     this.pathGraphics.length = 0
 
+    for (const obj of this.depthObjects) {
+      obj.destroy()
+    }
+    this.depthObjects.length = 0
+
     for (const em of this.emitters) {
       em.destroy()
     }
@@ -178,13 +196,53 @@ export class MapRenderer {
     }
   }
 
+  /**
+   * Bevel only paths and water; outlining every grass tile would turn the map
+   * into visual noise. The small light/shadow pairs supply depth while keeping
+   * the pixel-art materials crisp and readable.
+   */
+  private renderTileBevels(): void {
+    const gfx = this.scene.add.graphics().setDepth(2)
+    const ground = this.mapData.ground
+
+    for (let row = 0; row < ground.length; row++) {
+      for (let col = 0; col < ground[row].length; col++) {
+        const tile = ground[row][col]
+        const x = this.xOffset + col * TILE_SIZE
+        const y = row * TILE_SIZE
+
+        // Indices 2–4 are route tiles in each current world tileset; 10 is water.
+        if (tile >= 2 && tile <= 4) {
+          gfx.fillStyle(0xffedbd, 0.18)
+          gfx.fillRect(x + 1, y + 1, TILE_SIZE - 2, 2)
+          gfx.fillStyle(0x2b190d, 0.25)
+          gfx.fillRect(x + 1, y + TILE_SIZE - 3, TILE_SIZE - 2, 2)
+          gfx.fillRect(x + TILE_SIZE - 3, y + 3, 2, TILE_SIZE - 6)
+        } else if (tile === 10) {
+          gfx.fillStyle(0xe6fbff, 0.16)
+          gfx.fillRect(x + 2, y + 2, TILE_SIZE - 4, 1)
+          gfx.fillStyle(0x071b37, 0.24)
+          gfx.fillRect(x + 1, y + TILE_SIZE - 3, TILE_SIZE - 2, 2)
+        }
+      }
+    }
+
+    this.depthObjects.push(gfx)
+  }
+
   /** Place a single decoration sprite using spritesheet frame from the tileset. */
   private placeDecorationSprite(
     deco: DecorationPlacement,
   ): Phaser.GameObjects.Image {
     const { tilesetKey } = this.mapData
 
-    const img = this.scene.add.image(this.xOffset + deco.x, deco.y, tilesetKey, deco.tileIndex)
+    const worldX = this.xOffset + deco.x
+    // Contact shadows make props feel planted above the terrain plane.
+    const shadow = this.scene.add.ellipse(worldX + 17, deco.y + 29, 25, 8, 0x10200e, 0.23)
+      .setDepth(deco.y - 0.25)
+    this.depthObjects.push(shadow)
+
+    const img = this.scene.add.image(worldX, deco.y, tilesetKey, deco.tileIndex)
     img.setOrigin(0, 0)
 
     if (deco.depthOffset !== undefined) {
