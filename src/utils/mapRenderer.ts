@@ -7,6 +7,7 @@ import type {
   DecorationPlacement,
   AtmosphereEmitter,
 } from '../data/maps/types'
+import { getOverworldPalette } from './overworldArtDirection'
 
 const TILE_SIZE = 32
 
@@ -43,6 +44,7 @@ export class MapRenderer {
     this.renderGrid(this.mapData.ground, 0)
     this.renderGrid(this.mapData.detail, 1)
     this.renderTileBevels()
+    this.renderWorldLighting()
   }
 
   /** Place decoration sprites with ambient animations. */
@@ -204,6 +206,7 @@ export class MapRenderer {
   private renderTileBevels(): void {
     const gfx = this.scene.add.graphics().setDepth(2)
     const ground = this.mapData.ground
+    const palette = getOverworldPalette(this.mapData.world)
 
     for (let row = 0; row < ground.length; row++) {
       for (let col = 0; col < ground[row].length; col++) {
@@ -215,15 +218,63 @@ export class MapRenderer {
         if (tile >= 2 && tile <= 4) {
           gfx.fillStyle(0xffedbd, 0.18)
           gfx.fillRect(x + 1, y + 1, TILE_SIZE - 2, 2)
-          gfx.fillStyle(0x2b190d, 0.25)
+          gfx.fillStyle(palette.shadow, 0.32)
           gfx.fillRect(x + 1, y + TILE_SIZE - 3, TILE_SIZE - 2, 2)
           gfx.fillRect(x + TILE_SIZE - 3, y + 3, 2, TILE_SIZE - 6)
         } else if (tile === 10) {
-          gfx.fillStyle(0xe6fbff, 0.16)
+          gfx.fillStyle(palette.accent, 0.23)
           gfx.fillRect(x + 2, y + 2, TILE_SIZE - 4, 1)
-          gfx.fillStyle(0x071b37, 0.24)
+          gfx.fillStyle(palette.shadow, 0.36)
           gfx.fillRect(x + 1, y + TILE_SIZE - 3, TILE_SIZE - 2, 2)
         }
+      }
+    }
+
+    this.depthObjects.push(gfx)
+  }
+
+  /**
+   * A few broad, translucent forms make each world read as a place with air,
+   * light, and a foreground canopy—not just a sheet of tiles. They are
+   * deliberately low contrast so level nodes and routes remain the focus.
+   */
+  private renderWorldLighting(): void {
+    const gfx = this.scene.add.graphics().setDepth(3)
+    const palette = getOverworldPalette(this.mapData.world)
+    const width = this.mapData.ground[0].length * TILE_SIZE
+    const x = this.xOffset
+
+    // Shared late-afternoon / moonlit wash, brightest at the upper-left.
+    gfx.fillStyle(palette.haze, 0.055)
+    gfx.fillTriangle(x, 0, x + width * 0.62, 0, x, 500)
+    gfx.fillStyle(palette.shadow, 0.05)
+    gfx.fillTriangle(x + width, 720, x + width * 0.34, 720, x + width, 210)
+
+    if (this.mapData.world === 1) {
+      // Soft, rounded cloud shadows drifting over the Heartland.
+      gfx.fillStyle(0xffffff, 0.07)
+      for (let i = 0; i < 6; i++) gfx.fillEllipse(x + 160 + i * 360, 92 + (i % 2) * 90, 260, 48)
+    } else if (this.mapData.world === 2) {
+      // Low rolling fog banks in the Shadowed Fen.
+      gfx.fillStyle(palette.haze, 0.11)
+      for (let i = 0; i < 8; i++) gfx.fillEllipse(x + 80 + i * 330, 590 + (i % 3) * 28, 300, 74)
+    } else if (this.mapData.world === 3) {
+      // Lava's warm bounce light stains nearby volcanic rock.
+      gfx.fillStyle(palette.accent, 0.08)
+      for (let i = 0; i < 6; i++) gfx.fillCircle(x + 350 + i * 390, 420 - (i % 2) * 160, 118)
+    } else if (this.mapData.world === 4) {
+      // Dark leaf masses frame the Wilds, creating a strong foreground layer.
+      gfx.fillStyle(palette.shadow, 0.16)
+      for (let i = 0; i < 12; i++) gfx.fillCircle(x + 60 + i * 230, 22 + (i % 3) * 18, 92)
+      gfx.fillStyle(palette.accent, 0.06)
+      for (let i = 0; i < 7; i++) gfx.fillCircle(x + 120 + i * 385, 650, 76)
+    } else if (this.mapData.world === 5) {
+      // Star motes behind the tower's floor plates give the void actual depth.
+      gfx.fillStyle(palette.accent, 0.45)
+      for (let i = 0; i < 24; i++) {
+        const starX = x + 38 + ((i * 137) % Math.max(1, width - 76))
+        const starY = 38 + ((i * 83) % 640)
+        gfx.fillCircle(starX, starY, i % 5 === 0 ? 2 : 1)
       }
     }
 
@@ -238,7 +289,8 @@ export class MapRenderer {
 
     const worldX = this.xOffset + deco.x
     // Contact shadows make props feel planted above the terrain plane.
-    const shadow = this.scene.add.ellipse(worldX + 17, deco.y + 29, 25, 8, 0x10200e, 0.23)
+    const palette = getOverworldPalette(this.mapData.world)
+    const shadow = this.scene.add.ellipse(worldX + 17, deco.y + 29, 25, 8, palette.shadow, 0.28)
       .setDepth(deco.y - 0.25)
     this.depthObjects.push(shadow)
 

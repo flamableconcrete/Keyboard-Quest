@@ -10,6 +10,7 @@ import { UNIFIED_MAP, worldIndexAtScrollX } from '../data/maps/unified'
 import { COMMON_FRAMES } from '../data/maps/common'
 import { AvatarRenderer } from '../components/AvatarRenderer'
 import { MapNavigationController } from '../controllers/MapNavigationController'
+import { getOverworldPalette } from '../utils/overworldArtDirection'
 
 interface NodePosition { x: number; y: number }
 
@@ -422,19 +423,20 @@ this.avatar = this.add.sprite(startPos.x, startPos.y, avatarTexture).setDepth(10
 
       // 6x for final boss, 2.5x for other world bosses
       const baseScale = level.id === 'w5_boss' ? 9 : level.isBoss ? 3.75 : 1.5
+      const palette = getOverworldPalette(level.world)
 
       // Layered node plinth: highlight/top/side/shadow gives every encounter
       // marker a compact Super-Nintendo-style 2.5D perch.
       const platformScale = baseScale / 1.5
       const platformY = pos.y + (16 * platformScale)
       this.add.ellipse(pos.x + 3 * platformScale, platformY + 7 * platformScale,
-        70 * platformScale, 25 * platformScale, 0x1c1711, 0.3).setDepth(996)
+        70 * platformScale, 25 * platformScale, palette.shadow, 0.44).setDepth(996)
       this.add.ellipse(pos.x, platformY + 5 * platformScale,
-        64 * platformScale, 24 * platformScale, 0x5a4227).setDepth(997)
+        64 * platformScale, 24 * platformScale, palette.shadow, 0.82).setDepth(997)
       this.add.ellipse(pos.x, platformY + 2 * platformScale,
-        64 * platformScale, 24 * platformScale, 0x8b6b3a).setDepth(998)
+        64 * platformScale, 24 * platformScale, palette.plinth).setDepth(998)
       this.add.ellipse(pos.x - 4 * platformScale, platformY - 1 * platformScale,
-        42 * platformScale, 11 * platformScale, 0xd6b46c, 0.32).setDepth(999)
+        42 * platformScale, 11 * platformScale, palette.plinthHighlight, 0.42).setDepth(999)
 
       const generatedKey = levelNodeTextureKey(level)
       let nodeSprite: Phaser.GameObjects.Sprite
