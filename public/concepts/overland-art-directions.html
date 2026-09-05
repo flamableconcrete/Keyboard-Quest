@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keyboard Quest — Overland Art Directions</title>
+  <style>
+    :root { --ink:#211b16; --paper:#f7efdc; --gold:#e7b84d; --night:#19223e; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:#ddd0b9; color:var(--ink); font:16px/1.45 Georgia, 'Times New Roman', serif; }
+    main { max-width:1440px; margin:auto; padding:40px 28px 60px; }
+    header { display:flex; justify-content:space-between; gap:24px; align-items:end; border-bottom:4px solid var(--ink); padding-bottom:20px; margin-bottom:30px; }
+    h1 { margin:0; font-size:clamp(2rem,5vw,4.4rem); letter-spacing:-.055em; line-height:.9; }
+    header p { max-width:430px; margin:0; font-size:1.05rem; }
+    .rule { color:#825d2d; font-size:.82rem; font-weight:bold; letter-spacing:.13em; text-transform:uppercase; }
+    .concepts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+    article { background:var(--paper); border:3px solid var(--ink); box-shadow:8px 8px 0 #8f795c; overflow:hidden; cursor:pointer; transition:transform .18s ease, box-shadow .18s ease; }
+    article:hover, article.selected { transform:translate(-4px,-4px); box-shadow:14px 14px 0 #8f795c; }
+    article.selected { outline:4px solid var(--gold); outline-offset:3px; }
+    svg { display:block; width:100%; aspect-ratio:1.28; background:#223; image-rendering:pixelated; }
+    .copy { padding:18px 20px 21px; }
+    h2 { margin:0 0 8px; font-size:1.6rem; letter-spacing:-.035em; }
+    .tag { display:inline-block; padding:2px 8px; background:#25344c; color:white; font-size:.72rem; font-family:Arial,sans-serif; font-weight:bold; letter-spacing:.08em; text-transform:uppercase; }
+    .copy p { margin:12px 0 0; }
+    .notes { margin-top:38px; display:grid; grid-template-columns:1.2fr .8fr; gap:22px; }
+    .notes > div { background:#f7efdc; border:2px solid var(--ink); padding:20px; }
+    h3 { margin:0 0 10px; font-size:1.15rem; }
+    ul { margin:0; padding-left:20px; }
+    footer { margin-top:22px; font-family:Arial,sans-serif; font-size:.8rem; color:#574839; }
+    @media (max-width:900px) { .concepts { grid-template-columns:1fr; max-width:620px; } .notes { grid-template-columns:1fr; } header { align-items:start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><div class="rule">Keyboard Quest / visual exploration 01</div><h1>OVERLANDS<br>WITH DEPTH</h1></div>
+    <p>Three original 2.5D directions for a map that stays readable for typing practice, while borrowing the tactile layering, bold silhouettes, and storybook scale of the 16-bit era.</p>
+  </header>
+
+  <section class="concepts" aria-label="Three selectable overland art directions">
+    <article class="selected" tabindex="0" data-name="Storybook Steps">
+      <svg viewBox="0 0 640 500" role="img" aria-label="Bright grassy map with raised clay paths, waterfalls, and mushroom hills">
+        <defs><linearGradient id="skyA" x2="0" y2="1"><stop stop-color="#75cce4"/><stop offset="1" stop-color="#f7e39d"/></linearGradient><linearGradient id="grassA" x2="0" y2="1"><stop stop-color="#93ca57"/><stop offset="1" stop-color="#498b39"/></linearGradient></defs>
+        <rect width="640" height="500" fill="url(#skyA)"/>
+        <g opacity=".55" fill="#d9f1ee"><path d="M0 108 Q60 38 120 100T250 92V145H0z"/><path d="M330 92q62-60 126 2t160-12v57H330z"/></g>
+        <path d="M0 240 Q112 165 234 237T440 226T640 182V500H0z" fill="#315f6b"/>
+        <path d="M0 225 Q112 150 234 222T440 211T640 167V455H0z" fill="url(#grassA)"/>
+        <g fill="#2b6233" opacity=".65"><circle cx="68" cy="210" r="49"/><circle cx="118" cy="211" r="61"/><circle cx="526" cy="173" r="66"/><circle cx="584" cy="175" r="53"/></g>
+        <path d="M-20 455H192l-16 34H-20zM376 455h284v45H365z" fill="#244b38"/>
+        <path d="M-20 450H192l-16 23H-20zM376 450h284v27H365z" fill="#5f9442"/>
+        <g stroke="#4c331f" stroke-width="8" stroke-linejoin="round"><path d="M42 421 Q105 343 185 360T305 293T432 281T562 167" fill="none"/><path d="M42 413 Q105 335 185 352T305 285T432 273T562 159" fill="none" stroke="#dc9b4d" stroke-width="21"/><path d="M42 406 Q105 328 185 345T305 278T432 266T562 152" fill="none" stroke="#f4c877" stroke-width="5"/></g>
+        <g><ellipse cx="105" cy="355" rx="50" ry="18" fill="#31432a" opacity=".5"/><path d="M65 344v21q40 22 80 0v-21z" fill="#6a4429"/><ellipse cx="105" cy="344" rx="40" ry="15" fill="#c98a48"/><ellipse cx="94" cy="340" rx="22" ry="5" fill="#fae2a0"/><circle cx="105" cy="315" r="25" fill="#e95c55"/><path d="M81 315q24-43 48 0" fill="#f7e1bf"/><circle cx="96" cy="308" r="4" fill="white"/><circle cx="115" cy="321" r="4" fill="white"/></g>
+        <g><path d="M487 110l34 61 35-61z" fill="#65a8c9"/><path d="M492 109l29 52 30-52" fill="#d0f4ff" opacity=".8"/><ellipse cx="521" cy="174" rx="58" ry="17" fill="#263c2a" opacity=".5"/><ellipse cx="521" cy="169" rx="48" ry="15" fill="#d1a25f"/><circle cx="521" cy="141" r="22" fill="#f3ce53"/></g>
+        <g fill="#f2db82"><circle cx="235" cy="214" r="4"/><circle cx="261" cy="196" r="3"/><circle cx="282" cy="225" r="4"/><circle cx="339" cy="194" r="3"/></g>
+      </svg>
+      <div class="copy"><span class="tag">Recommended</span><h2>Storybook Steps</h2><p>Soft gradients under crisp pixel edges. Every route is a raised clay ribbon; cliffs, platforms, and hero nodes cast warm, directional shadows.</p></div>
+    </article>
+
+    <article tabindex="0" data-name="Canopy & Ruins">
+      <svg viewBox="0 0 640 500" role="img" aria-label="Moody forest map framed by giant leaves and ancient ruins">
+        <defs><linearGradient id="skyB" x2="0" y2="1"><stop stop-color="#283e4e"/><stop offset="1" stop-color="#7ea37a"/></linearGradient><linearGradient id="groundB" x2="1" y2="1"><stop stop-color="#274c3c"/><stop offset="1" stop-color="#152f2b"/></linearGradient></defs>
+        <rect width="640" height="500" fill="url(#skyB)"/><path d="M0 196Q111 148 210 216T421 185T640 220V500H0z" fill="url(#groundB)"/>
+        <g fill="#0e2921"><circle cx="15" cy="38" r="105"/><circle cx="116" cy="-12" r="92"/><circle cx="286" cy="13" r="82"/><circle cx="491" cy="0" r="105"/><circle cx="634" cy="61" r="105"/></g>
+        <g fill="#4a8b51" opacity=".55"><circle cx="60" cy="42" r="55"/><circle cx="195" cy="13" r="48"/><circle cx="401" cy="35" r="62"/><circle cx="568" cy="46" r="50"/></g>
+        <g fill="#c3df81" opacity=".18"><ellipse cx="148" cy="301" rx="152" ry="60"/><ellipse cx="474" cy="243" rx="180" ry="68"/></g>
+        <path d="M-20 425q95-85 172-32t141-48q80-77 154-16t213-70v241H-20z" fill="#18352d"/>
+        <g stroke="#0d241f" stroke-width="28" fill="none"><path d="M35 422Q120 320 212 359T349 303T471 285T611 185"/></g><g stroke="#b89b64" stroke-width="17" fill="none"><path d="M35 414Q120 312 212 351T349 295T471 277T611 177"/></g><g stroke="#f0d58e" stroke-width="3" fill="none"><path d="M35 408Q120 306 212 345T349 289T471 271T611 171"/></g>
+        <g><path d="M275 93h48l12 154h-72z" fill="#4d5a54"/><path d="M286 97h24v142h-36z" fill="#9ba68a"/><path d="M256 251h88v25h-88z" fill="#384941"/><path d="M278 95l21-41 22 41z" fill="#66755f"/><ellipse cx="300" cy="284" rx="60" ry="19" fill="#101e1a" opacity=".65"/><ellipse cx="300" cy="277" rx="48" ry="16" fill="#6f805b"/><circle cx="300" cy="242" r="22" fill="#d9c26f"/></g>
+        <g fill="#9fe07a"><circle cx="112" cy="233" r="6"/><circle cx="136" cy="247" r="4"/><circle cx="493" cy="212" r="5"/><circle cx="515" cy="228" r="3"/></g>
+        <g fill="#0c251d"><path d="M0 500v-145q40 0 64 42t56 12v91zM640 500V354q-45 4-70 55t-55 11v80z"/></g>
+      </svg>
+      <div class="copy"><span class="tag">Most atmospheric</span><h2>Canopy & Ruins</h2><p>A strong foreground frame gives the world a diorama feel. Fog and moonlit clearings separate the route into readable, magical little stages.</p></div>
+    </article>
+
+    <article tabindex="0" data-name="Skybound Tower">
+      <svg viewBox="0 0 640 500" role="img" aria-label="Arcane tower map built from floating stone islands over a starry void">
+        <defs><radialGradient id="voidC"><stop stop-color="#3a3c82"/><stop offset="1" stop-color="#11152e"/></radialGradient><linearGradient id="stoneC" x2="0" y2="1"><stop stop-color="#7f78a9"/><stop offset="1" stop-color="#3d395e"/></linearGradient></defs>
+        <rect width="640" height="500" fill="url(#voidC)"/><g fill="#fff"><circle cx="50" cy="70" r="2"/><circle cx="119" cy="131" r="3"/><circle cx="180" cy="63" r="1"/><circle cx="285" cy="105" r="2"/><circle cx="387" cy="54" r="2"/><circle cx="520" cy="109" r="3"/><circle cx="592" cy="44" r="1"/><circle cx="604" cy="324" r="2"/><circle cx="67" cy="370" r="2"/></g>
+        <g fill="#6e62bc" opacity=".5"><circle cx="81" cy="206" r="55"/><circle cx="552" cy="292" r="77"/><circle cx="431" cy="111" r="43"/></g>
+        <g stroke="#17142d" stroke-width="8" stroke-linejoin="round"><path d="M-10 434l177-60 42 41 161-80 47 44 223-88V500H-10z" fill="#292644"/><path d="M-10 424l177-60 42 41 161-80 47 44 223-88v44l-223 88-47-44-161 80-42-41-177 60z" fill="url(#stoneC)"/></g>
+        <g stroke="#201b38" stroke-width="26" fill="none"><path d="M63 399Q126 346 204 366T328 295T443 247T567 140"/></g><g stroke="#8c7cde" stroke-width="16" fill="none"><path d="M63 391Q126 338 204 358T328 287T443 239T567 132"/></g><g stroke="#eadfff" stroke-width="3" fill="none"><path d="M63 386Q126 333 204 353T328 282T443 234T567 127"/></g>
+        <g transform="translate(491 52)"><path d="M40 0l35 58h-15v95H20V58H5z" fill="#382f64"/><path d="M40 0l20 58H20z" fill="#bcadff"/><rect x="26" y="73" width="28" height="32" fill="#e6c3ff"/><path d="M17 153h46l-8 18H25z" fill="#201a3e"/></g>
+        <g><ellipse cx="438" cy="255" rx="64" ry="20" fill="#100e28" opacity=".8"/><path d="M388 248v23q50 27 100 0v-23z" fill="#38325b"/><ellipse cx="438" cy="248" rx="50" ry="18" fill="#8377b6"/><ellipse cx="424" cy="242" rx="24" ry="6" fill="#d9cbff" opacity=".6"/><circle cx="438" cy="216" r="24" fill="#e7b0ff"/></g>
+        <g fill="#f6d96b"><circle cx="283" cy="321" r="4"/><circle cx="303" cy="306" r="3"/><circle cx="332" cy="291" r="5"/><circle cx="473" cy="180" r="4"/></g>
+      </svg>
+      <div class="copy"><span class="tag">Most dramatic</span><h2>Skybound Tower</h2><p>Floating stone slabs, void depth, and glowing bridge-routes make World 5 feel like a climactic climb—not a conventional flat map.</p></div>
+    </article>
+  </section>
+
+  <section class="notes">
+    <div><h3>Shared production rules</h3><ul><li>Keep the path, active node, and typed-word UI as the brightest/highest-contrast elements.</li><li>Build depth with silhouettes, contact shadows, top/side material faces, and parallax—not realism or a busy camera angle.</li><li>Use each world’s atmosphere as a framing layer, leaving a clean central route corridor.</li></ul></div>
+    <div><h3>My recommendation</h3><p><strong>Storybook Steps</strong> should be the baseline for Worlds 1–3. Use <strong>Canopy & Ruins</strong> as the World 4 escalation, then let <strong>Skybound Tower</strong> make World 5 feel unmistakably special.</p></div>
+  </section>
+  <footer>Click a concept to mark it for discussion. These are original visual studies, not production assets.</footer>
+</main>
+<script>
+  document.querySelectorAll('article').forEach(card => card.addEventListener('click', () => {
+    document.querySelectorAll('article').forEach(item => item.classList.remove('selected'));
+    card.classList.add('selected');
+    document.title = `Keyboard Quest — ${card.dataset.name}`;
+  }));
+</script>
+</body>
+</html>
