@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keyboard Quest — Heartland 2.5D Concepts</title>
+  <style>
+    :root { --ink:#1c160f; --paper:#f6eedc; --accent:#e7b84d; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#d7c8ad; color:var(--ink); font:16px/1.45 Georgia, serif; }
+    main { max-width:1440px; padding:38px 26px 58px; margin:auto; }
+    header { border-bottom:4px solid var(--ink); display:flex; align-items:end; justify-content:space-between; gap:24px; padding-bottom:18px; margin-bottom:26px; }
+    .eyebrow { font:700 11px/1 Arial,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:#73552c; margin-bottom:9px; }
+    h1 { font-size:clamp(2rem,4.8vw,4.2rem); letter-spacing:-.055em; line-height:.9; margin:0; }
+    header p { max-width:490px; margin:0; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+    article { background:var(--paper); border:3px solid var(--ink); box-shadow:8px 8px 0 #8a7658; overflow:hidden; }
+    canvas { display:block; width:100%; aspect-ratio:16/9; background:#89cee6; image-rendering:pixelated; cursor:pointer; }
+    .body { padding:16px 19px 20px; }
+    h2 { margin:0 0 8px; font-size:1.5rem; letter-spacing:-.035em; }
+    p { margin:0; }
+    .tag { display:inline-block; background:#293d31; color:#fff; padding:3px 7px; margin-bottom:8px; font:700 10px Arial,sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+    .tag.gold { background:#8e5427; }
+    .detail { border-top:1px solid #bba888; margin-top:13px; padding-top:12px; color:#514532; font-size:.92rem; }
+    .brief { margin-top:31px; padding:21px; background:#f6eedc; border:2px solid var(--ink); display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    h3 { margin:0 0 8px; font-size:1.14rem; }
+    ul { margin:0; padding-left:19px; }
+    footer { margin-top:18px; color:#5d4d39; font:12px Arial,sans-serif; }
+    @media (max-width:850px) { .grid { grid-template-columns:1fr; } header,.brief { display:block; } header p,.brief > div+div { margin-top:18px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header><div><div class="eyebrow">Keyboard Quest / World 1 art exploration</div><h1>THE HEARTLAND<br>IN 2.5D</h1></div><p>Four production-minded visual directions for the actual desktop overworld screen: the same readable node route, hero, village, and HUD—only the terrain, depth, and staging change.</p></header>
+  <section class="grid">
+    <article><canvas id="terraces" width="960" height="540" aria-label="Heartland terrace route concept"></canvas><div class="body"><span class="tag gold">Strong baseline</span><h2>01 — Terrace Trail</h2><p>Turn the current flat meadow into a series of raised grassy shelves. The route travels over clay paths and tiny bridges; the visible soil sides create the 2.5D read at every turn.</p><p class="detail"><strong>Production move:</strong> add terrain-side tiles, short bridge props, and node plinths; preserves today’s map layout almost exactly.</p></div></article>
+    <article><canvas id="river" width="960" height="540" aria-label="Heartland river route concept"></canvas><div class="body"><span class="tag">Environmental storytelling</span><h2>02 — River & Mill</h2><p>A shallow river cuts through the existing progression route. Nodes sit on distinct banks, with a small mill/village landmark near the start and a waterfall at the boss approach.</p><p class="detail"><strong>Production move:</strong> water animation plus a few large landmarks make movement through World 1 feel like an adventure, not a menu.</p></div></article>
+    <article><canvas id="village" width="960" height="540" aria-label="Heartland village route concept"></canvas><div class="body"><span class="tag">Most readable</span><h2>03 — Village to Keep</h2><p>Build the route as a climbing story: cozy village → orchard → hilltop fort. Each band has a different elevation, so the player can read progress at a glance.</p><p class="detail"><strong>Production move:</strong> use large compositional zones instead of filling every empty tile with decoration; ideal for younger players.</p></div></article>
+    <article><canvas id="golden" width="960" height="540" aria-label="Heartland golden hour route concept"></canvas><div class="body"><span class="tag gold">Most cinematic</span><h2>04 — Golden-Hour March</h2><p>Keep the playable terrain clean, but add depth through far hills, close tree silhouettes, long warm shadows, and a sunlit boss keep in the distance.</p><p class="detail"><strong>Production move:</strong> parallax layers and directional lighting raise the visual bar without requiring every asset to become high-detail.</p></div></article>
+  </section>
+  <section class="brief"><div><h3>Every version retains the real game affordances</h3><ul><li>Golden completed nodes, locked gray nodes, and a bright active hero.</li><li>A single high-contrast route that reads underneath the typing/HUD layer.</li><li>World title, player level, gold, and bottom navigation in the same locations as the game.</li></ul></div><div><h3>My recommendation</h3><p>Use <strong>Terrace Trail</strong> as the map’s structural language, then borrow <strong>Golden-Hour March</strong> for its parallax and lighting. It gets the 16-bit diorama feeling while staying feasible in Phaser with generated tiles and layered graphics.</p></div></section>
+  <footer>Click any concept image to toggle its “selected” border. These are original design studies based on Keyboard Quest’s real World 1 map composition.</footer>
+</main>
+<script>
+const C = (id) => document.getElementById(id), S = 960/640;
+function rect(g,x,y,w,h,c){g.fillStyle=c;g.fillRect(x*S,y*S,w*S,h*S)}
+function ellipse(g,x,y,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(x*S,y*S,rx*S,ry*S,0,0,Math.PI*2);g.fill()}
+function poly(g,p,c){g.fillStyle=c;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x*S,y*S):g.moveTo(x*S,y*S));g.closePath();g.fill()}
+function line(g,p,w,c){g.strokeStyle=c;g.lineWidth=w*S;g.lineJoin='round';g.lineCap='round';g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x*S,y*S):g.moveTo(x*S,y*S));g.stroke()}
+function ui(g){rect(g,0,0,640,28,'rgba(18,31,36,.72)');g.font=`bold ${11*S}px Arial`;g.fillStyle='#fff';g.fillText('Art Preview   Lv. 3',14*S,18*S);g.fillStyle='#ffe16b';g.fillText('Gold: 125',565*S,18*S);ellipse(g,320,20,94,13,'#243435');g.fillStyle='#ffe873';g.textAlign='center';g.font=`bold ${13*S}px Arial`;g.fillText('WORLD 1 — THE HEARTLAND',320*S,24*S);rect(g,0,332,640,28,'rgba(18,31,36,.8)');g.font=`bold ${9*S}px Arial`;g.fillStyle='#fff';g.fillText('🧭 FIND HERO     🏆 TROPHIES     🍺 TAVERN     🐴 STABLE     🛒 SHOP     👤 CHARACTER',320*S,352*S);g.textAlign='left'}
+function tree(g,x,y,scale=1,front=false){ellipse(g,x+5*scale,y+30*scale,18*scale,5*scale,'rgba(17,49,25,.35)');rect(g,x-3*scale,y+7*scale,7*scale,26*scale,'#634025');ellipse(g,x,y,14*scale,17*scale,front?'#1b542f':'#326f38');ellipse(g,x-8*scale,y+6*scale,10*scale,12*scale,front?'#174429':'#458a42');ellipse(g,x+9*scale,y+4*scale,11*scale,14*scale,front?'#245f32':'#4f9545');ellipse(g,x-4*scale,y-5*scale,9*scale,8*scale,'#76ad51')}
+function cottage(g,x,y){ellipse(g,x+24,y+39,35,8,'rgba(26,42,25,.35)');poly(g,[[x+3,y+20],[x+45,y+20],[x+45,y+41],[x+3,y+41]],'#d6a66a');poly(g,[[x,y+22],[x+24,y+2],[x+49,y+22]],'#b64832');poly(g,[[x+4,y+20],[x+24,y+4],[x+42,y+20]],'#ed7350');rect(g,x+20,y+28,8,13,'#6b482b');rect(g,x+7,y+28,8,7,'#8bd3e1');rect(g,x+34,y+28,7,7,'#8bd3e1')}
+function node(g,x,y,state='open'){const shadow=state==='boss'?'#3a271e':'rgba(25,39,20,.42)';ellipse(g,x+3,y+15,state==='boss'?31:20,state==='boss'?10:7,shadow);ellipse(g,x,y+10,state==='boss'?30:19,state==='boss'?10:7,'#6a482b');ellipse(g,x,y+7,state==='boss'?30:19,state==='boss'?10:7,state==='locked'?'#6f7372':'#b98343');ellipse(g,x-4,y+4,state==='boss'?18:11,state==='boss'?4:3,'rgba(255,236,166,.5)');ellipse(g,x,y-5,state==='boss'?15:9,state==='boss'?15:9,state==='boss'?'#e8684d':state==='locked'?'#8c9090':'#f7d75d');g.fillStyle=state==='locked'?'#4f5355':'#fff3a5';g.font=`bold ${state==='boss'?17:12*S}px Arial`;g.textAlign='center';g.fillText(state==='boss'?'⚔':'★',x*S,(y-1)*S);g.textAlign='left'}
+function hero(g,x,y){ellipse(g,x+3,y+10,10,3,'rgba(20,27,19,.42)');poly(g,[[x-7,y+4],[x+7,y+4],[x+5,y-10],[x-5,y-10]],'#4f75b8');ellipse(g,x,y-14,7,8,'#f0c28e');poly(g,[[x-8,y-19],[x,y-27],[x+8,y-19]],'#d85a45');rect(g,x-5,y+2,4,8,'#3f4353');rect(g,x+2,y+2,4,8,'#3f4353')}
+function route(g,points){line(g,points,14,'#3b2719');line(g,points,9,'#d48a42');line(g,points.map(([x,y])=>[x,y-2]),2,'#ffe49b')}
+function sky(g,kind){let grad=g.createLinearGradient(0,0,0,540);grad.addColorStop(0,kind==='golden'?'#f7b864':kind==='river'?'#8bd7ef':'#8acde3');grad.addColorStop(1,kind==='golden'?'#f0dc8d':'#dff1c9');g.fillStyle=grad;g.fillRect(0,0,960,540);if(kind==='golden'){ellipse(g,510,56,34,34,'#ffe68b');} for(let i=0;i<5;i++) ellipse(g,76+i*134,55+(i%2)*13,40,8,'rgba(255,255,255,.35)')}
+function base(g,kind){sky(g,kind);poly(g,[[0,190],[74,152],[155,181],[239,135],[340,176],[438,138],[532,170],[640,118],[640,360],[0,360]],kind==='golden'?'#668c55':'#6a9d58');poly(g,[[0,207],[74,169],[155,198],[239,152],[340,193],[438,155],[532,187],[640,135],[640,360],[0,360]],'#78aa57');for(let x=20;x<640;x+=62) ellipse(g,x,264+(x%4)*3,30,11,'rgba(63,118,50,.20)')}
+function terraces(){const g=C('terraces').getContext('2d');base(g,'terrace');poly(g,[[0,268],[130,237],[232,259],[349,222],[470,245],[640,197],[640,360],[0,360]],'#386d3b');poly(g,[[0,255],[130,224],[232,246],[349,209],[470,232],[640,184],[640,321],[0,321]],'#82b651');poly(g,[[0,321],[640,321],[640,360],[0,360]],'#324e2d');let pts=[[72,270],[148,234],[226,246],[303,210],[393,231],[485,190],[574,162]];route(g,pts);tree(g,34,202,1.2);tree(g,584,123,1.1);tree(g,620,241,1.35,true);cottage(g,45,252);node(g,72,270);node(g,226,246,'open');node(g,393,231,'locked');node(g,574,162,'boss');hero(g,148,234);ui(g)}
+function river(){const g=C('river').getContext('2d');base(g,'river');poly(g,[[272,190],[336,181],[345,212],[320,239],[336,276],[314,320],[348,360],[282,360],[253,322],[274,278],[258,239],[280,210]],'#3179a0');poly(g,[[286,192],[316,188],[326,213],[303,241],[320,276],[300,320],[327,359],[304,359],[270,321],[290,278],[274,239],[295,210]],'#72c8de');for(let y=210;y<330;y+=26)line(g,[[285,y],[319,y+3]],2,'rgba(255,255,255,.65)');let pts=[[62,282],[137,248],[218,252],[270,232],[348,226],[420,190],[562,138]];route(g,pts);poly(g,[[270,222],[348,216],[356,235],[278,243]],'#744426');for(let x=278;x<348;x+=12)line(g,[[x,219],[x+4,238]],2,'#d39a52');cottage(g,40,260);tree(g,110,185,1.15);tree(g,520,104,1.2);tree(g,600,238,1.3,true);node(g,62,282);node(g,218,252);node(g,420,190,'locked');node(g,562,138,'boss');hero(g,137,248);ui(g)}
+function village(){const g=C('village').getContext('2d');base(g,'village');poly(g,[[0,286],[188,286],[188,239],[390,239],[390,188],[640,188],[640,360],[0,360]],'#3d6638');poly(g,[[0,267],[188,267],[188,220],[390,220],[390,169],[640,169],[640,323],[0,323]],'#8fbc60');poly(g,[[0,323],[640,323],[640,360],[0,360]],'#314a2f');poly(g,[[188,220],[390,220],[390,239],[188,239]],'#6d4629');poly(g,[[390,169],[640,169],[640,188],[390,188]],'#6d4629');let pts=[[66,283],[137,259],[209,231],[294,230],[410,180],[507,174],[583,143]];route(g,pts);cottage(g,28,249);cottage(g,92,239);tree(g,243,185,.9);tree(g,283,179,.8);tree(g,350,201,.8);poly(g,[[565,81],[604,81],[620,144],[548,144]],'#675e65');poly(g,[[550,91],[584,52],[615,91]],'#a74b3b');rect(g,581,108,8,18,'#2c3641');node(g,66,283);node(g,209,231);node(g,410,180,'locked');node(g,583,143,'boss');hero(g,137,259);ui(g)}
+function golden(){const g=C('golden').getContext('2d');base(g,'golden');poly(g,[[0,274],[112,236],[242,261],[365,215],[490,244],[640,184],[640,360],[0,360]],'#315f42');poly(g,[[0,258],[112,220],[242,245],[365,199],[490,228],[640,168],[640,325],[0,325]],'#7eae55');let pts=[[66,278],[142,241],[226,250],[314,212],[411,224],[498,177],[575,146]];route(g,pts);g.globalAlpha=.22;poly(g,[[0,195],[365,0],[500,0],[145,325]],'#f8b443');g.globalAlpha=1;tree(g,36,191,1.6,true);tree(g,610,124,1.5,true);tree(g,566,208,1.15);cottage(g,82,247);node(g,66,278);node(g,226,250);node(g,411,224,'locked');node(g,575,146,'boss');hero(g,142,241);ui(g)}
+terraces();river();village();golden();document.querySelectorAll('canvas').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('article').forEach(a=>a.style.outline='');c.closest('article').style.outline='4px solid #e7b84d'}));
+</script>
+</body>
+</html>
